@@ -48,8 +48,8 @@ app.get('/data', async (req, res) => {
                 seriesData[row.series_id].books[row.book_id] = {
                     book_id: row.book_id,
                     name: row.bookName,
-                    startedReading: row.startedReading ? row.startedReading.toISOString().split('T')[0] : null,
-                    endedReading: row.endedReading ? row.endedReading.toISOString().split('T')[0] : null,
+                    startedReading: row.startedReading ? formatDateToLocal(row.startedReading) : null,
+                    endedReading: row.endedReading ? formatDateToLocal(row.endedReading) : null,
                     chapters: []
                 };
             }
@@ -57,10 +57,16 @@ app.get('/data', async (req, res) => {
                 seriesData[row.series_id].books[row.book_id].chapters.push({
                     chapter_id: row.chapter_id,
                     name: row.chapterName,
-                    date: row.date ? row.date.toISOString().split('T')[0] : null
+                    date: row.date ? formatDateToLocal(row.date) : null
                 });
             }
         });
+        
+        function formatDateToLocal(date) {
+            return new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
+                .toISOString()
+                .split("T")[0];
+        }
 
         const seriesArray = Object.values(seriesData).map(series => ({
             ...series,
