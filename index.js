@@ -24,14 +24,14 @@ app.get('/data', async (req, res) => {
     try {
         conn = await pool.getConnection();
         const query = `
-            SELECT Series.series_id, Series.seriesName, Series.img, 
-                   Books.book_id, Books.name AS bookName, Books.startedReading, Books.endedReading, 
-                   Chapters.chapter_id, Chapters.name AS chapterName, Chapters.date
-            FROM Series
-            LEFT JOIN Books ON Series.series_id = Books.series_id
-            LEFT JOIN Chapters ON Books.book_id = Chapters.book_id
-            ORDER BY Series.series_id, Books.book_id, Chapters.chapter_id;
-        `;
+        SELECT series.series_id, series.seriesName, series.img, 
+               books.book_id, books.name AS bookName, books.startedReading, books.endedReading, 
+               chapters.chapter_id, chapters.name AS chapterName, chapters.date
+        FROM series
+        LEFT JOIN books ON series.series_id = books.series_id
+        LEFT JOIN chapters ON books.book_id = chapters.book_id
+        ORDER BY series.series_id, books.book_id, chapters.chapter_id;
+    `;
         const rows = await conn.query(query);
         
         const seriesData = {};
