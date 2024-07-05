@@ -77,10 +77,26 @@ app.get('/data', async (req, res) => {
                 .split("T")[0];
         }
 
-        const seriesArray = Object.values(seriesData).map(series => ({
+        let seriesArray = Object.values(seriesData).map(series => ({
             ...series,
             books: Object.values(series.books)
         }));
+
+        if (req.query.clear === 'true') {
+            seriesArray = seriesArray.map(series => ({
+                seriesName: series.seriesName,
+                img: series.img,
+                books: series.books.map(book => ({
+                    name: book.name,
+                    startedReading: book.startedReading,
+                    endedReading: book.endedReading,
+                    chapters: book.chapters.map(chapter => ({
+                        name: chapter.name,
+                        date: chapter.date
+                    }))
+                }))
+            }));
+        }
 
         res.send(seriesArray);
     } catch (err) {
