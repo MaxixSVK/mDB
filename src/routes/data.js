@@ -202,8 +202,23 @@ module.exports = function(pool) {
         try {
             conn = await pool.getConnection();
             const { series_id } = req.params;
-            const query = 'SELECT book_id, name FROM books WHERE series_id = ?';
+            const query = 'SELECT book_id, startedReading, endedReading, name FROM books WHERE series_id = ?';
             const rows = await conn.query(query, [series_id]);
+            res.send(rows);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.end();
+        }
+    });
+
+    router.get('/list-chapters/:book_id', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { book_id } = req.params;
+            const query = 'SELECT chapter_id, date, name FROM chapters WHERE book_id = ?';
+            const rows = await conn.query(query, [book_id]);
             res.send(rows);
         } catch (err) {
             next(err);
