@@ -100,24 +100,55 @@ module.exports = function(pool) {
             conn = await pool.getConnection();
             const { type, ...data } = req.body;
     
+            let sql = '';
+            let params = [];
+            let columns = [];
+            let placeholders = [];
+    
             switch (type) {
                 case 'series':
                     if (!data.seriesName) return res.status(400).send('Missing series name');
-                    await conn.query('INSERT INTO series (seriesName, img) VALUES (?, ?)', [data.seriesName, data.img]);
+                    Object.entries(data).forEach(([key, value]) => {
+                        if (value !== '') {
+                            columns.push(key);
+                            placeholders.push('?');
+                            params.push(value);
+                        }
+                    });
+                    sql = `INSERT INTO series (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`;
                     break;
                 case 'book':
                     if (!data.name || !data.series_id) return res.status(400).send('Missing book name or series ID');
-                    await conn.query('INSERT INTO books (name, startedReading, endedReading, series_id) VALUES (?, ?, ?, ?)', [data.name, data.startedReading, data.endedReading, data.series_id]);
+                    Object.entries(data).forEach(([key, value]) => {
+                        if (value !== '') {
+                            columns.push(key);
+                            placeholders.push('?');
+                            params.push(value);
+                        }
+                    });
+                    sql = `INSERT INTO books (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`;
                     break;
                 case 'chapter':
                     if (!data.name || !data.book_id) return res.status(400).send('Missing chapter name or book ID');
-                    await conn.query('INSERT INTO chapters (name, date, book_id) VALUES (?, ?, ?)', [data.name, data.date, data.book_id]);
+                    Object.entries(data).forEach(([key, value]) => {
+                        if (value !== '') {
+                            columns.push(key);
+                            placeholders.push('?');
+                            params.push(value);
+                        }
+                    });
+                    sql = `INSERT INTO chapters (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`;
                     break;
                 default:
                     return res.status(400).send('Invalid type specified');
             }
     
-            res.send(`${type} added successfully`);
+            if (params.length > 0) {
+                await conn.query(sql, params);
+                res.send(`${type} added successfully`);
+            } else {
+                res.send(`No valid fields provided to add ${type}`);
+            }
         } catch (err) {
             next(err);
         } finally {
@@ -130,23 +161,68 @@ module.exports = function(pool) {
         try {
             conn = await pool.getConnection();
             const { type, id } = req.params;
-            const { name, startedReading, endedReading, date } = req.body;
+            const { seriesName, img, startedReading, endedReading, name, date } = req.body;
+    
+            let sql = '';
+            let params = [];
     
             switch (type) {
                 case 'series':
-                    await conn.query('UPDATE series SET seriesName = ? WHERE series_id = ?', [name, id]);
+                    sql = 'UPDATE series SET ';
+                    if (seriesName !== '') {
+                        sql += 'seriesName = ?, ';
+                        params.push(seriesName);
+                    }
+                    if (img !== '') {
+                        sql += 'img = ?, ';
+                        params.push(img);
+                    }
+                    sql = sql.slice(0, -2);
+                    sql += ' WHERE series_id = ?';
+                    params.push(id);
                     break;
                 case 'book':
-                    await conn.query('UPDATE books SET name = ?, startedReading = ?, endedReading = ? WHERE book_id = ?', [name, startedReading, endedReading, id]);
+                    sql = 'UPDATE books SET ';
+                    if (name !== '') {
+                        sql += 'name = ?, ';
+                        params.push(name);
+                    }
+                    if (startedReading !== '') {
+                        sql += 'startedReading = ?, ';
+                        params.push(startedReading);
+                    }
+                    if (endedReading !== '') {
+                        sql += 'endedReading = ?, ';
+                        params.push(endedReading);
+                    }
+                    sql = sql.slice(0, -2);
+                    sql += ' WHERE book_id = ?';
+                    params.push(id);
                     break;
                 case 'chapter':
-                    await conn.query('UPDATE chapters SET name = ?, date = ? WHERE chapter_id = ?', [name, date, id]);
+                    sql = 'UPDATE chapters SET ';
+                    if (name !== '') {
+                        sql += 'name = ?, ';
+                        params.push(name);
+                    }
+                    if (date !== '') {
+                        sql += 'date = ?, ';
+                        params.push(date);
+                    }
+                    sql = sql.slice(0, -2);
+                    sql += ' WHERE chapter_id = ?';
+                    params.push(id);
                     break;
                 default:
                     return res.status(400).send('Invalid type specified');
             }
     
-            res.send(`${type} updated successfully`);
+            if (params.length > 1) { 
+                await conn.query(sql, params);
+                res.send(`${type} updated successfully`);
+            } else {
+                res.send(`No valid fields provided to update ${type}`);
+            }
         } catch (err) {
             next(err);
         } finally {
