@@ -16,6 +16,7 @@ const pool = mariadb.createPool({
 });
 
 app.use('/', require('./routes/data')(pool));
+app.use('/', require('./routes/publicData')(pool));
 
 app.get('/', (req, res) => {
     res.send('Server-chan: Hello, world!');
