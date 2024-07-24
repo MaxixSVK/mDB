@@ -24,6 +24,7 @@ module.exports = function (pool) {
                         series_id: row.series_id,
                         seriesName: row.seriesName,
                         img: row.img,
+                        type: row.type,
                         books: {}
                     };
                 }
