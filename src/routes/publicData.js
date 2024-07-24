@@ -7,14 +7,14 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const query = `
-            SELECT series.series_id, series.seriesName, series.img, 
+            SELECT series.series_id, series.seriesName, series.img, series.type, 
                    books.book_id, books.name AS bookName, books.startedReading, books.endedReading, 
                    chapters.chapter_id, chapters.name AS chapterName, chapters.date
             FROM series
             LEFT JOIN books ON series.series_id = books.series_id
             LEFT JOIN chapters ON books.book_id = chapters.book_id
             ORDER BY series.series_id, books.book_id, chapters.chapter_id;
-        `;
+`;
             const rows = await conn.query(query);
 
             const seriesData = {};
