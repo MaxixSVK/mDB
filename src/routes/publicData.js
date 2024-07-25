@@ -7,7 +7,7 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const query = `
-            SELECT series.series_id, series.seriesName, series.img, series.type, 
+            SELECT series.series_id, series.seriesName, series.img, series.seriesType, 
                    books.book_id, books.name AS bookName, books.startedReading, books.endedReading, 
                    chapters.chapter_id, chapters.name AS chapterName, chapters.date
             FROM series
@@ -24,7 +24,7 @@ module.exports = function (pool) {
                         series_id: row.series_id,
                         seriesName: row.seriesName,
                         img: row.img,
-                        type: row.type,
+                        seriesType: row.seriesType,
                         books: {}
                     };
                 }
