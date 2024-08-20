@@ -45,10 +45,13 @@ module.exports = function (pool) {
             const { sql, params } = buildInsertQuery(type, data);
 
             if (params.length > 0) {
-                await conn.query(sql, params);
-                res.send(`${type} added successfully`);
+                const result = await conn.query(sql, params);
+                if (result.affectedRows === 0) {
+                    return res.status(500).send(`Failed to add ${type}`);
+                }
+                res.send({ msg: `${type} added successfully` });
             } else {
-                res.send(`No valid fields provided to add ${type}`);
+                res.send({ msg: `No valid fields provided to add ${type}` });
             }
         } catch (err) {
             next(err);
@@ -95,10 +98,13 @@ module.exports = function (pool) {
             const { sql, params } = buildUpdateQuery(type, data, id);
 
             if (params.length > 1) { 
-                await conn.query(sql, params);
-                res.send(`${type} updated successfully`);
+                const result = await conn.query(sql, params);
+                if (result.affectedRows === 0) {
+                    return res.status(404).send(`${type} not found or no changes made`);
+                }
+                res.send({ msg: `${type} updated successfully` });
             } else {
-                res.send(`No valid fields provided to update ${type}`);
+                res.send({ msg: `No valid fields provided to update ${type}` });
             }
         } catch (err) {
             next(err);
@@ -109,9 +115,10 @@ module.exports = function (pool) {
 
     router.delete('/delete-data/:type/:id', checkApiKey, async (req, res, next) => {
         let conn;
+        let type, id;
         try {
             conn = await pool.getConnection();
-            const { type, id } = req.params;
+            ({ type, id } = req.params);
     
             const validTypes = ['series', 'books', 'chapters'];
             if (!validTypes.includes(type)) {
@@ -119,17 +126,24 @@ module.exports = function (pool) {
             }
     
             const tableName = type;
-
+    
             const primaryKeyMapping = {
                 series: 'series_id',
                 books: 'book_id', 
                 chapters: 'chapter_id'
             };
     
-            await conn.query(`DELETE FROM ${tableName} WHERE ${primaryKeyMapping[type]} = ?`, [id]);
+            const result = await conn.query(`DELETE FROM ${tableName} WHERE ${primaryKeyMapping[type]} = ?`, [id]);
     
-            res.send(`${type} deleted successfully`);
+            if (result.affectedRows === 0) {
+                return res.status(404).send(`${type} not found`);
+            }
+    
+            res.send({ msg: `${type} with ID ${id} deleted successfully` });
         } catch (err) {
+            if (err.code === 'ER_ROW_IS_REFERENCED_2') {
+                return res.status(409).send({ msg: `${type} with ID ${id} is referenced in another table` });
+            }
             next(err);
         } finally {
             if (conn) conn.end();
