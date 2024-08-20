@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 module.exports = function (pool) {
     const apiKey = process.env.API_KEY;
@@ -148,6 +151,24 @@ module.exports = function (pool) {
         } finally {
             if (conn) conn.end();
         }
+    });
+
+    router.get('/backup-db', checkApiKey, async (req, res, next) => {
+        const dumpFile = path.join(__dirname, 'backup.sql');
+        const command = `mariadb-dump -u ${process.env.DB_USER} -p${process.env.DB_PASSWORD} ${process.env.DB_NAME} > ${dumpFile}`;
+
+        exec(command, (error, stdout, stderr) => {
+            if (error) {
+                return next(error);
+            }
+            res.download(dumpFile, 'backup.sql', (err) => {
+                if (err) {
+                    next(err);
+                } else {
+                    fs.unlinkSync(dumpFile);
+                }
+            });
+        });
     });
 
     return router;
