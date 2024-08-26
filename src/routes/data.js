@@ -5,16 +5,9 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = function (pool) {
-    const apiKey = process.env.API_KEY;
-    function checkApiKey(req, res, next) {
-        if (req.headers['api-key'] === apiKey) {
-            next();
-        } else {
-            res.status(401).send('Invalid API key');
-        }
-    }
+    const validate = require('../auth/tokenValidation')(pool, admin = true);
 
-    router.post('/admin', checkApiKey, async (req, res) => {
+    router.post('/admin', validate, async (req, res) => {
         res.status(200).send('OK');
     });
 
@@ -35,7 +28,7 @@ module.exports = function (pool) {
         return { sql, params };
     }
 
-    router.post('/add-data', checkApiKey, async (req, res, next) => {
+    router.post('/add-data', validate, async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
@@ -87,7 +80,7 @@ module.exports = function (pool) {
         return { sql, params };
     }
 
-    router.put('/update-data/:type/:id', checkApiKey, async (req, res, next) => {
+    router.put('/update-data/:type/:id', validate, async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
@@ -116,7 +109,7 @@ module.exports = function (pool) {
         }
     });
 
-    router.delete('/delete-data/:type/:id', checkApiKey, async (req, res, next) => {
+    router.delete('/delete-data/:type/:id', validate, async (req, res, next) => {
         let conn;
         let type, id;
         try {
@@ -153,7 +146,7 @@ module.exports = function (pool) {
         }
     });
 
-    router.get('/backup-db', checkApiKey, async (req, res, next) => {
+    router.get('/backup-db', validate, async (req, res, next) => {
         const dumpFile = path.join(__dirname, 'backup.sql');
         const command = `mariadb-dump -u ${process.env.DB_USER} -p${process.env.DB_PASSWORD} ${process.env.DB_NAME} > ${dumpFile}`;
 
