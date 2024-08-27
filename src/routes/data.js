@@ -35,7 +35,7 @@ module.exports = function (pool) {
             const { type, ...data } = req.body;
 
             if (!['series', 'books', 'chapters'].includes(type)) {
-                return res.status(400).send('Invalid type specified');
+                return res.status(400).send({ msg: 'Invalid type specified' });
             }
 
             const { sql, params } = buildInsertQuery(type, data);
@@ -88,7 +88,7 @@ module.exports = function (pool) {
             const data = req.body;
 
             if (!['series', 'books', 'chapters'].includes(type)) {
-                return res.status(400).send('Invalid type specified');
+                return res.status(400).send({ msg: 'Invalid type specified' });
             }
 
             const { sql, params } = buildUpdateQuery(type, data, id);
@@ -118,7 +118,7 @@ module.exports = function (pool) {
     
             const validTypes = ['series', 'books', 'chapters'];
             if (!validTypes.includes(type)) {
-                return res.status(400).send('Invalid type specified');
+                return res.status(400).send({ msg: 'Invalid type specified' });
             }
     
             const tableName = type;
@@ -132,7 +132,7 @@ module.exports = function (pool) {
             const result = await conn.query(`DELETE FROM ${tableName} WHERE ${primaryKeyMapping[type]} = ?`, [id]);
     
             if (result.affectedRows === 0) {
-                return res.status(404).send(`${type} not found`);
+                return res.status(404).send({ msg: `${type} with ID ${id} not found` });
             }
     
             res.send({ msg: `${type} with ID ${id} deleted successfully` });

@@ -13,7 +13,7 @@ module.exports = function (pool) {
         // Temporarily disable registration
         const forceRegistration = req.headers['force-registration'];
         if (forceRegistration !== process.env.FORCE_REGISTRATION) {
-            return res.status(403).json({ error: 'Registration is disabled' });
+            return res.status(403).send({ msg: 'Registration is disabled' });
         }
     
         try {
@@ -25,7 +25,7 @@ module.exports = function (pool) {
             );
     
             if (existingUsername) {
-                return res.status(409).json({ error: 'Username is already in use' });
+                return res.status(409).send({ msg: 'Username is already in use' });
             }
     
             const [existingEmail] = await connection.query(
@@ -34,7 +34,7 @@ module.exports = function (pool) {
             );
     
             if (existingEmail) {
-                return res.status(409).json({ error: 'Email is already in use' });
+                return res.status(409).send({ msg: 'Email is already in use' });
             }
     
             const result = await connection.query(
@@ -61,7 +61,7 @@ module.exports = function (pool) {
             );
     
             connection2.release();
-            res.status(200).json({ sessionToken: tokenWithUserId + ':' + rows2.id });
+            res.status(200).send({ sessionToken: tokenWithUserId + ':' + rows2.id });
         } catch (error) {
             next(error);
         }
@@ -81,14 +81,14 @@ module.exports = function (pool) {
             connection.release();
     
             if (rows.length === 0) {
-                return res.status(404).json({ error: 'User not found' });
+                return res.status(404).send({ msg: 'User not found' });
             }
     
             const user = rows[0];
             const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     
             if (!isPasswordValid) {
-                return res.status(401).json({ error: 'Invalid password' });
+                return res.status(401).send({ msg: 'Invalid password' });
             }
     
             const sessionToken = await bcrypt.genSalt(saltRounds);
@@ -108,7 +108,7 @@ module.exports = function (pool) {
             );
     
             connection2.release();
-            res.status(200).json({ sessionToken: tokenWithUserId + ':' + rows2.id });
+            res.status(200).send({ sessionToken: tokenWithUserId + ':' + rows2.id });
         } catch (error) {
             next(error);
         }

@@ -17,7 +17,7 @@ module.exports = function (pool) {
             );
             connection.release();
 
-            res.status(200).json(rows[0]);
+            res.status(200).send(rows[0]);
         } catch (error) {
             next(error);
         }
@@ -32,7 +32,7 @@ module.exports = function (pool) {
             );
             connection.release();
     
-            res.status(200).json({ message: 'Logged out' });
+            res.status(200).send({ msg: 'Logged out' });
         } catch (error) {
             next(error);
         }
@@ -47,7 +47,7 @@ module.exports = function (pool) {
             );
             connection.release();
     
-            res.status(200).json({ message: 'Logged out from all devices' });
+            res.status(200).send({ msg: 'Logged out from all devices' });
         } catch (error) {
             next(error);
         }
@@ -77,7 +77,7 @@ module.exports = function (pool) {
             );
             connection.release();
     
-            res.status(200).json({ message: 'Session destroyed' });
+            res.status(200).send({ msg: 'Session destroyed' });
         } catch (error) {
             next(error);
         }
@@ -94,7 +94,7 @@ module.exports = function (pool) {
             const user = rows[0];
             if (!await bcrypt.compare(req.body.oldPassword, user.password_hash)) {
                 connection.release();
-                return res.status(400).json({ message: 'Invalid old password' });
+                return res.status(400).send({ msg: 'Invalid old password' });
             }
     
             const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
@@ -104,7 +104,7 @@ module.exports = function (pool) {
             );
             connection.release();
     
-            res.status(200).json({ message: 'Password changed' });
+            res.status(200).send({ msg: 'Password changed' });
         } catch (error) {
             next(error);
         }
