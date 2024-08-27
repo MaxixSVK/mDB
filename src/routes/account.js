@@ -5,7 +5,7 @@ module.exports = function (pool) {
     const validate = require('../auth/tokenValidation')(pool);
 
     router.get('/validate', validate, (req, res) => {
-        res.status(200).json({ message: 'Valid token' });
+        res.status(200).send({ msg: 'Valid token' });
     });
 
     router.get('/', validate, async (req, res, next) => {
