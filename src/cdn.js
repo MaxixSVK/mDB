@@ -12,7 +12,7 @@ module.exports = function (pool) {
   const createStorage = () => {
     return multer.diskStorage({
       destination: (req, file, cb) => {
-        const uploadPath = path.resolve(__dirname, '../../uploads');
+        const uploadPath = path.resolve(__dirname, '../uploads');
         if (!fs.existsSync(uploadPath)) {
           fs.mkdirSync(uploadPath);
         }
@@ -30,12 +30,12 @@ module.exports = function (pool) {
     if (!req.file) {
       return res.status(400).send({ msg: 'Please upload a file.' });
     }
-    res.status(200).send({ filename: req.file.filename });
+    res.status(200).send({ msg: 'File uploaded.', filename: req.file.originalname, link: `https://mdatabase.maxix.sk/images/${req.file.originalname}` });
   });
 
   router.get('/images/:filename', (req, res) => {
     const filename = req.params.filename;
-    const filePath = path.join(__dirname, '../../uploads', filename);
+    const filePath = path.join(__dirname, '../uploads', filename);
 
     if (fs.existsSync(filePath)) {
       res.sendFile(filePath);
@@ -46,7 +46,7 @@ module.exports = function (pool) {
 
   router.delete('/images/:filename', validate, (req, res, next) => {
     const filename = req.params.filename;
-    const filePath = path.join(__dirname, '../../uploads', filename);
+    const filePath = path.join(__dirname, '../uploads', filename);
 
     if (fs.existsSync(filePath)) {
       fs.unlink(filePath, (err) => {
@@ -61,7 +61,7 @@ module.exports = function (pool) {
   });
 
   router.get('/images', (req, res, next) => {
-    const uploadPath = path.resolve(__dirname, '../../uploads');
+    const uploadPath = path.resolve(__dirname, '../uploads');
     fs.readdir(uploadPath, (err, files) => {
       if (err) {
         res.next(err);
@@ -71,7 +71,7 @@ module.exports = function (pool) {
   });
 
   router.get('/img-backup', (req, res, next) => {
-    const uploadPath = path.resolve(__dirname, '../../uploads');
+    const uploadPath = path.resolve(__dirname, '../uploads');
   
     fs.readdir(uploadPath, (err, files) => {
       if (err) {
