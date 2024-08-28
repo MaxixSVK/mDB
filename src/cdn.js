@@ -30,7 +30,7 @@ module.exports = function (pool) {
     if (!req.file) {
       return res.status(400).send({ msg: 'Please upload a file.' });
     }
-    res.status(200).send({ msg: 'File uploaded.', filename: req.file.originalname, link: `https://mdatabase.maxix.sk/images/${req.file.originalname}` });
+    res.status(200).send({ msg: 'File uploaded.', filename: req.file.originalname, link: `https://mdatabase.maxix.sk/cdn/images/${req.file.originalname}` });
   });
 
   router.get('/images/:filename', (req, res) => {
