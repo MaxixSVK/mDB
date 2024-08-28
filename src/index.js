@@ -19,6 +19,7 @@ app.use('/', require('./routes/data')(pool));
 app.use('/', require('./routes/publicData')(pool));
 app.use('/auth', require('./routes/auth')(pool));
 app.use('/account', require('./routes/account')(pool));
+app.use('/cdn', require('./cdn')(pool));
 
 app.get('/', (req, res) => {
     res.send('Server-chan: Hello, world!');
