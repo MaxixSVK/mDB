@@ -47,7 +47,7 @@ module.exports = function (pool) {
             const sessionToken = await bcrypt.genSalt(saltRounds);
             const tokenWithUserId = `${userId}:${sessionToken}`;
             const hashedToken = await bcrypt.hash(tokenWithUserId, saltRounds);
-            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+            const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
     
             const connection2 = await pool.getConnection();
             await connection2.query(
@@ -94,7 +94,7 @@ module.exports = function (pool) {
             const sessionToken = await bcrypt.genSalt(saltRounds);
             const tokenWithUserId = `${user.id}:${sessionToken}`;
             const hashedToken = await bcrypt.hash(tokenWithUserId, saltRounds);
-            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+            const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
     
             const connection2 = await pool.getConnection();
             await connection2.query(
