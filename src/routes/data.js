@@ -67,8 +67,8 @@ module.exports = function (pool) {
         let params = [];
     
         Object.entries(data).forEach(([key, value]) => {
+            sql += `${key} = ${value !== '' ? '?' : 'NULL'}, `;
             if (value !== '') {
-                sql += `${key} = ?, `;
                 params.push(value);
             }
         });

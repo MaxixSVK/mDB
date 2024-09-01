@@ -38,10 +38,10 @@ app.listen(7000, () => {
     console.log('Server-chan: Listening on port 7000');
     pool.getConnection()
         .then(conn => {
-            console.log('Server-chan: Connected successfully!');
+            console.log('Server-chan: Connected to MariaDB');
             conn.release();
         })
         .catch(err => {
-            console.error('Server-chan: Connection failed -', err);
+            console.error('Server-chan: Connection to MariaDB failed');
         });
 });

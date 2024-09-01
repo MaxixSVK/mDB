@@ -2,6 +2,12 @@ const express = require('express');
 const router = express.Router();
 
 module.exports = function (pool) {
+    function formatDateToLocal(date) {
+        return new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
+            .toISOString()
+            .split("T")[0];
+    }
+
     router.get('/data', async (req, res, next) => {
         let conn;
         try {
@@ -45,12 +51,6 @@ module.exports = function (pool) {
                     });
                 }
             });
-
-            function formatDateToLocal(date) {
-                return new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
-                    .toISOString()
-                    .split("T")[0];
-            }
 
             let seriesArray = Object.values(seriesData).map(series => ({
                 ...series,
@@ -125,6 +125,73 @@ module.exports = function (pool) {
         }
     });
 
+    router.get('/series/:series_id', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { series_id } = req.params;
+            const query = 'SELECT * FROM series WHERE series_id = ?';
+            const rows = await conn.query(query, [series_id]);
+
+            if (rows.length === 0) {
+                res.status(404).send({ msg: 'Series not found' });
+                return;
+            }
+
+            res.send(rows[0]);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.end();
+        }
+    });
+
+    router.get('/book/:book_id', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { book_id } = req.params;
+            const query = 'SELECT * FROM books WHERE book_id = ?';
+            const rows = await conn.query(query, [book_id]);
+
+            if (rows.length === 0) {
+                res.status(404).send({ msg: 'Book not found' });
+                return;
+            }
+
+            rows[0].startedReading = rows[0].startedReading ? formatDateToLocal(rows[0].startedReading) : null;
+            rows[0].endedReading = rows[0].endedReading ? formatDateToLocal(rows[0].endedReading) : null;
+
+            res.send(rows[0]);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.end();
+        }
+    });
+
+    router.get('/chapter/:chapter_id', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { chapter_id } = req.params;
+            const query = 'SELECT * FROM chapters WHERE chapter_id = ?';
+            const rows = await conn.query(query, [chapter_id]);
+
+            if (rows.length === 0) {
+                res.status(404).send({ msg: 'Chapter not found' });
+                return;
+            }
+
+            rows[0].date = rows[0].date ? formatDateToLocal(rows[0].date) : null;
+
+            res.send(rows[0]);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.end();
+        }
+    });
 
     return router;
 };
