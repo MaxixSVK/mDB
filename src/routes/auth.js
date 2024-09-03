@@ -1,9 +1,12 @@
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
+const QRCode = require('qrcode');
 
 const saltRounds = 10;
 
 module.exports = function (pool) {
+    const validate = require('../auth/tokenValidation')(pool);
+    
     router.post('/register', async (req, res, next) => {
         const { username, email, password } = req.body;
         const passwordHash = await bcrypt.hash(password, 10);
@@ -109,6 +112,37 @@ module.exports = function (pool) {
     
             connection2.release();
             res.status(200).send({ sessionToken: tokenWithUserId + ':' + rows2.id });
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    router.get('/generate-qr-pc-m', validate, async (req, res, next) => {
+        const userId = req.userId;
+        const userAgent = req.headers['user-agent'];
+        const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+        try {
+            const sessionToken = await bcrypt.genSalt(saltRounds);
+            const tokenWithUserId = `${userId}:${sessionToken}`;
+            const hashedToken = await bcrypt.hash(tokenWithUserId, saltRounds);
+            const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
+            const connection = await pool.getConnection();
+            await connection.query(
+                'INSERT INTO sessions (user_id, session_token, expires_at, user_agent, ip_address) VALUES (?, ?, ?, ?, ?)',
+                [userId, hashedToken, expiresAt, userAgent, ipAddress]
+            );
+
+            const rows = await connection.query(
+                'SELECT * FROM sessions WHERE user_id = ? ORDER BY id DESC LIMIT 1',
+                [userId]
+            );
+
+            connection.release();
+
+            const qrCodeUrl = await QRCode.toDataURL(tokenWithUserId + ':' + rows[0].id);
+            res.status(200).send({ qrCodeUrl });
         } catch (error) {
             next(error);
         }
