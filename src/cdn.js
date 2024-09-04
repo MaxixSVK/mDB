@@ -109,14 +109,21 @@ module.exports = function (pool) {
   router.put('/images/rename/:filename', validate, async (req, res, next) => {
     const { filename } = req.params;
     const { newFilename } = req.body;
-    const fileExtension = path.extname(filename);
-    const newFilenameWithExtension = path.extname(newFilename) ? newFilename : `${newFilename}${fileExtension}`;
-    const filePath = path.join(__dirname, '../uploads', filename);
-    const newFilePath = path.join(__dirname, '../uploads', newFilenameWithExtension);
-
+    
     if (!newFilename) {
         return res.status(400).send({ msg: 'Please provide new filename.' });
     }
+    
+    let newFilenameWithExtension;
+    if (path.extname(newFilename) === '') {
+        const fileExtension = path.extname(filename);
+        newFilenameWithExtension = `${newFilename}${fileExtension}`;
+    } else {
+        newFilenameWithExtension = newFilename;
+    }
+    
+    const filePath = path.join(__dirname, '../uploads', filename);
+    const newFilePath = path.join(__dirname, '../uploads', newFilenameWithExtension);
 
     if (fs.existsSync(filePath)) {
         fs.rename(filePath, newFilePath, async (err) => {
