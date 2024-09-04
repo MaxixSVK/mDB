@@ -3,6 +3,8 @@ const cors = require('cors');
 const mariadb = require('mariadb');
 require('dotenv').config();
 
+const config = require('../config.json');
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -34,8 +36,8 @@ app.use((err, req, res, next) => {
     res.status(500).send({ msg: 'Server-chan: 500 - Internal Server Error'});
 });
 
-app.listen(7000, () => {
-    console.log('Server-chan: Listening on port 7000');
+app.listen(config.port, () => {
+    console.log('Server-chan: Listening on port: ' + config.port);
     pool.getConnection()
         .then(conn => {
             console.log('Server-chan: Connected to MariaDB');
