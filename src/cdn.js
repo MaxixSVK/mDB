@@ -107,37 +107,43 @@ module.exports = function (pool) {
   });
 
   router.put('/images/rename/:filename', validate, async (req, res, next) => {
-      const { filename } = req.params;
-      const { newFilename } = req.body;
-      const filePath = path.join(__dirname, '../uploads', filename);
-      const newFilePath = path.join(__dirname, '../uploads', newFilename);
-  
-      if (fs.existsSync(filePath)) {
-          fs.rename(filePath, newFilePath, async (err) => {
-              if (err) {
-                  return next(err);
-              }
-  
-              const oldLink = `https://mdatabase.maxix.sk/cdn/images/${filename}`;
-              const newLink = `https://mdatabase.maxix.sk/cdn/images/${newFilename}`;
-  
-              const connection = await pool.getConnection();
-              try {
-                  await connection.query(
-                      'UPDATE series SET img = ? WHERE img = ?',
-                      [newLink, oldLink]
-                  );
-                  res.status(200).send({ msg: 'File renamed, DB referecnes updated.', filename: newFilename });
-              } catch (dbErr) {
-                  next(dbErr);
-              } finally {
-                  connection.release();
-              }
-          });
-      } else {
-          res.status(404).send({ msg: 'File not found.' });
-      }
-  });
+    const { filename } = req.params;
+    const { newFilename } = req.body;
+    const fileExtension = path.extname(filename);
+    const newFilenameWithExtension = path.extname(newFilename) ? newFilename : `${newFilename}${fileExtension}`;
+    const filePath = path.join(__dirname, '../uploads', filename);
+    const newFilePath = path.join(__dirname, '../uploads', newFilenameWithExtension);
+
+    if (!newFilename) {
+        return res.status(400).send({ msg: 'Please provide new filename.' });
+    }
+
+    if (fs.existsSync(filePath)) {
+        fs.rename(filePath, newFilePath, async (err) => {
+            if (err) {
+                return next(err);
+            }
+
+            const oldLink = `https://mdatabase.maxix.sk/cdn/images/${filename}`;
+            const newLink = `https://mdatabase.maxix.sk/cdn/images/${newFilenameWithExtension}`;
+
+            const connection = await pool.getConnection();
+            try {
+                await connection.query(
+                    'UPDATE series SET img = ? WHERE img = ?',
+                    [newLink, oldLink]
+                );
+                res.status(200).send({ msg: 'File renamed, DB references updated.', filename: newFilenameWithExtension });
+            } catch (dbErr) {
+                next(dbErr);
+            } finally {
+                connection.release();
+            }
+        });
+    } else {
+        res.status(404).send({ msg: 'File not found.' });
+    }
+});
 
   return router;
 };
