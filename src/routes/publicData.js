@@ -13,7 +13,7 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const query = `
-            SELECT series.series_id, series.seriesName, series.img, series.seriesType, 
+            SELECT series.series_id, series.name, series.img, series.seriesType, 
                    books.book_id, books.name AS bookName, books.startedReading, books.endedReading, 
                    chapters.chapter_id, chapters.name AS chapterName, chapters.date
             FROM series
@@ -28,7 +28,7 @@ module.exports = function (pool) {
                 if (!seriesData[row.series_id]) {
                     seriesData[row.series_id] = {
                         series_id: row.series_id,
-                        seriesName: row.seriesName,
+                        name: row.name,
                         img: row.img,
                         seriesType: row.seriesType,
                         books: {}
@@ -59,7 +59,7 @@ module.exports = function (pool) {
 
             if (req.query.clear === 'true') {
                 seriesArray = seriesArray.map(series => ({
-                    seriesName: series.seriesName,
+                    name: series.name,
                     img: series.img,
                     books: series.books.map(book => ({
                         name: book.name,
@@ -85,7 +85,7 @@ module.exports = function (pool) {
         let conn;
         try {
             conn = await pool.getConnection();
-            const query = 'SELECT series_id, seriesName FROM series';
+            const query = 'SELECT series_id, name FROM series';
             const rows = await conn.query(query);
             res.send(rows);
         } catch (err) {
