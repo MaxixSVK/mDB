@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Maxix | mDB Dashboard</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="mDatabase - Maxix's personal database of magas and light novels">
+    <meta name="keywords" content="manga, light novel, database, maxix">
+    <meta name="author" content="Maxix">
+    <link rel="canonical" href="https://maxix.sk" />
+    <link rel="stylesheet" href="../../assets/index.css" />
+    <link rel="icon" href="../../assets/favicon.png">
+</head>
+
+<body
+    class="bg-gray-100 dark:bg-gray-900 text-black dark:text-gray-200 flex flex-col min-h-screen transition-colors duration-300">
+    <header class="p-5 bg-white dark:bg-gray-800 flex justify-between items-center shadow-md">
+        <a href="/" class="text-2xl font-bold">Maxix</a>
+        <button id="switchMode"
+            class="p-2 text-gray-800 dark:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+        </button>
+    </header>
+    <main class="p-6 flex-grow">
+        <div id="notification-container" class="fixed top-4 right-4 space-y-4 z-50"></div>
+        <div id="renameModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+            <div class="flex items-center justify-center min-h-screen px-4 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                    <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+                </div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div
+                    class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:align-middle sm:max-w-lg sm:w-full w-full mx-4 my-8 sm:my-0">
+                    <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                                <h3 class="text-xl leading-6 font-medium text-gray-900 dark:text-gray-100"
+                                    id="modal-title">Rename File</h3>
+                                <div class="mt-4">
+                                    <input type="text" id="newFilenameInput"
+                                        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full text-lg border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                        placeholder="Enter new filename">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button id="renameConfirmButton" type="button"
+                            class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 ease-in-out mb-4 sm:mb-0 transform hover:scale-105 hover:shadow-lg">Rename</button>
+                        <button id="renameCancelButton" type="button"
+                            class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-300 ease-in-out mb-4 sm:mb-0 transform hover:scale-105 hover:shadow-lg sm:mr-2 mb-0">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="admin-panel">
+            <div class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-6 mb-4">
+                <a href="/">
+                    <h1 class="text-2xl font-extrabold text-gray-900 dark:text-gray-100">mDB Dashboard</h1>
+                </a>
+                <p class="text-base text-gray-700 dark:text-gray-300 mb-4">
+                    Welcome to the mDatabase admin panel. Here you can add, edit, and delete data from the database.
+                </p>
+                <div class="flex flex-col md:flex-row md:space-x-4">
+                    <button id="db-backup"
+                        class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 ease-in-out mb-4 md:mb-0 transform hover:scale-105 hover:shadow-lg">
+                        Download DB Backup
+                    </button>
+                    <button id="cdn-backup"
+                        class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 ease-in-out mb-4 md:mb-0 transform hover:scale-105 hover:shadow-lg">
+                        Download CDN Backup
+                    </button>
+                    <button id="logout"
+                        class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-300 ease-in-out mb-4 md:mb-0 transform hover:scale-105 hover:shadow-lg">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+        <form id="add-data-form" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-6 mb-4">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Add data to DB</h1>
+            <div class="mb-3">
+                <label class="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2">
+                    Type
+                </label>
+                <select id="add-data-type" name="type"
+                    class="shadow border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="series">Series</option>
+                    <option value="books">Book</option>
+                    <option value="chapters">Chapter</option>
+                </select>
+            </div>
+            <div id="add-data-fields"></div>
+            <div class="flex items-center justify-between">
+                <button type="submit"
+                    class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg">
+                    Add Data
+                </button>
+            </div>
+        </form>
+        <form id="edit-data-form" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-6 mb-4">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Edit data in DB</h1>
+            <div class="mb-3">
+                <label class="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2">
+                    Type
+                </label>
+                <select id="edit-data-type" name="type"
+                    class="shadow border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="series">Series</option>
+                    <option value="books">Book</option>
+                    <option value="chapters">Chapter</option>
+                </select>
+            </div>
+            <div id="edit-data-fields"></div>
+            <div class="flex items-center justify-between">
+                <button type="submit"
+                    class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg">
+                    Edit Data
+                </button>
+            </div>
+        </form>
+        <form id="delete-data-form" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-6 mb-4">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Delete data from DB</h1>
+            <div class="mb-3">
+                <label class="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2">
+                    Type
+                </label>
+                <select id="delete-data-type" name="type"
+                    class="shadow border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="series">Series</option>
+                    <option value="books">Book</option>
+                    <option value="chapters">Chapter</option>
+                </select>
+            </div>
+            <div id="delete-data-fields"></div>
+            <div class="flex items-center justify-between">
+                <button type="submit"
+                    class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg">
+                    Delete Data
+                </button>
+            </div>
+        </form>
+        <form id="cdn-upload-form" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-6 mb-4">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Upload images to CDN</h1>
+            <div class="mb-3 flex flex-col sm:flex-row items-center">
+                <input type="file" id="cdn-upload" name="cdn-upload" accept="image/*" class="hidden">
+                <label for="cdn-upload"
+                    class="cursor-pointer shadow border rounded py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2 sm:mb-0 sm:mr-3 w-full sm:w-auto">
+                    Choose File
+                </label>
+                <span id="file-name"
+                    class="text-gray-700 dark:text-gray-200 border-b border-gray-300 dark:border-gray-600 w-full sm:flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                </span>
+            </div>
+            <div class="flex items-center justify-between">
+                <button type="submit"
+                    class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg">
+                    Upload Image
+                </button>
+            </div>
+        </form>
+        <section id="cdn-managment" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-6 mb-4">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">CDN Managment</h1>
+            <div id="cdnList"></div>
+        </section>
+        <section id="account" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-6 mb-4">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Account</h1>
+            <div id="passwordHeader"
+                class="flex justify-between items-center cursor-pointer hover:text-blue-600 dark:hover:text-blue-600 mb-2">
+                <h2
+                    class="text-xl font-bold text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-600">
+                    Change Password</h2>
+                <i class="fas fa-chevron-right ml-2"></i>
+            </div>
+            <form id="changePassowrd" class="mb-4 hidden">
+                <div class="mb-3">
+                    <label class="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" for="oldPassword">
+                        Old Password
+                    </label>
+                    <input
+                        class="shadow border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="oldPassword" name="oldPassword" type="password" placeholder="Old Password" required="true">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" for="newPassword">
+                        New Password
+                    </label>
+                    <input
+                        class="shadow border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="newPassword" name="newPassword" type="password" placeholder="New Password" required="true">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" for="confirmPassword">
+                        Confirm Password
+                    </label>
+                    <input
+                        class="shadow border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="confirmPassword" name="confirmPassword" type="password" placeholder="Confirm Password"
+                        required="true">
+                </div>
+                <div class="flex items-center justify-between">
+                    <button type="submit"
+                        class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg">
+                        Change Password
+                    </button>
+                </div>
+            </form>
+            <div id="qrGenHeader"
+                class="flex justify-between items-center cursor-pointer hover:text-blue-600 dark:hover:text-blue-600 mb-2">
+                <h2
+                    class="text-xl font-bold text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-600">
+                    Generate Login QR code</h2>
+                <i class="fas fa-chevron-right ml-2"></i>
+            </div>
+            <div id="qrGen" class="hidden">
+            </div>
+            <div id="qrScanHeader"
+                class="flex justify-between items-center cursor-pointer hover:text-blue-600 dark:hover:text-blue-600 mb-2">
+                <h2
+                    class="text-xl font-bold text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-600">
+                    Scan Login QR code</h2>
+                <i class="fas fa-chevron-right ml-2"></i>
+            </div>
+            <div id="sessionHeader"
+                class="flex justify-between items-center cursor-pointer hover:text-blue-600 dark:hover:text-blue-600">
+                <h2
+                    class="text-xl font-bold text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-600">
+                    Sessions</h2>
+                <i class="fas fa-chevron-right ml-2"></i>
+            </div>
+            <div id="sessionList" class="hidden"></div>
+        </section>
+        </div>
+    </main>
+    <footer
+        class="p-5 bg-white dark:bg-gray-800 flex justify-between items-center shadow-md transition-colors duration-300">
+        <a href="https://github.com/MaxixSVK">
+            <p class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">&copy; 2024 Maxix</p>
+        </a>
+        <nav>
+            <ul class="flex space-x-4">
+                <li><a href="http://maxix.sk/status"
+                        class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">Status</a>
+                </li>
+            </ul>
+        </nav>
+    </footer>
+
+    <script src="../assets/js/darkMode.js"></script>
+    <script src="../assets/js/mdbAdmin.js"></script>
+    <script src="../assets/js/mdbAdminAddData.js"></script>
+    <script src="../assets/js/mdbAdminEditData.js"></script>
+    <script src="../assets/js/mdbAdminDeleteData.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/1.0.37/ua-parser.min.js"
+        integrity="sha512-LAchvH0Y4sxYM1ouOaqHQ6WbSXvOgkioPaiyW0oPOFNNMNfpsBEpvzYmsxgDf8pQM/fMaMdxYP/nFenquTAkdw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+</body>
+
+</html>

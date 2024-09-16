@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Maxix | mDB</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="mDatabase - Maxix's personal database of magas and light novels">
+    <meta name="keywords" content="manga, light novel, database, maxix">
+    <meta name="author" content="Maxix">
+    <link rel="canonical" href="https://maxix.sk" />
+    <link rel="stylesheet" href="../assets/index.css" />
+    <link rel="icon" href="../assets/favicon.png">
+</head>
+
+<body
+    class="bg-gray-100 dark:bg-gray-900 text-black dark:text-gray-200 flex flex-col min-h-screen transition-colors duration-300">
+    <header class="p-5 bg-white dark:bg-gray-800 flex justify-between items-center shadow-md">
+        <a href="/" class="text-2xl font-bold">Maxix</a>
+        <button id="switchMode"
+            class="p-2 text-gray-800 dark:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+        </button>
+    </header>
+    <main class="p-6 flex-grow">
+        <nav
+            class="mb-5 p-5 bg-gradient-to-r from-blue-500 to-teal-500 flex justify-between items-center shadow-lg rounded-lg">
+            <p class="text-2xl font-bold text-white tracking-wider">
+                mDatabase
+            </p>
+            <ul class="flex flex-wrap space-x-6 hidden sm:flex">
+                <li><a href="#manga"
+                        class="text-gray-200 hover:text-white transition duration-300 ease-in-out">Manga</a></li>
+                <li><a href="#lightNovel"
+                        class="text-gray-200 hover:text-white transition duration-300 ease-in-out">Light Novel</a></li>
+            </ul>
+            <a id="dashboardHref" href="/auth"
+                class="font-semibold text-white px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 transition duration-300 ease-in-out hidden sm:block">Dashboard</a>
+            <button id="menu-toggle" class="sm:hidden text-white focus:outline-none">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+        <div id="mobile-menu"
+            class="hidden sm:hidden bg-white dark:bg-gray-800 p-5 rounded-lg shadow-lg mb-4 transition-all duration-300 ease-in-out opacity-0 transform scale-95">
+            <ul class="space-y-2">
+                <li><a href="#manga"
+                        class="flex justify-between items-center block w-full hover:bg-gray-800 hover:text-white dark:hover:bg-gray-200 dark:hover:text-black transition duration-300 ease-in-out p-2 rounded">
+                        Manga
+                        <i class="fas fa-book-open ml-2"></i></a>
+                </li>
+                <li><a href="#lightNovel"
+                        class="flex justify-between items-center block w-full hover:bg-gray-800 hover:text-white dark:hover:bg-gray-200 dark:hover:text-black transition duration-300 ease-in-out p-2 rounded">
+                        Light Novel
+                        <i class="fas fa-book-open ml-2"></i></a>
+                </li>
+                <li><a id="dashboardHrefMobile" href="/auth"
+                        class="flex justify-between items-center block w-full hover:bg-gray-800 hover:text-white dark:hover:bg-gray-200 dark:hover:text-black transition duration-300 ease-in-out p-2 rounded">
+                        Dashboard
+                        <i class="fas fa-cogs ml-2"></i></a>
+                </li>
+            </ul>
+        </div>
+    </main>
+    <footer
+        class="p-5 bg-white dark:bg-gray-800 flex justify-between items-center shadow-md transition-colors duration-300">
+        <a href="https://github.com/MaxixSVK">
+            <p class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">&copy; 2024 Maxix</p>
+        </a>
+        <nav>
+            <ul class="flex space-x-4">
+                <li><a href="http://maxix.sk/status"
+                        class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">Status</a>
+                </li>
+            </ul>
+        </nav>
+    </footer>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script src="./assets/js/darkMode.js"></script>
+    <script src="./assets/js/mdb.js"></script>
+</body>
+
+</html>

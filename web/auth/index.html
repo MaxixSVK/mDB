@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Maxix | mDB Auth</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="mDatabase - Maxix's personal database of mangas and light novels">
+    <meta name="keywords" content="manga, light novel, database, maxix">
+    <meta name="author" content="Maxix">
+    <link rel="canonical" href="https://maxix.sk" />
+    <link rel="stylesheet" href="../../assets/index.css" />
+    <link rel="icon" href="../../assets/favicon.png">
+</head>
+
+<body
+    class="bg-gray-100 dark:bg-gray-900 text-black dark:text-gray-200 flex flex-col min-h-screen transition-colors duration-300">
+    <header class="p-5 bg-white dark:bg-gray-800 flex justify-between items-center shadow-md">
+        <a href="/" class="text-2xl font-bold">Maxix</a>
+        <button id="switchMode"
+            class="p-2 text-gray-800 dark:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+        </button>
+    </header>
+    <main class="p-6 flex-grow">
+        <div id="notification-container" class="fixed top-4 right-4 space-y-4 z-50"></div>
+        <div id="loginDiv" class="max-w-lg mx-auto mt-10 flex flex-col lg:flex-row items-center lg:items-center lg:max-w-4xl lg:space-x-8">
+            <div class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4 w-full lg:w-1/2">
+                <h2 class="text-2xl font-bold text-center text-gray-700 dark:text-gray-200 mb-2">Welcome Back!</h2>
+                <p class="text-center text-gray-600 dark:text-gray-400 mb-6">Please login to your account</p>
+                <form name="login" id="login">
+                    <div class="mb-4">
+                        <label for="username" class="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2">Username</label>
+                        <input type="text" name="username" id="username" placeholder="Username" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2">Password</label>
+                        <input type="password" name="password" id="password" placeholder="Password" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="remember_me" name="remember_me" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out">
+                            <label for="remember_me" class="ml-2 block text-sm leading-5 text-gray-600 dark:text-gray-400">Remember Me</label>
+                        </div>
+                        <a href="#" class="inline-block align-baseline text-sm text-blue-500 hover:text-blue-800">Forgot Password?</a>
+                    </div>
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <button type="submit" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-bold py-2 px-6 rounded-full shadow-lg transform transition-transform duration-300 hover:scale-105 focus:outline-none focus:shadow-outline mx-auto mb-4 md:mb-0">
+                            Login
+                        </button>
+                    </div>
+                </form>
+                <div class="flex justify-center lg:hidden">
+                    <button id="scanQRCode" class="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white font-bold py-2 px-6 rounded-full shadow-lg transform transition-transform duration-300 hover:scale-105 focus:outline-none focus:shadow-outline mx-auto">
+                        Login with QR Code
+                    </button>
+                </div>
+            </div>
+            <div id="qrCodePlaceholder" class="hidden lg:flex lg:w-48 lg:h-48 bg-gray-300 dark:bg-gray-700 rounded-lg items-center justify-center shadow-md">
+                <span class="text-gray-500 dark:text-gray-400">QR Code Placeholder</span>
+            </div>
+        </div>
+        <p class="text-center text-gray-600 dark:text-gray-400 text-sm">
+            Don't have an account? <a href="#" class="text-blue-500 hover:text-blue-800">Sign up</a>
+        </p>
+    </main>
+    <footer
+        class="p-5 bg-white dark:bg-gray-800 flex justify-between items-center shadow-md transition-colors duration-300">
+        <a href="https://github.com/MaxixSVK">
+            <p class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">&copy; 2024 Maxix</p>
+        </a>
+        <nav>
+            <ul class="flex space-x-4">
+                <li><a href="http://maxix.sk/status"
+                        class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">Status</a>
+                </li>
+            </ul>
+        </nav>
+    </footer>
+
+    <script src="../../assets/js/darkMode.js"></script>
+    <script src="../../assets/js/mdbAuth.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</body>
+
+</html>
