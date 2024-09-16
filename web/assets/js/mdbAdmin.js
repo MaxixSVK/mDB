@@ -481,7 +481,7 @@ async function renderCDNList() {
         });
 
         listItem.querySelector('.item-text').addEventListener('click', function () {
-            navigator.clipboard.writeText(`https://mdatabase.maxix.sk/cdn/images/${item}`).then(() => {
+            navigator.clipboard.writeText(`https://apimdb.maxix.sk/cdn/images/${item}`).then(() => {
                 showNotification('Link copied to clipboard', 'success');
             }).catch(err => {
                 showNotification('Failed to copy link to clipboard', 'error');
