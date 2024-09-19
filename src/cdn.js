@@ -51,7 +51,7 @@ module.exports = function (pool) {
     if (fs.existsSync(filePath)) {
       fs.unlink(filePath, (err) => {
         if (err) {
-          res.next(err);
+          next(err);
         }
         res.status(200).send({ msg: 'File deleted.' });
       });
@@ -64,7 +64,7 @@ module.exports = function (pool) {
     const uploadPath = path.resolve(__dirname, '../uploads');
     fs.readdir(uploadPath, (err, files) => {
       if (err) {
-        res.next(err);
+        next(err);
       }
       res.status(200).send(files);
     });
@@ -75,7 +75,7 @@ module.exports = function (pool) {
   
     fs.readdir(uploadPath, (err, files) => {
       if (err) {
-        res.next(err);
+        next(err);
       }
   
       if (files.length === 0) {

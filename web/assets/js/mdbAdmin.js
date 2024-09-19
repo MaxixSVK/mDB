@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
     fileName.addEventListener('click', function () {
         const textToCopy = fileName.textContent;
         const urlRegex = /https?:\/\/[^\s]+/;
-    
+
         if (urlRegex.test(textToCopy)) {
             console.log(textToCopy);
             navigator.clipboard.writeText(textToCopy);
@@ -223,7 +223,16 @@ async function getLocation(ip) {
 
 async function renderSessions(sessions) {
     const sessionToken = getCookie('sessionToken');
-    const currentSessionID = sessionToken.split(':').pop();
+    const currentSessionID = await fetch(api + '/account/validate', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': sessionToken
+        }
+    }).then(response => response.json()).then(data => String(data.sessionId)).catch(error => {
+        console.error('Error fetching current session ID:', error);
+        return null;
+    });
 
     const sessionList = document.getElementById('sessionList');
     sessionList.innerHTML = '';
@@ -261,6 +270,17 @@ async function destroySession(sessionId) {
     const sessionToken = getCookie('sessionToken');
 
     try {
+        const currentSessionID = await fetch(api + '/account/validate', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': sessionToken
+            }
+        }).then(response => response.json()).then(data => String(data.sessionId)).catch(error => {
+            console.error('Error fetching current session ID:', error);
+            return null;
+        });
+
         await fetch(api + '/account/session-destroy', {
             method: 'POST',
             headers: {
@@ -269,9 +289,11 @@ async function destroySession(sessionId) {
             },
             body: JSON.stringify({ sessionId })
         });
-        if (String(sessionId) === sessionToken.split(':').pop()) {
+
+        if (String(sessionId) === currentSessionID) {
             localStorage.removeItem('sessionToken');
             window.location.href = '/auth';
+            console.log('Redirecting to login page');
         } else {
             fetchSessions();
         }
@@ -290,27 +312,27 @@ function dbBackup() {
                 'Authorization': getCookie('sessionToken')
             },
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.blob();
-        })
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = `mdb-backup-${new Date().toISOString().split('T')[0]}.sql`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            showNotification('Database backup successful', 'success');
-        })
-        .catch(error => {
-            console.error('Backup failed:', error);
-            showNotification('Database backup failed', 'error');
-        });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `mdb-backup-${new Date().toISOString().split('T')[0]}.sql`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                showNotification('Database backup successful', 'success');
+            })
+            .catch(error => {
+                console.error('Backup failed:', error);
+                showNotification('Database backup failed', 'error');
+            });
     } catch (error) {
         console.error('Backup failed:', error);
         showNotification('Database backup failed', 'error');
@@ -326,27 +348,27 @@ async function cdnBackup() {
                 'Authorization': getCookie('sessionToken')
             },
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.blob();
-        })
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = `cdn-backup-${new Date().toISOString().split('T')[0]}.zip`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            showNotification('CDN backup successful', 'success');
-        })
-        .catch(error => {
-            console.error('Backup failed:', error);
-            showNotification('CDN backup failed', 'error');
-        });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `cdn-backup-${new Date().toISOString().split('T')[0]}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                showNotification('CDN backup successful', 'success');
+            })
+            .catch(error => {
+                console.error('Backup failed:', error);
+                showNotification('CDN backup failed', 'error');
+            });
     } catch (error) {
         console.error('Backup failed:', error);
         showNotification('CDN backup failed', 'error');
@@ -370,7 +392,7 @@ async function uploadCDN(data) {
         const result = await response.json();
         renderCDNList();
         showNotification(`File uploaded successfully ${result.filename}`, 'success');
-        
+
         document.getElementById('file-name').textContent = result.link;
     } catch (error) {
         showNotification('File upload failed', 'error');
