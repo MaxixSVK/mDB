@@ -2,6 +2,9 @@ const api = 'https://apimdb.maxix.sk';
 // const api = 'http://localhost:7000';
 
 document.addEventListener("DOMContentLoaded", function () {
+    if (document.cookie.includes('sessionToken')) {
+        window.location.href = '/dashboard';
+    }
     const loginForm = document.forms['login'];
     loginForm.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -94,12 +97,10 @@ function showNotification(message, type = 'info') {
 }
 
 async function scanQRCode() {
-    // Create a modal container for centering the video
     const modal = document.createElement('div');
     modal.classList.add('fixed', 'inset-0', 'flex', 'items-center', 'justify-center', 'bg-gray-900', 'bg-opacity-75', 'z-50');
     document.body.appendChild(modal);
 
-    // Create a close button
     const closeButton = document.createElement('button');
     closeButton.innerText = 'Close';
     closeButton.classList.add('absolute', 'top-4', 'right-4', 'text-white', 'bg-red-500', 'hover:bg-red-700', 'rounded', 'px-4', 'py-2');
