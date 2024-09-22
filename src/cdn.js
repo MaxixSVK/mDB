@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const archiver = require('archiver');
+const sanitize = require('sanitize-filename');
 const path = require('path');
 const fs = require('fs');
 
@@ -34,15 +35,17 @@ module.exports = function (pool) {
   });
 
   router.get('/images/:filename', (req, res) => {
-    const filename = req.params.filename;
-    const filePath = path.join(__dirname, '../uploads', filename);
+    const filename = sanitize(req.params.filename);
+    const uploadsDir = path.join(__dirname, '../uploads');
+    const filePath = path.join(uploadsDir, filename);
+    const normalizedPath = path.normalize(filePath);
 
-    if (fs.existsSync(filePath)) {
-      res.sendFile(filePath);
+    if (normalizedPath.startsWith(uploadsDir) && fs.existsSync(normalizedPath)) {
+        res.sendFile(normalizedPath);
     } else {
-      res.status(404).send({ msg: 'File not found.' });
+        res.status(404).send({ msg: 'File not found.' });
     }
-  });
+});
 
   router.delete('/images/:filename', validate, (req, res, next) => {
     const filename = req.params.filename;
