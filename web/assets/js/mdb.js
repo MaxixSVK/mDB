@@ -4,8 +4,7 @@ const api = 'https://apimdb.maxix.sk';
 document.addEventListener('DOMContentLoaded', function () {
     fetchData(api);
     checkLogin();
-
-    document.getElementById('menu-toggle').addEventListener('click', toggleMenu);
+    setupSearchBar();
 });
 
 const createElement = (tag, classes = [], attributes = {}, innerHTML = '') => {
@@ -139,23 +138,6 @@ function fetchData(api) {
         });
 }
 
-function toggleMenu() {
-    const mobileMenu = document.getElementById('mobile-menu');
-    if (mobileMenu.classList.contains('hidden')) {
-        mobileMenu.classList.remove('hidden');
-        setTimeout(() => {
-            mobileMenu.classList.remove('opacity-0', 'transform', 'scale-95');
-            mobileMenu.classList.add('opacity-100', 'transform', 'scale-100');
-        }, 20);
-    } else {
-        mobileMenu.classList.remove('opacity-100', 'transform', 'scale-100');
-        mobileMenu.classList.add('opacity-0', 'transform', 'scale-95');
-        setTimeout(() => {
-            mobileMenu.classList.add('hidden');
-        }, 300);
-    }
-}
-
 async function checkLogin() {
     const session = getCookie('sessionToken');
     if (session) {
@@ -200,7 +182,7 @@ function getCookie(name) {
     return null;
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+function setupSearchBar() {
     const searchBar = document.getElementById('searchBar');
     const content = document.querySelector('main');
 
@@ -213,12 +195,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     const data = await response.json();
                     content.innerHTML = '';
                     data.forEach(series => appendSeriesToCategory(series, content));
-                    
+
                     const seriesElements = content.querySelectorAll('.series');
                     seriesElements.forEach(seriesElement => {
                         const chevron = seriesElement.querySelector('.chevron');
                         toggleDisplay(seriesElement.querySelectorAll('.book'), chevron);
-                        
+
                         const bookElements = seriesElement.querySelectorAll('.book');
                         bookElements.forEach(bookElement => {
                             const bookChevron = bookElement.querySelector('.chevron');
@@ -227,22 +209,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 } else {
                     content.innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-full">
-                            <p class="text-red-500 text-lg font-semibold">No results found</p>
-                            <p class="text-gray-500">Please try a different search term.</p>
-                        </div>`;
+                            <div class="flex flex-col items-center justify-center h-full">
+                                <p class="text-red-500 text-lg font-semibold">No results found</p>
+                                <p class="text-gray-500">Please try a different search term.</p>
+                            </div>`;
                 }
             } catch (error) {
                 console.error('Search failed:', error);
                 content.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full">
-                        <p class="text-red-500 text-lg font-semibold">An error occurred while searching</p>
-                        <p class="text-gray-500">Please try again later.</p>
-                    </div>`;
+                        <div class="flex flex-col items-center justify-center h-full">
+                            <p class="text-red-500 text-lg font-semibold">An error occurred while searching</p>
+                            <p class="text-gray-500">Please try again later.</p>
+                        </div>`;
             }
         } else {
             content.innerHTML = '';
             fetchData(api);
         }
     });
-});
+}
+
+setupSearchBar();
