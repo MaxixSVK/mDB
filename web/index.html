@@ -25,10 +25,12 @@
         <nav
             class="p-4 bg-gradient-to-r from-blue-500 to-teal-500 flex justify-between items-center shadow-lg rounded-lg">
             <p class="text-2xl font-bold text-white tracking-wider">
-                <span class="block sm:hidden mr-4">mDB</span>
+                <span class="block sm:hidden mr-6">mDB</span>
                 <span class="hidden sm:block">mDatabase</span>
             </p>
             <div class="flex items-center space-x-4">
+                <a id="dashboardHrefMobile" class="block sm:hidden" href="/auth">
+                    <i class="fas fa-cogs ml-2"></i></a>
                 <div class="relative w-full sm:w-auto">
                     <input type="text" id="searchBar" placeholder="Search..."
                         class="w-full sm:w-auto px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500">
@@ -36,13 +38,10 @@
                 </div>
                 <a id="dashboardHref" href="/auth"
                     class="font-semibold text-white px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 transition duration-300 ease-in-out hidden sm:block">Dashboard</a>
-                <button id="menu-toggle" class="sm:hidden text-white focus:outline-none">
-                    <i class="fas fa-bars"></i>
-                </button>
             </div>
         </nav>
         <div id="mobile-menu"
-            class="hidden sm:hidden bg-white dark:bg-gray-800 p-5 rounded-lg shadow-lg mb-4 transition-all duration-300 ease-in-out opacity-0 transform scale-95">
+            class="hidden sm:hidden bg-white dark:bg-gray-800 p-5 rounded-lg shadow-lg my-4 transition-all duration-300 ease-in-out opacity-0 transform scale-95">
             <ul class="space-y-2">
                 <li><a href="#manga"
                         class="flex justify-between items-center block w-full hover:bg-gray-800 hover:text-white dark:hover:bg-gray-200 dark:hover:text-black transition duration-300 ease-in-out p-2 rounded">
