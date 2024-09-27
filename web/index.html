@@ -5,7 +5,7 @@
     <title>Maxix | mDB</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="mDatabase - Maxix's personal database of magas and light novels">
+    <meta name="description" content="mDatabase - Maxix's personal database of manga and light novels">
     <meta name="keywords" content="manga, light novel, database, maxix">
     <meta name="author" content="Maxix">
     <link rel="canonical" href="https://maxix.sk" />
@@ -21,23 +21,25 @@
             class="p-2 text-gray-800 dark:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700">
         </button>
     </header>
-    <main class="p-6 flex-grow">
+    <div class="pt-6 px-6">
         <nav
-            class="mb-5 p-5 bg-gradient-to-r from-blue-500 to-teal-500 flex justify-between items-center shadow-lg rounded-lg">
+            class="p-4 bg-gradient-to-r from-blue-500 to-teal-500 flex justify-between items-center shadow-lg rounded-lg">
             <p class="text-2xl font-bold text-white tracking-wider">
-                mDatabase
+                <span class="block sm:hidden">mDB</span>
+                <span class="hidden sm:block">mDatabase</span>
             </p>
-            <ul class="flex flex-wrap space-x-6 hidden sm:flex">
-                <li><a href="#manga"
-                        class="text-gray-200 hover:text-white transition duration-300 ease-in-out">Manga</a></li>
-                <li><a href="#lightNovel"
-                        class="text-gray-200 hover:text-white transition duration-300 ease-in-out">Light Novel</a></li>
-            </ul>
-            <a id="dashboardHref" href="/auth"
-                class="font-semibold text-white px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 transition duration-300 ease-in-out hidden sm:block">Dashboard</a>
-            <button id="menu-toggle" class="sm:hidden text-white focus:outline-none">
-                <i class="fas fa-bars"></i>
-            </button>
+            <div class="flex items-center space-x-4">
+                <div class="relative w-full sm:w-auto">
+                    <input type="text" id="searchBar" placeholder="Search..."
+                        class="w-full sm:w-auto px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <i class="fas fa-search absolute right-3 top-3 text-gray-500 dark:text-gray-300"></i>
+                </div>
+                <a id="dashboardHref" href="/auth"
+                    class="font-semibold text-white px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 transition duration-300 ease-in-out hidden sm:block">Dashboard</a>
+                <button id="menu-toggle" class="sm:hidden text-white focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
         </nav>
         <div id="mobile-menu"
             class="hidden sm:hidden bg-white dark:bg-gray-800 p-5 rounded-lg shadow-lg mb-4 transition-all duration-300 ease-in-out opacity-0 transform scale-95">
@@ -59,6 +61,8 @@
                 </li>
             </ul>
         </div>
+    </div>
+    <main class="p-6 flex-grow">
     </main>
     <footer
         class="p-5 bg-white dark:bg-gray-800 flex justify-between items-center shadow-md transition-colors duration-300">
@@ -74,7 +78,9 @@
         </nav>
     </footer>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script src="./assets/js/darkMode.js"></script>
     <script src="./assets/js/mdb.js"></script>

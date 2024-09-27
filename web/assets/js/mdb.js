@@ -199,3 +199,50 @@ function getCookie(name) {
     }
     return null;
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const searchBar = document.getElementById('searchBar');
+    const content = document.querySelector('main');
+
+    searchBar.addEventListener('input', async function () {
+        const query = searchBar.value.trim();
+        if (query.length > 0) {
+            try {
+                const response = await fetch(`${api}/search/${query}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    content.innerHTML = '';
+                    data.forEach(series => appendSeriesToCategory(series, content));
+                    
+                    const seriesElements = content.querySelectorAll('.series');
+                    seriesElements.forEach(seriesElement => {
+                        const chevron = seriesElement.querySelector('.chevron');
+                        toggleDisplay(seriesElement.querySelectorAll('.book'), chevron);
+                        
+                        const bookElements = seriesElement.querySelectorAll('.book');
+                        bookElements.forEach(bookElement => {
+                            const bookChevron = bookElement.querySelector('.chevron');
+                            toggleDisplay(bookElement.querySelectorAll('.chapter'), bookChevron);
+                        });
+                    });
+                } else {
+                    content.innerHTML = `
+                        <div class="flex flex-col items-center justify-center h-full">
+                            <p class="text-red-500 text-lg font-semibold">No results found</p>
+                            <p class="text-gray-500">Please try a different search term.</p>
+                        </div>`;
+                }
+            } catch (error) {
+                console.error('Search failed:', error);
+                content.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <p class="text-red-500 text-lg font-semibold">An error occurred while searching</p>
+                        <p class="text-gray-500">Please try again later.</p>
+                    </div>`;
+            }
+        } else {
+            content.innerHTML = '';
+            fetchData(api);
+        }
+    });
+});
