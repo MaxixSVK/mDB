@@ -1,6 +1,6 @@
 # mDB - Your Personal Library
 
-Ever wondered what and when you read *that* book? Just search for it with mDB!
+Ever wondered when you read *that* book? Just search for it with mDB!
 
 ### Features
 - Custom Backend with SQL connection
