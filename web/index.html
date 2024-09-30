@@ -18,51 +18,46 @@
     <header class="p-5 bg-white dark:bg-gray-800 flex justify-between items-center shadow-md">
         <a href="https://maxix.sk" class="text-2xl font-bold">Maxix</a>
         <button id="switchMode"
-            class="p-2 text-gray-800 dark:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-        </button>
+            class="p-2 text-gray-800 dark:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700"></button>
     </header>
-    <div class="pt-6 px-6">
-        <nav class="p-4 bg-gradient-to-r from-blue-500 to-teal-500 flex justify-between items-center shadow-lg rounded-lg">
-            <p class="text-2xl font-bold text-white tracking-wider">
-                <span class="block sm:hidden mr-6">mDB</span>
-                <span class="hidden sm:block">mDatabase</span>
-            </p>
-            <div class="flex items-center space-x-2">
-                <a id="dashboardHrefMobile" class="block sm:hidden" href="/auth">
-                    <i class="fas fa-cogs text-white"></i>
-                </a>
-                <div class="relative w-full sm:w-auto">
-                    <input type="text" id="searchBar" placeholder="Search..."
-                        class="w-full sm:w-auto px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                    <i class="fas fa-search absolute right-3 top-3 text-gray-500 dark:text-gray-300"></i>
-                </div>
-                <a id="dashboardHref" href="/auth"
-                    class="font-semibold text-white px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 transition duration-300 ease-in-out hidden sm:block">Dashboard</a>
+
+    <nav
+        class="mx-6 mt-6 p-5 bg-gradient-to-r from-blue-500 to-teal-500 flex justify-between items-center shadow-lg rounded-lg">
+        <p class="text-2xl font-bold text-white tracking-wider">
+            <span class="block sm:hidden mr-6">mDB</span>
+            <span class="hidden sm:block">mDatabase</span>
+        </p>
+        <div class="flex items-center space-x-2">
+            <a id="dashboardHrefMobile" class="block sm:hidden" href="/auth">
+                <i class="fas fa-cogs text-white"></i>
+            </a>
+            <div class="relative w-full sm:w-auto">
+                <input type="text" id="searchBar" placeholder="Search..."
+                    class="w-full sm:w-auto px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <i class="fas fa-search absolute right-3 top-3 text-gray-500 dark:text-gray-300"></i>
             </div>
-        </nav>
-        <div id="mobile-menu"
-            class="hidden sm:hidden bg-white dark:bg-gray-800 p-5 rounded-lg shadow-lg my-4 transition-all duration-300 ease-in-out opacity-0 transform scale-95">
-            <ul class="space-y-2">
-                <li><a href="#manga"
-                        class="flex justify-between items-center block w-full hover:bg-gray-800 hover:text-white dark:hover:bg-gray-200 dark:hover:text-black transition duration-300 ease-in-out p-2 rounded">
-                        Manga
-                        <i class="fas fa-book-open ml-2"></i></a>
-                </li>
-                <li><a href="#lightNovel"
-                        class="flex justify-between items-center block w-full hover:bg-gray-800 hover:text-white dark:hover:bg-gray-200 dark:hover:text-black transition duration-300 ease-in-out p-2 rounded">
-                        Light Novel
-                        <i class="fas fa-book-open ml-2"></i></a>
-                </li>
-                <li><a id="dashboardHrefMobile" href="/auth"
-                        class="flex justify-between items-center block w-full hover:bg-gray-800 hover:text-white dark:hover:bg-gray-200 dark:hover:text-black transition duration-300 ease-in-out p-2 rounded">
-                        Dashboard
-                        <i class="fas fa-cogs ml-2"></i></a>
-                </li>
-            </ul>
+            <a id="dashboardHref" href="/auth"
+                class="font-semibold text-white px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 transition duration-300 ease-in-out hidden sm:block">Dashboard</a>
         </div>
-    </div>
-    <main class="p-6 flex-grow">
-    </main>
+    </nav>
+<main class="p-6 flex-grow">
+    <section class="grid grid-cols-3 gap-4 mb-4">
+        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md flex flex-col items-center">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-1">Series</h2>
+            <p id="seriesCount" class="text-3xl font-semibold text-teal-600"></p>
+        </div>
+        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md flex flex-col items-center">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-1">Books</h2>
+            <p id="bookCount" class="text-3xl font-semibold text-teal-600"></p>
+        </div>
+        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md flex flex-col items-center">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-1">Chapters</h2>
+            <p id="chapterCount" class="text-3xl font-semibold text-teal-600"></p>
+        </div>
+    </section>
+    <section id="content"></section>
+</main>
+
     <footer
         class="p-5 bg-white dark:bg-gray-800 flex justify-between items-center shadow-md transition-colors duration-300">
         <a href="https://github.com/MaxixSVK">
@@ -80,7 +75,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
         integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-
     <script src="./assets/js/darkMode.js"></script>
     <script src="./assets/js/mdb.js"></script>
 </body>

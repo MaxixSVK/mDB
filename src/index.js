@@ -45,5 +45,6 @@ app.listen(config.port, () => {
         })
         .catch(err => {
             console.error('Server-chan: Connection to MariaDB failed');
+            process.exit(1)
         });
 });

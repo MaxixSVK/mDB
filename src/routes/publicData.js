@@ -273,5 +273,31 @@ module.exports = function (pool) {
         }
     });
 
+    router.get('/stats', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const query = `
+                SELECT 
+                (SELECT COUNT(series_id) FROM series) as seriesCount,
+                (SELECT COUNT(book_id) FROM books) as bookCount,
+                (SELECT COUNT(chapter_id) FROM chapters) as chapterCount;
+            `;
+
+            const rows = await conn.query(query);
+            const stats = {
+                seriesCount: rows[0].seriesCount.toString(),
+                bookCount: rows[0].bookCount.toString(),
+                chapterCount: rows[0].chapterCount.toString()
+            };
+            res.send(stats);
+
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
     return router;
 };
