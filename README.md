@@ -1,6 +1,6 @@
 # mDB - Your Personal Library
 
-Ever wondered when you read *that* book? Just search for it with mDB!
+Ever wondered when you read *that* book?
 
 ### Features
 - Custom Backend with SQL connection
@@ -29,3 +29,9 @@ Ever wondered when you read *that* book? Just search for it with mDB!
 
 ## Future Plans
 - Multi-user support
+
+## Security
+For information on security practices, see the [Security Policy](SECURITY.md).
+
+## License
+This project is licensed under the GNU General Public License v3.0 see the [LICENSE](LICENSE) file for details.
