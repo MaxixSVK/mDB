@@ -1,6 +1,3 @@
-const api = 'https://apimdb.maxix.sk';
-// const api = 'http://localhost:7000';
-
 document.addEventListener("DOMContentLoaded", function () {
     checkLogin();
 
@@ -31,6 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const form = new FormData();
         const fileInput = document.getElementById('cdn-upload');
         const file = fileInput.files[0];
+        if (!file) return showNotification('Please select a file', 'error');
         form.append('image', file);
         uploadCDN(form);
     });
@@ -93,11 +91,18 @@ async function checkLogin() {
     }
 }
 
-function showNotification(message, type = 'info') {
+function showNotification(message, type = 'info', progress = null) {
     const container = document.getElementById('notification-container');
-    const notification = document.createElement('div');
-    const progressBar = document.createElement('div');
-    const progress = document.createElement('div');
+    let notification = Array.from(container.children).find(child => child.dataset.message === message);
+
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.dataset.message = message;
+        container.appendChild(notification);
+    }
+
+    const progressBar = notification.querySelector('.progress-bar') || document.createElement('div');
+    const progressElement = progressBar.querySelector('.progress') || document.createElement('div');
 
     const baseClasses = 'p-4 rounded-lg shadow-lg flex items-center justify-between relative overflow-hidden transition-transform transform-gpu duration-300 ease-in-out';
     const typeClasses = {
@@ -109,25 +114,28 @@ function showNotification(message, type = 'info') {
 
     message = message.replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+    if (progress !== null) {
+        message += ` (${progress.toFixed(2)}%)`;
+    }
+
     notification.className = `${baseClasses} ${typeClasses[type]} translate-y-4 opacity-0`;
     notification.innerHTML = `
         <span class="flex-1">${message}</span>
         <button class="ml-4 text-lg font-bold focus:outline-none" onclick="this.parentElement.remove()">×</button>
     `;
 
-    progressBar.className = 'absolute bottom-0 left-0 w-full h-1 bg-opacity-50';
-    progress.className = 'h-full bg-white transition-all duration-[5000ms] ease-linear';
-    progress.style.width = '100%';
+    progressBar.className = 'progress-bar absolute bottom-0 left-0 w-full h-1 bg-opacity-50';
+    progressElement.className = 'progress h-full bg-white transition-all duration-[5000ms] ease-linear';
+    progressElement.style.width = '100%';
 
-    progressBar.appendChild(progress);
+    progressBar.appendChild(progressElement);
     notification.appendChild(progressBar);
-    container.appendChild(notification);
 
     setTimeout(() => {
         notification.classList.remove('translate-y-4', 'opacity-0');
         notification.classList.add('translate-y-0', 'opacity-100');
         setTimeout(() => {
-            progress.style.width = '0%';
+            progressElement.style.width = '0%';
         }, 50);
     }, 10);
 
@@ -377,23 +385,36 @@ async function cdnBackup() {
 
 async function uploadCDN(data) {
     try {
-        const response = await fetch(api + '/cdn/upload', {
-            headers: {
-                'Authorization': getCookie('sessionToken')
-            },
-            method: 'POST',
-            body: data
+        const xhr = new XMLHttpRequest();
+        const url = api + '/cdn/upload';
+        const token = getCookie('sessionToken');
+
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('Authorization', token);
+
+        xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                showNotification('Uploading file', 'info', percentComplete);
+            }
         });
 
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
+        xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                const result = JSON.parse(xhr.responseText);
+                renderCDNList();
+                showNotification(`File uploaded successfully ${result.filename}`, 'success');
+                document.getElementById('file-name').textContent = result.link;
+            } else {
+                throw new Error('Network response was not ok');
+            }
+        });
 
-        const result = await response.json();
-        renderCDNList();
-        showNotification(`File uploaded successfully ${result.filename}`, 'success');
+        xhr.addEventListener('error', () => {
+            showNotification('File upload failed', 'error');
+        });
 
-        document.getElementById('file-name').textContent = result.link;
+        xhr.send(data);
     } catch (error) {
         showNotification('File upload failed', 'error');
     }
@@ -424,95 +445,110 @@ async function renderCDNList() {
     cdnList.innerHTML = '';
 
     const list = await fetchCDNList();
-    for (const item of list) {
-        const listItem = document.createElement('li');
-        listItem.className = 'bg-white dark:bg-gray-700 p-4 mb-2 rounded-lg shadow-md flex justify-between items-center transition duration-200 ease-in-out';
-        listItem.style.cursor = 'pointer';
+    list.forEach(item => {
+        const listItem = createListItem(item);
+        cdnList.appendChild(listItem);
+    });
+}
 
-        listItem.innerHTML = `
-            <span class="font-bold text-gray-900 dark:text-gray-100 item-text flex-grow">${item}</span>
-            <i class="fas fa-edit text-blue-500 dark:text-blue-400 cursor-pointer rename-icon transition duration-200 ease-in-out mr-2"></i>
-            <i class="fas fa-trash-alt text-red-500 dark:text-red-400 cursor-pointer delete-icon transition duration-200 ease-in-out"></i>
-        `;
+function createListItem(item) {
+    const listItem = document.createElement('li');
+    listItem.className = 'bg-white dark:bg-gray-700 p-4 mb-2 rounded-lg shadow-md flex justify-between items-center transition duration-200 ease-in-out';
+    listItem.style.cursor = 'pointer';
 
-        const deleteIcon = listItem.querySelector('.delete-icon');
-        deleteIcon.addEventListener('mouseover', function () {
-            deleteIcon.classList.add('text-red-700', 'dark:text-red-600');
-        });
+    listItem.innerHTML = `
+        <span class="font-bold text-gray-900 dark:text-gray-100 item-text flex-grow">${item}</span>
+        <i class="fas fa-edit text-blue-500 dark:text-blue-400 cursor-pointer rename-icon transition duration-200 ease-in-out mr-2"></i>
+        <i class="fas fa-trash-alt text-red-500 dark:text-red-400 cursor-pointer delete-icon transition duration-200 ease-in-out"></i>
+    `;
 
-        deleteIcon.addEventListener('mouseout', function () {
-            deleteIcon.classList.remove('text-red-700', 'dark:text-red-600');
-        });
+    const deleteIcon = listItem.querySelector('.delete-icon');
+    const renameIcon = listItem.querySelector('.rename-icon');
+    const itemText = listItem.querySelector('.item-text');
 
-        deleteIcon.addEventListener('click', async function (event) {
-            event.stopPropagation();
-            const response = await fetch(api + `/cdn/images/${item}`, {
-                method: 'DELETE',
+    deleteIcon.addEventListener('click', event => handleDeleteIconClick(event, item, listItem));
+
+    renameIcon.addEventListener('click', event => handleRenameIconClick(event, item));
+
+    itemText.addEventListener('click', () => handleItemTextClick(item));
+
+    return listItem;
+}
+
+async function handleDeleteIconClick(event, item, listItem) {
+    event.stopPropagation();
+    const response = await fetch(api + `/cdn/images/${item}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': getCookie('sessionToken')
+        },
+    });
+
+    if (response.ok) {
+        listItem.remove();
+        showNotification('File deleted successfully', 'success');
+    } else {
+        showNotification('File deletion failed', 'error');
+    }
+}
+
+function handleRenameIconClick(event, item) {
+    event.stopPropagation();
+    const renameModal = document.getElementById('renameModal');
+    const newFilenameInput = document.getElementById('newFilenameInput');
+    const renameConfirmButton = document.getElementById('renameConfirmButton');
+    const renameCancelButton = document.getElementById('renameCancelButton');
+
+    newFilenameInput.value = item;
+    renameModal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+    newFilenameInput.focus(); // Focus on the input field
+
+    newFilenameInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            renameConfirmButton.click();
+        } else if (e.key === 'Escape') {
+            renameModal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    });
+
+    renameConfirmButton.onclick = async function () {
+        const newFilename = newFilenameInput.value;
+        if (newFilename && newFilename !== item) {
+            const response = await fetch(api + `/cdn/images/rename/${item}`, {
+                method: 'PUT',
                 headers: {
+                    'Content-Type': 'application/json',
                     'Authorization': getCookie('sessionToken')
                 },
+                body: JSON.stringify({ newFilename })
             });
 
             if (response.ok) {
-                listItem.remove();
-                showNotification('File deleted successfully', 'success');
+                showNotification('File renamed successfully', 'success');
+                renderCDNList();
             } else {
-                showNotification('File deletion failed', 'error');
+                showNotification('File rename failed', 'error');
             }
-        });
+        }
+        renameModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    };
 
-        const renameIcon = listItem.querySelector('.rename-icon');
-        renameIcon.addEventListener('click', function (event) {
-            event.stopPropagation();
-            const renameModal = document.getElementById('renameModal');
-            const newFilenameInput = document.getElementById('newFilenameInput');
-            const renameConfirmButton = document.getElementById('renameConfirmButton');
-            const renameCancelButton = document.getElementById('renameCancelButton');
+    renameCancelButton.onclick = function () {
+        renameModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    };
+}
 
-            newFilenameInput.value = item;
-            renameModal.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-
-            renameConfirmButton.onclick = async function () {
-                const newFilename = newFilenameInput.value;
-                if (newFilename && newFilename !== item) {
-                    const response = await fetch(api + `/cdn/images/rename/${item}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': getCookie('sessionToken')
-                        },
-                        body: JSON.stringify({ newFilename })
-                    });
-
-                    if (response.ok) {
-                        showNotification('File renamed successfully', 'success');
-                        renderCDNList();
-                    } else {
-                        showNotification('File rename failed', 'error');
-                    }
-                }
-                renameModal.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden'); // Enable scrolling
-            };
-
-            renameCancelButton.onclick = function () {
-                renameModal.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden'); // Enable scrolling
-            };
-        });
-
-        listItem.querySelector('.item-text').addEventListener('click', function () {
-            navigator.clipboard.writeText(`https://apimdb.maxix.sk/cdn/images/${item}`).then(() => {
-                showNotification('Link copied to clipboard', 'success');
-            }).catch(err => {
-                showNotification('Failed to copy link to clipboard', 'error');
-                console.error('Failed to copy text: ', err);
-            });
-        });
-
-        cdnList.appendChild(listItem);
-    }
+function handleItemTextClick(item) {
+    navigator.clipboard.writeText(`https://apimdb.maxix.sk/cdn/images/${item}`).then(() => {
+        showNotification('Link copied to clipboard', 'success');
+    }).catch(err => {
+        showNotification('Failed to copy link to clipboard', 'error');
+        console.error('Failed to copy text: ', err);
+    });
 }
 
 async function changePassowrd() {

@@ -1,6 +1,3 @@
-const api = 'https://apimdb.maxix.sk';
-// const api = 'http://localhost:7000';
-
 document.addEventListener('DOMContentLoaded', function () {
     fetchSeriesBooksChapters();
     fetchStats();

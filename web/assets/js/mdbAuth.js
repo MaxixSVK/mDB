@@ -1,6 +1,3 @@
-const api = 'https://apimdb.maxix.sk';
-// const api = 'http://localhost:7000';
-
 document.addEventListener("DOMContentLoaded", function () {
     if (document.cookie.includes('sessionToken')) {
         window.location.href = '/dashboard';
