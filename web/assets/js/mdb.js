@@ -207,6 +207,7 @@ function debounce(func, delay) {
 function setupSearchBar() {
     const searchBar = document.getElementById('searchBar');
     const content = document.getElementById('content');
+    const stats = document.getElementById('stats');
 
     const performSearch = async function () {
         const query = searchBar.value.trim();
@@ -215,6 +216,7 @@ function setupSearchBar() {
                 const response = await fetch(`${api}/search/${query}`);
                 if (response.ok) {
                     const data = await response.json();
+                    stats.classList.add('hidden');
                     content.innerHTML = '';
                     data.forEach(series => appendSeriesToCategory(series, content));
 
@@ -230,6 +232,7 @@ function setupSearchBar() {
                         });
                     });
                 } else {
+                    stats.classList.add('hidden');
                     content.innerHTML = `
                             <div class="flex flex-col items-center justify-center h-full">
                                 <p class="text-red-500 text-lg font-semibold">No results found</p>
@@ -237,7 +240,7 @@ function setupSearchBar() {
                             </div>`;
                 }
             } catch (error) {
-                console.error('Search failed:', error);
+                stats.classList.add('hidden');
                 content.innerHTML = `
                         <div class="flex flex-col items-center justify-center h-full">
                             <p class="text-red-500 text-lg font-semibold">An error occurred while searching</p>
@@ -246,6 +249,7 @@ function setupSearchBar() {
             }
         } else {
             content.innerHTML = '';
+            stats.classList.remove('hidden');
             fetchSeriesBooksChapters();
         }
     };
@@ -253,4 +257,26 @@ function setupSearchBar() {
     const debouncedSearch = debounce(performSearch, 100);
 
     searchBar.addEventListener('input', debouncedSearch);
+}
+
+const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+let konamiIndex = 0;
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === konamiCode[konamiIndex]) {
+        konamiIndex++;
+        if (konamiIndex === konamiCode.length) {
+            activateEasterEgg();
+            konamiIndex = 0;
+        }
+    } else {
+        konamiIndex = 0;
+    }
+});
+
+function activateEasterEgg() {
+    document.querySelector('nav').innerHTML = '<span class="text-white font-bold">You found Rem!</span>';
+    document.querySelector('main').innerHTML = `
+        <img src="https://apimdb.maxix.sk/cdn/images/rem-easter-egg.png" class="w-1/2 mx-auto block">
+    `;
 }
