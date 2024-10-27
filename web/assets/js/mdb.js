@@ -250,6 +250,7 @@ function setupSearchBar() {
         } else {
             content.innerHTML = '';
             stats.classList.remove('hidden');
+            fetchStats();
             fetchSeriesBooksChapters();
         }
     };
