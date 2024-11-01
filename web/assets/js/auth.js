@@ -1,4 +1,4 @@
-const api = 'http://localhost:3000/v2';
+const api = 'https://apimdb.maxix.sk/v2';
 
 document.addEventListener("DOMContentLoaded", function () {
     if (document.cookie.includes('sessionToken')) {
