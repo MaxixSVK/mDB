@@ -26,6 +26,7 @@ function editDataInit() {
                 await addSeriesSelect(true);
                 addFormDescription(editDataFields, 'DB Data');
                 addInputField('name', 'Book Name');
+                addInputField('img', 'Image URL');
                 addInputField('startedReading', 'Started Reading', 'date');
                 addInputField('endedReading', 'Ended Reading', 'date');
                 await bookData();
@@ -169,6 +170,7 @@ function editDataInit() {
                 endpoint: `/book/${id}`,
                 fields: {
                     'name': 'name',
+                    'img': 'img',
                     'startedReading': 'startedReading',
                     'endedReading': 'endedReading'
                 }

@@ -2,50 +2,39 @@
 <html lang="en">
 
 <head>
-    <title>404 Not Found | Maxix</title>
-    <meta charset="utf-8">
+    <title>mDB | 404 Not Found</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="404 Not Found - Maxix">
-    <meta name="keywords" content="404, Not Found, Maxix, IT student, Developer, Blog, Projects">
+    <meta name="description" content="mDatabase - Maxix's personal database of manga and light novels. Open source on Github">
+    <meta name="keywords" content="manga, light novel, database, maxix">
     <meta name="author" content="Maxix">
-    <link rel="stylesheet" href="/assets/index.css">
-    <link rel="icon" href="/assets/favicon.png">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="canonical" href="https://maxix.sk" />
+    <link rel="icon" href="assets/img/favicon.png" type="image/x-icon">
+    <link rel="stylesheet" href="assets/css/index.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
 </head>
 
-<body
-    class="bg-gray-100 dark:bg-gray-900 text-black dark:text-gray-200 flex flex-col min-h-screen transition-colors duration-300">
-    <header class="p-5 bg-white dark:bg-gray-800 flex justify-between items-center shadow-md">
-        <a href="https://maxix.sk" class="text-2xl font-bold">Maxix</a>
-        <button id="switchMode"
-            class="p-2 text-gray-800 dark:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-        </button>
-    </header>
-    <main class="p-6 flex-grow">
-        <div class="text-center">
-            <h1 class="text-4xl font-bold mb-4">Oops! Page not found...</h1>
-            <p class="text-xl mb-8">The page you're looking for might have been moved or deleted. Or maybe it never
-                existed?</p>
-            <p class="text-xl mt-8">Let's go <a href="/" class="text-blue-500 hover:underline">home</a> and start over.
-            </p>
-        </div>
-    </main>
-    <footer
-        class="p-5 bg-white dark:bg-gray-800 flex justify-between items-center shadow-md transition-colors duration-300">
-        <a href="https://github.com/MaxixSVK">
-            <p class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">&copy; 2024 Maxix</p>
-        </a>
-        <nav>
-            <ul class="flex space-x-4">
-                <li><a href="http://maxix.sk/status"
-                        class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">Status</a>
-                </li>
-            </ul>
+<body class="bg-[#131313] font-figtree">
+    <div id="app" class="max-w-screen-xl xl:mx-auto mx-4 shadow-lg">
+        <nav class="flex justify-between items-center py-4">
+            <a href="/" class="text-3xl text-white font-bold">
+                mDatabase
+            </a>
+            <div>
+                <a class="text-3xl text-white font-bold">Not found :(</a>
+            </div>
         </nav>
-    </footer>
-
-    <script src="/assets/js/darkMode.js"></script>
+        <main class="bg-[#191818] rounded-md pt-4 pb-0.5">
+            <section id="error" class="bg-[#1F1F1F] rounded-md p-8 mb-4 mx-4 text-white text-center">
+                <h2 class="text-4xl mb-2 font-bold">404</h2>
+                <p class="text-lg mb-4">Oops! The page you're looking for doesn't exist.</p>
+                <p class="text-lg">It seems you've encountered a missing page. Maybe try searching for something else?</p>
+                <a href="index.html" class="mt-4 inline-block px-4 py-2 rounded-md bg-[#2A2A2A] text-white hover:bg-[#3A3A3A]">Go Back Home</a>
+            </section>
+        </main>
+    </div>
 </body>
 
 </html>

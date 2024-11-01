@@ -26,6 +26,7 @@ function addDataInit() {
                 await addSeriesSelect(addDataFieldsDiv);
                 addFormDescription(addDataFieldsDiv, 'New DB Data');
                 addInputField(addDataFieldsDiv, 'name', 'Book Name');
+                addInputField(addDataFieldsDiv, 'img', 'Image URL');
                 addInputField(addDataFieldsDiv, 'startedReading', 'Started Reading', 'date');
                 addInputField(addDataFieldsDiv, 'endedReading', 'Ended Reading', 'date');
                 break;

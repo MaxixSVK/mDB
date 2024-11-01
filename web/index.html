@@ -2,84 +2,64 @@
 <html lang="en">
 
 <head>
-    <title>Maxix | mDB</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="mDatabase - Maxix's personal database of manga and light novels">
+    <title>mDB | Home</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="mDatabase - Maxix's personal database of manga and light novels. Open source on Github">
     <meta name="keywords" content="manga, light novel, database, maxix">
     <meta name="author" content="Maxix">
     <link rel="canonical" href="https://maxix.sk" />
-    <link rel="stylesheet" href="/assets/index.css" />
-    <link rel="icon" href="/assets/favicon.png">
+    <link rel="icon" href="assets/img/favicon.png" type="image/x-icon">
+    <link rel="stylesheet" href="assets/css/index.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap"
+        rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
-<body
-    class="bg-gray-100 dark:bg-gray-900 text-black dark:text-gray-200 flex flex-col min-h-screen transition-colors duration-300">
-    <header class="p-5 bg-white dark:bg-gray-800 flex justify-between items-center shadow-md">
-        <a href="https://maxix.sk" class="text-2xl font-bold">Maxix</a>
-        <button id="switchMode"
-            class="p-2 text-gray-800 dark:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700"></button>
-    </header>
-
-    <nav
-        class="mx-6 mt-6 p-5 bg-gradient-to-r from-blue-500 to-teal-500 flex justify-between items-center shadow-lg rounded-lg">
-        <p class="text-2xl font-bold text-white tracking-wider">
-            <span class="block sm:hidden mr-6">mDB</span>
-            <span class="hidden sm:block">mDatabase</span>
-        </p>
-        <div class="flex items-center space-x-2">
-            <a id="dashboardHrefMobile" class="block sm:hidden" href="/auth">
-                <i class="fas fa-cogs text-white"></i>
+<body class="bg-[#131313] font-figtree">
+    <div id="app" class="max-w-screen-xl xl:mx-auto mx-4">
+        <nav class="flex justify-between items-center py-4">
+            <a href="/" class="text-3xl text-white font-bold">
+                mDatabase
             </a>
-            <div class="relative w-full sm:w-auto">
-                <input type="text" id="searchBar" placeholder="Search..."
-                    class="w-full sm:w-auto px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                <i class="fas fa-search absolute right-3 top-3 text-gray-500 dark:text-gray-300"></i>
+            <div>
+                <input id="search-input" type="text" placeholder="Search..." class="px-4 py-2 rounded-md bg-[#1F1F1F] text-white">
             </div>
-            <a id="dashboardHref" href="/auth"
-                class="font-semibold text-white px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 transition duration-300 ease-in-out hidden sm:block">Dashboard</a>
-        </div>
-    </nav>
-    <main class="p-6 flex-grow">
-        <section id="stats" class="grid grid-cols-3 gap-4 mb-4">
-            <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md flex flex-col items-center">
-                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-1">Series</h2>
-                <p id="seriesCount" class="text-3xl font-semibold text-teal-600"></p>
-            </div>
-            <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md flex flex-col items-center">
-                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-1">Books</h2>
-                <p id="bookCount" class="text-3xl font-semibold text-teal-600"></p>
-            </div>
-            <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md flex flex-col items-center">
-                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-1">Chapters</h2>
-                <p id="chapterCount" class="text-3xl font-semibold text-teal-600"></p>
-            </div>
-        </section>
-        <section id="content"></section>
-    </main>
-
-    <footer
-        class="p-5 bg-white dark:bg-gray-800 flex justify-between items-center shadow-md transition-colors duration-300">
-        <a href="https://github.com/MaxixSVK">
-            <p class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">&copy; 2024 Maxix</p>
-        </a>
-        <nav>
-            <ul class="flex space-x-4">
-                <li><a href="http://maxix.sk/status"
-                        class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">Status</a>
-                </li>
-            </ul>
         </nav>
-    </footer>
+        <main class="bg-[#191818] rounded-md pt-4 pb-0.5">
+            <section id="stats" class="bg-[#1F1F1F] rounded-md p-4 md:p-6 mb-2 md:mb-4 mx-2 md:mx-4 text-white">
+                <div class="grid grid-cols-3 gap-2 md:gap-6">
+                    <div class="text-center bg-[#2A2A2A] p-2 md:p-4 rounded-md">
+                        <h3 id="series-count" class="text-2xl md:text-3xl font-bold"></h3>
+                        <p class="text-md md:text-lg">Series</p>
+                    </div>
+                    <div class="text-center bg-[#2A2A2A] p-2 md:p-4 rounded-md">
+                        <h3 id="book-count" class="text-2xl md:text-3xl font-bold"></h3>
+                        <p class="text-md md:text-lg">Books</p>
+                    </div>
+                    <div class="text-center bg-[#2A2A2A] p-2 md:p-4 rounded-md">
+                        <h3 id="chapter-count" class="text-2xl md:text-3xl font-bold"></h3>
+                        <p class="text-md md:text-lg">Chapters</p>
+                    </div>
+                </div>
+            </section>
+            <div id="series-list" class="mx-2 md:mx-4">
+                <section id="light-novels-list">
+                    <h2 class="text-2xl mb-2 text-white font-bold">Light Novels</h2>
+                </section>
+                <section id="manga-list" >
+                    <h2 class="text-2xl mb-2 text-white font-bold">Manga</h2>
+                </section>
+            </div>
+            <div id="no-results"></div>
+        </main>
+    </div>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <script>const api = 'https://apimdb.maxix.sk';
-        // const api = 'http://localhost:7000';</script>
-    <script src="/assets/js/darkMode.js"></script>
-    <script src="/assets/js/mdb.js"></script>
+    <script src="assets/js/mdb.js"></script>
+    <!-- <script src="assets/js/darkMode.js"></script> -->
 </body>
 
 </html>

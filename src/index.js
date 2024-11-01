@@ -23,6 +23,10 @@ app.use('/auth', require('./routes/auth')(pool));
 app.use('/account', require('./routes/account')(pool));
 app.use('/cdn', require('./cdn')(pool));
 
+app.use('/v2', require('./routes-v2/publicData')(pool));
+app.use('/v2', require('./routes-v2/userData')(pool));
+app.use('/v2/auth', require('./routes-v2/auth')(pool));
+
 app.get('/', (req, res) => {
     res.send('Server-chan: Hello, world!');
 });

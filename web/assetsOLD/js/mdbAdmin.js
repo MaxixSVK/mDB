@@ -404,7 +404,8 @@ async function uploadCDN(data) {
                 const result = JSON.parse(xhr.responseText);
                 renderCDNList();
                 showNotification(`File uploaded successfully ${result.filename}`, 'success');
-                document.getElementById('file-name').textContent = result.link;
+                document.getElementById('cdn-upload').value = '';
+                document.getElementById('file-name').textContent = 'Nothing selected';
             } else {
                 throw new Error('Network response was not ok');
             }

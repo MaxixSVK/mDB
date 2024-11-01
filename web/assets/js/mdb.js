@@ -1,198 +1,263 @@
+const api = 'http://localhost:3000/v2';
+
 document.addEventListener('DOMContentLoaded', function () {
-    fetchSeriesBooksChapters();
     fetchStats();
-    checkLogin();
-    setupSearchBar();
+    fetchSeries();
+    setupSearch();
 });
 
-function fetchSeriesBooksChapters() {
-    fetch(api + '/data')
-        .then(response => response.json())
-        .then(data => {
-            const content = document.getElementById('content');
-            data.forEach(series => appendSeriesToCategory(series, content));
-        })
-        .catch(error => {
-            const content = document.getElementById('content');
-            content.innerHTML = '';
-            const errorDiv = createElement(
-                'div',
-                ['mb-4', 'p-4', 'bg-red-500', 'dark:bg-red-700', 'text-white', 'flex', 'flex-col', 'space-y-1', 'shadow-md', 'rounded-md'],
-                { id: 'error' },
-                `<p class="font-bold text-md">An error occurred while fetching the data</p>
-                 <p class="text-xs">Reloading the page in 5 seconds...</p>`
-            );
-            content.appendChild(errorDiv);
-            console.error(error);
-            setTimeout(() => location.reload(), 5000);
-        });
-}
-
-async function fetchStats() {
+function fetchStats() {
     fetch(api + '/stats')
         .then(response => response.json())
         .then(data => {
-            const seriesCount = document.getElementById('seriesCount');
-            const bookCount = document.getElementById('bookCount');
-            const chapterCount = document.getElementById('chapterCount');
-
-            seriesCount.textContent = data.seriesCount;
-            bookCount.textContent = data.bookCount;
-            chapterCount.textContent = data.chapterCount;
+            document.getElementById('series-count').textContent = data.seriesCount;
+            document.getElementById('book-count').textContent = data.bookCount;
+            document.getElementById('chapter-count').textContent = data.chapterCount;
         });
 }
 
-async function checkLogin() {
-    const session = getCookie('sessionToken');
-    if (session) {
-        try {
-            const response = await fetch(api + '/account/validate', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': session
-                },
+function fetchSeries() {
+    fetch(api + '/series')
+        .then(response => response.json())
+        .then(seriesIds => {
+            const seriesPromises = seriesIds.map(seriesId =>
+                fetch(api + '/series/' + seriesId).then(response => response.json())
+            );
+            return Promise.all(seriesPromises);
+        })
+        .then(seriesData => {
+            seriesData.sort((a, b) => a.name.localeCompare(b.name));
+            seriesData.forEach(series => {
+                renderSeriesCard(series);
             });
+        });
+}
 
-            if (response.ok) {
-                const pcElement = document.getElementById('dashboardHref');
-                const mobileElement = document.getElementById('dashboardHrefMobile');
+function renderSeriesCard(series) {
+    const lightNovelsList = document.getElementById('light-novels-list');
+    const mangaList = document.getElementById('manga-list');
 
-                pcElement.href = '/dashboard';
-                mobileElement.href = '/dashboard';
-
-            } else {
-                deleteCookie('sessionToken');
-                window.location.href = '/auth';
-            }
-        } catch (error) {
-            console.error('Login failed:', error);
-        }
+    if (!lightNovelsList || !mangaList) {
+        console.error('Required list elements are missing.');
+        return;
     }
-}
 
-function deleteCookie(name) {
-    document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-}
+    const card = document.createElement('div');
+    card.className = 'bg-[#1F1F1F] rounded-md p-4 mb-4 cursor-pointer';
 
-function getCookie(name) {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-    }
-    return null;
-}
+    const header = document.createElement('div');
+    header.className = 'flex items-center';
 
-const createElement = (tag, classes = [], attributes = {}, innerHTML = '') => {
-    const element = document.createElement(tag);
-    classes.forEach(cls => element.classList.add(cls));
-    Object.keys(attributes).forEach(attr => element[attr] = attributes[attr]);
-    element.innerHTML = innerHTML;
-    return element;
-};
+    const img = document.createElement('img');
+    img.src = series.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
+    img.alt = series.name || 'No image';
+    img.className = 'h-24 object-cover rounded-md mr-4';
 
-const createSeriesElement = (series) => {
-    const seriesDiv = createElement(
-        'div',
-        ['series', 'mb-4', 'bg-white', 'dark:bg-gray-800', 'p-2', 'shadow-md', 'rounded-md', 'text-gray-900', 'dark:text-gray-100']
-    );
+    const content = document.createElement('div');
+    content.className = 'flex-1';
 
-    const seriesInfoDiv = createElement(
-        'div',
-        ['series-info', 'flex', 'items-center', 'justify-between', 'cursor-pointer', 'space-x-4']
-    );
+    const title = document.createElement('h2');
+    title.className = 'text-white text-xl font-bold';
+    title.textContent = series.name;
 
-    const seriesName = createElement(
-        'h1',
-        ['series-name', 'text-lg', 'font-medium', 'flex-1', 'flex', 'items-center', 'ml-2', 'md:ml-4'],
-        {},
-        `<i class="fas fa-chevron-right chevron mr-2 transition-transform duration-300"></i> ${series.name}`
-    );
+    const status = document.createElement('span');
+    status.className = series.finished === 1 ? 'text-green-500' : 'text-red-500';
+    status.textContent = series.finished === 1 ? 'Finished' : 'Still reading';
 
-    const seriesImageContainer = createElement(
-        'div',
-        ['series-image-container', 'flex-shrink-0']
-    );
+    content.appendChild(title);
+    content.appendChild(status);
 
-    const seriesImage = createElement(
-        'img',
-        ['series-image', 'h-24', 'object-contain', 'shadow-lg', 'transition-transform', 'duration-300', 'rounded-md', 'mr-2', 'md:mr-4'],
-        { src: series.img, alt: series.name }
-    );
+    header.appendChild(img);
+    header.appendChild(content);
 
-    seriesImageContainer.appendChild(seriesImage);
-    seriesInfoDiv.appendChild(seriesName);
-    seriesInfoDiv.appendChild(seriesImageContainer);
-    seriesDiv.appendChild(seriesInfoDiv);
+    card.appendChild(header);
 
-    series.books.forEach(book => seriesDiv.appendChild(createBookElement(book)));
+    const bookList = document.createElement('div');
+    bookList.id = 'books-list-' + series.series_id;
 
-    seriesInfoDiv.addEventListener('click', () => {
-        toggleDisplay(seriesDiv.querySelectorAll('.book'), seriesInfoDiv.querySelector('.chevron'));
+    bookList.addEventListener('click', function (event) {
+        event.stopPropagation();
     });
 
-    return seriesDiv;
-};
+    card.appendChild(bookList);
 
-const createBookElement = (book) => {
-    const bookDiv = createElement(
-        'div',
-        ['book', 'mt-2', 'bg-gray-100', 'dark:bg-gray-700', 'p-3', 'rounded-md', 'text-gray-800', 'dark:text-gray-200', 'shadow-md'],
-        { style: 'display: none' },
-        `<h2 class="text-md font-semibold flex items-center"><i class="fas fa-chevron-right chevron mr-2"></i> ${book.name || 'No data'}</h2>
-         <p class="text-xs mt-1">Started reading: ${book.startedReading || 'No data'}</p>
-         <p class="text-xs">Finished reading: ${book.endedReading || 'No data'}</p>`
-    );
-
-    book.chapters.forEach(chapter => bookDiv.appendChild(createChapterElement(chapter)));
-    bookDiv.addEventListener('click', (event) => {
-        if (!event.target.closest('.chapter')) {
-            toggleDisplay(bookDiv.querySelectorAll('.chapter'), bookDiv.querySelector('.chevron'));
+    card.addEventListener('click', function () {
+        const booksList = document.getElementById('books-list-' + series.series_id);
+        if (booksList.hasChildNodes()) {
+            Array.from(booksList.children).forEach(child => {
+                child.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => {
+                    booksList.removeChild(child);
+                }, 250);
+            });
+        } else {
+            fetchBooks(series.series_id);
         }
     });
 
-    return bookDiv;
-};
-
-const createChapterElement = (chapter) => createElement(
-    'div',
-    ['chapter', 'mt-1', 'bg-gray-200', 'dark:bg-gray-600', 'p-2', 'rounded-md', 'text-gray-700', 'dark:text-gray-300', 'shadow-sm'],
-    { style: 'display: none' },
-    `<h3 class="text-sm font-semibold">${chapter.name || 'No data'}</h3>
-     <p class="text-xs">Date: ${chapter.date || 'No data'}</p>`
-);
-
-const appendSeriesToCategory = (series, content) => {
-    const seriesTypeMapping = {
-        lightNovel: 'Light Novels',
-        manga: 'Manga'
-    };
-
-    const categoryName = seriesTypeMapping[series.seriesType] || series.seriesType;
-    let categoryDiv = document.getElementById(series.seriesType) || createElement('div', [], { id: series.seriesType });
-    if (!categoryDiv.parentElement) {
-        const categoryTitle = createElement(
-            'h1',
-            ['text-2xl', 'font-bold', 'text-gray-900', 'dark:text-gray-100', 'mb-2'],
-            {},
-            categoryName.charAt(0).toUpperCase() + categoryName.slice(1)
-        );
-        categoryDiv.appendChild(categoryTitle);
-        content.appendChild(categoryDiv);
+    if (series.seriesType === 'lightNovel') {
+        lightNovelsList.appendChild(card);
+    } else {
+        mangaList.appendChild(card);
     }
-    categoryDiv.appendChild(createSeriesElement(series));
-};
+}
 
-const toggleDisplay = (elements, chevron) => {
-    elements.forEach(element => {
-        element.style.display = element.style.display === 'none' ? 'block' : 'none';
+function fetchBooks(seriesId) {
+    fetch(api + '/books/' + seriesId)
+        .then(response => response.json())
+        .then(bookIds => {
+            const bookPromises = bookIds.map(bookId =>
+                fetch(api + '/book/' + bookId).then(response => response.json())
+            );
+            return Promise.all(bookPromises);
+        })
+        .then(bookData => {
+            bookData.sort((a, b) => a.name.localeCompare(b.startedReading)); // I WANT TO CHANGE HOW THINGS ARE SORTED IN THE FUTURE
+            bookData.forEach(book => {
+                renderBookCard(book);
+            });
+        });
+}
+
+function renderBookCard(book) {
+    const booksList = document.getElementById('books-list-' + book.series_id);
+
+    if (!booksList) {
+        console.error('Required list element is missing.');
+        return;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
+
+    const img = document.createElement('img');
+    img.src = book.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
+    img.alt = book.name || 'No image';
+    img.className = 'h-24 object-cover rounded-md mr-4';
+
+    const content = document.createElement('div');
+    content.className = 'flex-1';
+
+    const title = document.createElement('h2');
+    title.className = 'text-white text-lg font-bold';
+    title.textContent = book.name;
+
+    const startedReading = document.createElement('p');
+    startedReading.className = 'text-gray-400 text-sm';
+    startedReading.textContent = `Started Reading: ${book.startedReading}`;
+
+    const endedReading = document.createElement('p');
+    endedReading.className = 'text-gray-400 text-sm';
+    endedReading.textContent = `Ended Reading: ${book.endedReading}`;
+
+    content.appendChild(title);
+    content.appendChild(startedReading);
+    content.appendChild(endedReading);
+
+    card.appendChild(img);
+    card.appendChild(content);
+
+    booksList.appendChild(card);
+
+    requestAnimationFrame(() => {
+        card.classList.remove('opacity-0', 'translate-y-4');
     });
-    chevron.classList.toggle('fa-chevron-right');
-    chevron.classList.toggle('fa-chevron-down');
-};
+
+    card.addEventListener('click', function () {
+        fetchBookData(book.book_id);
+    });
+}
+
+function fetchBookData(bookid) {
+    const bookPromise = fetch(api + '/book/' + bookid).then(response => response.json());
+    const chaptersPromise = fetch(api + '/chapters/' + bookid)
+        .then(response => response.json())
+        .then(chapterIds => {
+            const chapterPromises = chapterIds.map(chapterId =>
+                fetch(api + '/chapter/' + chapterId).then(response => response.json())
+            );
+            return Promise.all(chapterPromises);
+        });
+
+    Promise.all([bookPromise, chaptersPromise])
+        .then(([bookData, chapterData]) => {
+            chapterData.sort((a, b) => a.name.localeCompare(b.name));
+            renderBookData(bookData, chapterData);
+        });
+}
+
+function renderBookData(bookData, chapterData) {
+    document.body.classList.add('overflow-hidden');
+
+    const container = document.createElement('div');
+    container.className = 'fixed bottom-0 left-0 w-full h-2/3 md:h-2/3 bg-[#191818] p-6 transform translate-y-full transition-transform duration-500 ease-in-out flex items-center justify-center border-t-4 border-[#2A2A2A] overflow-y-auto md:overflow-hidden';
+    container.id = 'book-details-container';
+
+    const closeButton = document.createElement('button');
+    closeButton.className = 'absolute top-4 right-4 text-white hidden md:block';
+    closeButton.textContent = 'X';
+    closeButton.addEventListener('click', closeBookDetails);
+
+    const contentWrapper = document.createElement('div');
+    contentWrapper.className = 'flex flex-col md:flex-row h-full';
+
+    const img = document.createElement('img');
+    img.src = bookData.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
+    img.alt = bookData.name || 'No image';
+    img.className = 'object-cover rounded-md mb-4 md:mb-0 md:mr-6 w-full md:w-auto md:max-w-md mx-auto';
+
+    const textWrapper = document.createElement('div');
+    textWrapper.className = 'flex-1 flex flex-col h-full';
+
+    const title = document.createElement('h2');
+    title.className = 'text-white text-3xl font-bold mb-4';
+    title.textContent = bookData.name;
+
+    const chaptersList = document.createElement('ul');
+    chaptersList.className = 'text-white space-y-2 overflow-y-auto flex-1 mb-4 md:mb-0';
+
+    chapterData.forEach(chapter => {
+        const chapterItem = document.createElement('li');
+        chapterItem.className = 'p-2 bg-[#2A2A2A] rounded-md max-w-md';
+        chapterItem.textContent = chapter.name;
+        chaptersList.appendChild(chapterItem);
+    });
+
+    textWrapper.appendChild(title);
+    textWrapper.appendChild(chaptersList);
+
+    contentWrapper.appendChild(img);
+    contentWrapper.appendChild(textWrapper);
+
+    container.appendChild(closeButton);
+    container.appendChild(contentWrapper);
+
+    document.body.appendChild(container);
+
+    document.addEventListener('click', handleOutsideClick, true);
+
+    requestAnimationFrame(() => {
+        container.classList.remove('translate-y-full');
+    });
+
+    function closeBookDetails() {
+        if (container) {
+            container.classList.add('translate-y-full');
+            setTimeout(() => {
+                container.remove();
+                document.body.classList.remove('overflow-hidden');
+            }, 500);
+        }
+        document.removeEventListener('click', handleOutsideClick, true);
+    }
+
+    function handleOutsideClick(event) {
+        event.stopPropagation();
+        if (container && !container.contains(event.target)) {
+            closeBookDetails();
+        }
+    }
+}
 
 function debounce(func, delay) {
     let timeoutId;
@@ -204,80 +269,73 @@ function debounce(func, delay) {
     };
 }
 
-function setupSearchBar() {
-    const searchBar = document.getElementById('searchBar');
-    const content = document.getElementById('content');
-    const stats = document.getElementById('stats');
+function setupSearch() {
+    const searchInput = document.getElementById('search-input');
+    const statsElement = document.getElementById('stats');
 
-    const performSearch = async function () {
-        const query = searchBar.value.trim();
-        if (query.length > 0) {
-            try {
-                const response = await fetch(`${api}/search/${query}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    stats.classList.add('hidden');
-                    content.innerHTML = '';
-                    data.forEach(series => appendSeriesToCategory(series, content));
-
-                    const seriesElements = content.querySelectorAll('.series');
-                    seriesElements.forEach(seriesElement => {
-                        const chevron = seriesElement.querySelector('.chevron');
-                        toggleDisplay(seriesElement.querySelectorAll('.book'), chevron);
-
-                        const bookElements = seriesElement.querySelectorAll('.book');
-                        bookElements.forEach(bookElement => {
-                            const bookChevron = bookElement.querySelector('.chevron');
-                            toggleDisplay(bookElement.querySelectorAll('.chapter'), bookChevron);
-                        });
-                    });
-                } else {
-                    stats.classList.add('hidden');
-                    content.innerHTML = `
-                            <div class="flex flex-col items-center justify-center h-full">
-                                <p class="text-red-500 text-lg font-semibold">No results found</p>
-                                <p class="text-gray-500">Please try a different search term.</p>
-                            </div>`;
-                }
-            } catch (error) {
-                stats.classList.add('hidden');
-                content.innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-full">
-                            <p class="text-red-500 text-lg font-semibold">An error occurred while searching</p>
-                            <p class="text-gray-500">Please try again later.</p>
-                        </div>`;
-            }
+    searchInput.addEventListener('input', debounce(function () {
+        const searchTerm = searchInput.value.trim();
+        if (searchTerm.length > 0) {
+            statsElement.classList.add('hidden');
+            fetch(api + '/search/' + searchTerm)
+                .then(response => response.json())
+                .then(data => {
+                    renderSearchResults(data);
+                });
         } else {
-            content.innerHTML = '';
-            stats.classList.remove('hidden');
-            fetchStats();
-            fetchSeriesBooksChapters();
+            statsElement.classList.remove('hidden');
+            document.getElementById('series-list').innerHTML = `
+            <section id="light-novels-list">
+                    <h2 class="text-2xl mb-2 text-white font-bold">Light Novels</h2>
+            </section>
+            <section id="manga-list" >
+                <h2 class="text-2xl mb-2 text-white font-bold">Manga</h2>
+            </section>`;
+            fetchSeries();
         }
-    };
-
-    const debouncedSearch = debounce(performSearch, 100);
-
-    searchBar.addEventListener('input', debouncedSearch);
+    }, 100));
 }
 
-const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-let konamiIndex = 0;
+async function renderSearchResults(results) {
+    const lightNovelsList = document.getElementById('light-novels-list');
+    const mangaList = document.getElementById('manga-list');
 
-document.addEventListener('keydown', function(event) {
-    if (event.key === konamiCode[konamiIndex]) {
-        konamiIndex++;
-        if (konamiIndex === konamiCode.length) {
-            activateEasterEgg();
-            konamiIndex = 0;
-        }
-    } else {
-        konamiIndex = 0;
+    lightNovelsList.innerHTML = '<h2 class="text-2xl mb-2 text-white font-bold">Light Novels</h2>';
+    mangaList.innerHTML = '<h2 class="text-2xl mb-2 text-white font-bold">Manga</h2>';
+
+    if (results.msg === "No results found") {
+        document.getElementById('series-list').innerHTML = `
+            <section class="bg-[#1F1F1F] rounded-md p-8 mb-4 text-white text-center">
+                <h2 class="text-2xl mb-2 font-bold">No results found</h2>
+                <p class="text-lg mb-4">Oops! We couldn't find any matches for your search.</p>
+                <p class="text-lg">Try searching for something else or check your spelling.</p>
+            </section>`;
+        return;
     }
-});
 
-function activateEasterEgg() {
-    document.querySelector('nav').innerHTML = '<span class="text-white font-bold">You found Rem!</span>';
-    document.querySelector('main').innerHTML = `
-        <img src="https://apimdb.maxix.sk/cdn/images/rem-easter-egg.png" class="w-1/2 mx-auto block">
-    `;
+    let hasLightNovels = false;
+    let hasManga = false;
+
+    const fetchPromises = results.map(result => 
+        fetch(api + '/series/' + result.series_id)
+            .then(response => response.json())
+            .then(series => {
+                if (series.seriesType === 'lightNovel') {
+                    hasLightNovels = true;
+                    renderSeriesCard(series);
+                } else if (series.seriesType === 'manga') {
+                    hasManga = true;
+                    renderSeriesCard(series);
+                }
+            })
+    );
+
+    await Promise.all(fetchPromises);
+
+    if (!hasLightNovels) {
+        lightNovelsList.innerHTML = '';
+    }
+    if (!hasManga) {
+        mangaList.innerHTML = '';
+    }
 }
