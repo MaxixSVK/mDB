@@ -42,6 +42,18 @@ function renderSeriesCard(series) {
         return;
     }
 
+    if (series.seriesType === 'lightNovel' && !lightNovelsList.querySelector('h2')) {
+        const lightNovelsHeader = document.createElement('h2');
+        lightNovelsHeader.className = 'text-2xl mb-2 text-white font-bold';
+        lightNovelsHeader.textContent = 'Light Novels';
+        lightNovelsList.appendChild(lightNovelsHeader);
+    } else if (series.seriesType === 'manga' && !mangaList.querySelector('h2')) {
+        const mangaHeader = document.createElement('h2');
+        mangaHeader.className = 'text-2xl mb-2 text-white font-bold';
+        mangaHeader.textContent = 'Manga';
+        mangaList.appendChild(mangaHeader);
+    }
+
     const card = document.createElement('div');
     card.className = 'bg-[#1F1F1F] rounded-md p-4 mb-4 cursor-pointer';
 
@@ -300,8 +312,8 @@ async function renderSearchResults(results) {
     const lightNovelsList = document.getElementById('light-novels-list');
     const mangaList = document.getElementById('manga-list');
 
-    lightNovelsList.innerHTML = '<h2 class="text-2xl mb-2 text-white font-bold">Light Novels</h2>';
-    mangaList.innerHTML = '<h2 class="text-2xl mb-2 text-white font-bold">Manga</h2>';
+    lightNovelsList.innerHTML = '';
+    mangaList.innerHTML = '';
 
     if (results.msg === "No results found") {
         document.getElementById('series-list').innerHTML = `
