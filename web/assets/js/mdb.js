@@ -193,7 +193,7 @@ function fetchBookData(bookid) {
 
     Promise.all([bookPromise, chaptersPromise])
         .then(([bookData, chapterData]) => {
-            chapterData.sort((a, b) => a.name.localeCompare(b.name));
+            chapterData.sort((a, b) => a.name.localeCompare(b.date));
             renderBookData(bookData, chapterData);
         });
 }
@@ -230,8 +230,18 @@ function renderBookData(bookData, chapterData) {
 
     chapterData.forEach(chapter => {
         const chapterItem = document.createElement('li');
-        chapterItem.className = 'p-2 bg-[#2A2A2A] rounded-md max-w-md';
-        chapterItem.textContent = chapter.name;
+        chapterItem.className = 'p-2 bg-[#2A2A2A] rounded-md max-w-md flex justify-between items-center';
+
+        const chapterName = document.createElement('span');
+        chapterName.className = 'mr-2'; // Add margin-right for spacing
+        chapterName.textContent = chapter.name;
+
+        const chapterDate = document.createElement('span');
+        chapterDate.className = 'text-gray-400 text-sm';
+        chapterDate.textContent = new Date(chapter.date).toLocaleDateString();
+
+        chapterItem.appendChild(chapterName);
+        chapterItem.appendChild(chapterDate);
         chaptersList.appendChild(chapterItem);
     });
 
