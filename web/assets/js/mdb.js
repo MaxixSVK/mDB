@@ -154,13 +154,17 @@ function renderBookCard(book) {
     title.className = 'text-white text-lg font-bold';
     title.textContent = book.name;
 
+    let startedDate = new Date(book.startedReading).toLocaleDateString();
+
     const startedReading = document.createElement('p');
     startedReading.className = 'text-gray-400 text-sm';
-    startedReading.textContent = `Started Reading: ${book.startedReading}`;
+    startedReading.textContent = `Started Reading: ${startedDate}`;
+
+    let endedDate = new Date(book.endedReading).toLocaleDateString();
 
     const endedReading = document.createElement('p');
     endedReading.className = 'text-gray-400 text-sm';
-    endedReading.textContent = `Ended Reading: ${book.endedReading}`;
+    endedReading.textContent = `Ended Reading: ${endedDate}`;
 
     content.appendChild(title);
     content.appendChild(startedReading);
