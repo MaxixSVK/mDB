@@ -113,7 +113,7 @@ function editDataInit() {
     function addFormDescription(container, text) {
         const description = document.createElement('label');
         description.textContent = text;
-        description.className = 'block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2';
+        description.className = 'block text-white text-sm font-bold mb-2';
         container.appendChild(description);
     }
 
@@ -124,7 +124,7 @@ function editDataInit() {
                     type="${type}" 
                     name="${name}" 
                     placeholder="${placeholder}" 
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-800 leading-tight focus:outline-none focus:shadow-outline"
+                    class="shadow border rounded w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-none focus:shadow-outline"
                 >
             </div>`;
         editDataFields.insertAdjacentHTML('beforeend', inputHtml);
@@ -198,7 +198,7 @@ function editDataInit() {
         const select = document.createElement('select');
         select.name = name;
         select.required = true;
-        select.classList.add('shadow', 'border', 'rounded', 'w-full', 'py-2', 'px-3', 'text-gray-700', 'dark:text-gray-300', 'dark:bg-gray-800', 'leading-tight', 'focus:outline-none', 'focus:shadow-outline', 'mb-3');
+        select.classList.add('shadow', 'border', 'rounded', 'w-full', 'py-2', 'px-3', 'text-white', 'bg-[#191818]', 'leading-tight', 'focus:outline-none', 'focus:shadow-outline', 'mb-3');
         return select;
     }
 

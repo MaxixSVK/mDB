@@ -2,12 +2,6 @@ const express = require('express');
 const router = express.Router();
 
 module.exports = function (pool) {
-    function formatDateToLocal(date) {
-        return new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
-            .toISOString()
-            .split("T")[0];
-    }
-
     router.get('/data', async (req, res, next) => {
         let conn;
         try {
@@ -39,8 +33,8 @@ module.exports = function (pool) {
                     seriesData[row.series_id].books[row.book_id] = {
                         book_id: row.book_id,
                         name: row.bookName,
-                        startedReading: row.startedReading ? formatDateToLocal(row.startedReading) : null,
-                        endedReading: row.endedReading ? formatDateToLocal(row.endedReading) : null,
+                        startedReading: row.startedReading || null,
+                        endedReading: row.endedReading || null,
                         chapters: []
                     };
                 }
@@ -48,7 +42,7 @@ module.exports = function (pool) {
                     seriesData[row.series_id].books[row.book_id].chapters.push({
                         chapter_id: row.chapter_id,
                         name: row.chapterName,
-                        date: row.date ? formatDateToLocal(row.date) : null
+                        date: row.date || null
                     });
                 }
             });
@@ -148,8 +142,8 @@ module.exports = function (pool) {
                 return;
             }
 
-            rows[0].startedReading = rows[0].startedReading ? formatDateToLocal(rows[0].startedReading) : null;
-            rows[0].endedReading = rows[0].endedReading ? formatDateToLocal(rows[0].endedReading) : null;
+            rows[0].startedReading = rows[0].startedReading || null;
+            rows[0].endedReading = rows[0].endedReading || null;
 
             res.send(rows[0]);
         } catch (err) {
@@ -189,7 +183,7 @@ module.exports = function (pool) {
                 return;
             }
 
-            rows[0].date = rows[0].date ? formatDateToLocal(rows[0].date) : null;
+            rows[0].date = rows[0].date || null;
 
             res.send(rows[0]);
         } catch (err) {

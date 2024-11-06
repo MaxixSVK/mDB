@@ -58,8 +58,8 @@ module.exports = function (pool) {
         const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
         // Temporarily disable registration
-        const forceRegistration = req.headers['force-registration'];
-        if (forceRegistration !== process.env.FORCE_REGISTRATION) {
+        const forcebeTaRegistration = req.headers['forcebetaregistration'];
+        if (forcebeTaRegistration !== process.env.FORCE_REGISTRATION) {
             return res.status(403).send({ msg: 'Registration is disabled' });
         }
 

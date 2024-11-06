@@ -209,7 +209,7 @@ async function fetchSessions() {
 
 async function getLocation(ip) {
     if (window.location.hostname !== 'localhost') {
-        return 'Location fetching is disabled on non-localhost';
+        return ip;
     }
 
     const ipList = ip.split(',').map(ip => ip.trim());
@@ -247,7 +247,7 @@ async function renderSessions(sessions) {
 
     for (const session of sessions) {
         const listItem = document.createElement('li');
-        listItem.className = 'bg-white dark:bg-gray-800 p-6 mb-4 rounded-lg shadow-lg flex justify-between items-center';
+        listItem.className = 'bg-[#2A2A2A] p-4 md:p-6 mt-4 rounded-md shadow-lg flex justify-between items-center';
 
         const parser = new UAParser();
         parser.setUA(session.user_agent);
@@ -261,11 +261,11 @@ async function renderSessions(sessions) {
 
         listItem.innerHTML = `
             <div>
-                <span class="font-bold dark:text-white">${userAgentInfo} ${isCurrentSession ? '<span class="text-green-600 font-bold">This device</span>' : ''}</span><br>
-                <span class="text-sm md:text-md font-medium text-gray-600 dark:text-gray-400">${location}</span><br>
-                <span class="text-sm md:text-md font-medium text-gray-600 dark:text-gray-400">${new Date(session.created_at).toLocaleString()}</span><br>
+                <span class="font-bold text-white">${userAgentInfo} ${isCurrentSession ? '<span class="text-green-600 font-bold">This device</span>' : ''}</span><br>
+                <span class="text-sm md:text-md font-medium text-gray-400">${location}</span><br>
+                <span class="text-sm md:text-md font-medium text-gray-400">${new Date(session.created_at).toLocaleString()}</span><br>
             </div>
-            <button class="destroySessionButton bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">
+            <button class="destroySessionButton bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg">
                 <i class="fas fa-trash-alt"></i>
             </button>
         `;
@@ -454,13 +454,12 @@ async function renderCDNList() {
 
 function createListItem(item) {
     const listItem = document.createElement('li');
-    listItem.className = 'bg-white dark:bg-gray-700 p-4 mb-2 rounded-lg shadow-md flex justify-between items-center transition duration-200 ease-in-out';
-    listItem.style.cursor = 'pointer';
+    listItem.className = 'bg-[#2A2A2A] p-4 md:p-6 mt-4 rounded-md shadow-lg flex justify-between items-center';
 
     listItem.innerHTML = `
-        <span class="font-bold text-gray-900 dark:text-gray-100 item-text flex-grow">${item}</span>
-        <i class="fas fa-edit text-blue-500 dark:text-blue-400 cursor-pointer rename-icon transition duration-200 ease-in-out mr-2"></i>
-        <i class="fas fa-trash-alt text-red-500 dark:text-red-400 cursor-pointer delete-icon transition duration-200 ease-in-out"></i>
+        <span class="font-bold text-white item-text flex-grow">${item}</span>
+        <i class="fas fa-edit text-blue-500 cursor-pointer rename-icon transition duration-200 ease-in-out mr-2"></i>
+        <i class="fas fa-trash-alt text-red-500 cursor-pointer delete-icon transition duration-200 ease-in-out"></i>
     `;
 
     const deleteIcon = listItem.querySelector('.delete-icon');
@@ -468,9 +467,7 @@ function createListItem(item) {
     const itemText = listItem.querySelector('.item-text');
 
     deleteIcon.addEventListener('click', event => handleDeleteIconClick(event, item, listItem));
-
     renameIcon.addEventListener('click', event => handleRenameIconClick(event, item));
-
     itemText.addEventListener('click', () => handleItemTextClick(item));
 
     return listItem;
@@ -503,7 +500,7 @@ function handleRenameIconClick(event, item) {
     newFilenameInput.value = item;
     renameModal.classList.remove('hidden');
     document.body.classList.add('overflow-hidden');
-    newFilenameInput.focus(); // Focus on the input field
+    newFilenameInput.focus();
 
     newFilenameInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') {
