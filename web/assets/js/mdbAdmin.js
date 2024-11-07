@@ -457,7 +457,7 @@ function createListItem(item) {
     listItem.className = 'bg-[#2A2A2A] p-4 md:p-6 mt-4 rounded-md shadow-lg flex justify-between items-center';
 
     listItem.innerHTML = `
-        <span class="font-bold text-white item-text flex-grow">${item}</span>
+        <span class="font-bold text-white item-text flex-grow truncate overflow-hidden whitespace-nowrap">${item}</span>
         <i class="fas fa-edit text-blue-500 cursor-pointer rename-icon transition duration-200 ease-in-out mr-2"></i>
         <i class="fas fa-trash-alt text-red-500 cursor-pointer delete-icon transition duration-200 ease-in-out"></i>
     `;
