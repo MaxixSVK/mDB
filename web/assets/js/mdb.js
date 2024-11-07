@@ -37,11 +37,6 @@ function renderSeriesCard(series) {
     const lightNovelsList = document.getElementById('light-novels-list');
     const mangaList = document.getElementById('manga-list');
 
-    if (!lightNovelsList || !mangaList) {
-        console.error('Required list elements are missing.');
-        return;
-    }
-
     if (series.seriesType === 'lightNovel' && !lightNovelsList.querySelector('h2')) {
         const lightNovelsHeader = document.createElement('h2');
         lightNovelsHeader.className = 'text-2xl mb-2 text-white font-bold';
@@ -134,11 +129,6 @@ function fetchBooks(seriesId) {
 function renderBookCard(book) {
     const booksList = document.getElementById('books-list-' + book.series_id);
 
-    if (!booksList) {
-        console.error('Required list element is missing.');
-        return;
-    }
-
     const card = document.createElement('div');
     card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
 
@@ -209,11 +199,6 @@ function renderBookData(bookData, chapterData) {
     container.className = 'fixed bottom-0 left-0 w-full h-2/3 md:h-2/3 bg-[#191818] p-6 transform translate-y-full transition-transform duration-500 ease-in-out flex items-center justify-center border-t-4 border-[#2A2A2A] overflow-y-auto md:overflow-hidden';
     container.id = 'book-details-container';
 
-    const closeButton = document.createElement('button');
-    closeButton.className = 'absolute top-4 right-4 text-white hidden md:block';
-    closeButton.textContent = 'X';
-    closeButton.addEventListener('click', closeBookDetails);
-
     const contentWrapper = document.createElement('div');
     contentWrapper.className = 'flex flex-col md:flex-row h-full';
 
@@ -237,7 +222,7 @@ function renderBookData(bookData, chapterData) {
         chapterItem.className = 'p-2 bg-[#2A2A2A] rounded-md max-w-md flex justify-between items-center';
 
         const chapterName = document.createElement('span');
-        chapterName.className = 'mr-2'; // Add margin-right for spacing
+        chapterName.className = 'mr-2';
         chapterName.textContent = chapter.name;
 
         const chapterDate = document.createElement('span');
@@ -255,7 +240,6 @@ function renderBookData(bookData, chapterData) {
     contentWrapper.appendChild(img);
     contentWrapper.appendChild(textWrapper);
 
-    container.appendChild(closeButton);
     container.appendChild(contentWrapper);
 
     document.body.appendChild(container);
@@ -346,7 +330,37 @@ function showNoResultsMessage() {
         </section>`;
 }
 
-async function renderSearchResults(results) {
+function setupSearch() {
+    const searchInput = document.getElementById('search-input');
+    const statsElement = document.getElementById('stats');
+
+    searchInput.addEventListener('input', debounce(function () {
+        const searchTerm = searchInput.value.trim();
+        if (searchTerm.length > 0) {
+            statsElement.classList.add('hidden');
+            fetch(api + '/search/' + searchTerm)
+                .then(response => {
+                    if (response.status === 404) {
+                        showNoResultsMessage();
+                        throw new Error('No results found');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    renderSearchResults(data);
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        } else {
+            statsElement.classList.remove('hidden');
+            resetSearchResults();
+            fetchSeries();
+        }
+    }, 250));
+}
+
+function renderSearchResults(results) {
     const seriesList = document.getElementById('series-list');
     let lightNovelsList = document.getElementById('light-novels-list');
     let mangaList = document.getElementById('manga-list');
@@ -365,29 +379,290 @@ async function renderSearchResults(results) {
         return;
     }
 
-    let hasLightNovels = false;
-    let hasManga = false;
-
-    const fetchPromises = results.map(result => 
+    results.forEach(result => {
         fetch(api + '/series/' + result.series_id)
             .then(response => response.json())
             .then(series => {
-                if (series.seriesType === 'lightNovel') {
-                    hasLightNovels = true;
-                    renderSeriesCard(series);
-                } else if (series.seriesType === 'manga') {
-                    hasManga = true;
-                    renderSeriesCard(series);
-                }
-            })
-    );
+                renderSearchSeriesCard(series, result.books);
+            });
+    });
+}
 
-    await Promise.all(fetchPromises);
+function renderSearchSeriesCard(series, books) {
+    const lightNovelsList = document.getElementById('light-novels-list');
+    const mangaList = document.getElementById('manga-list');
 
-    if (!hasLightNovels) {
-        lightNovelsList.innerHTML = '';
+    if (series.seriesType === 'lightNovel' && !lightNovelsList.querySelector('h2')) {
+        const lightNovelsHeader = document.createElement('h2');
+        lightNovelsHeader.className = 'text-2xl mb-2 text-white font-bold';
+        lightNovelsHeader.textContent = 'Light Novels';
+        lightNovelsList.appendChild(lightNovelsHeader);
+    } else if (series.seriesType === 'manga' && !mangaList.querySelector('h2')) {
+        const mangaHeader = document.createElement('h2');
+        mangaHeader.className = 'text-2xl mb-2 text-white font-bold';
+        mangaHeader.textContent = 'Manga';
+        mangaList.appendChild(mangaHeader);
     }
-    if (!hasManga) {
-        mangaList.innerHTML = '';
+
+    const card = document.createElement('div');
+    card.className = 'bg-[#1F1F1F] rounded-md p-4 mb-4 cursor-pointer';
+
+    const header = document.createElement('div');
+    header.className = 'flex items-center';
+
+    const img = document.createElement('img');
+    img.src = series.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
+    img.alt = series.name || 'No image';
+    img.className = 'h-24 object-cover rounded-md mr-4';
+
+    const content = document.createElement('div');
+    content.className = 'flex-1';
+
+    const title = document.createElement('h2');
+    title.className = 'text-white text-xl font-bold';
+    title.textContent = series.name;
+
+    const status = document.createElement('span');
+    status.className = series.finished === 1 ? 'text-green-500' : 'text-red-500';
+    status.textContent = series.finished === 1 ? 'Finished' : 'Still reading';
+
+    content.appendChild(title);
+    content.appendChild(status);
+
+    header.appendChild(img);
+    header.appendChild(content);
+
+    card.appendChild(header);
+
+    const bookList = document.createElement('div');
+    bookList.id = 'books-list-' + series.series_id;
+
+    bookList.addEventListener('click', function (event) {
+        event.stopPropagation();
+    });
+
+    card.appendChild(bookList);
+
+    card.addEventListener('click', function () {
+        if (bookList.hasChildNodes()) {
+            Array.from(bookList.children).forEach(child => {
+                child.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => {
+                    bookList.removeChild(child);
+                }, 250);
+            });
+        } else {
+            books.forEach(book => {
+                renderSearchBookCard(book);
+            });
+        }
+    });
+
+    if (series.seriesType === 'lightNovel') {
+        lightNovelsList.appendChild(card);
+    } else {
+        mangaList.appendChild(card);
+    }
+}
+
+async function renderSearchBookCard(book) {
+    let searchBook
+    await fetch(api + '/book/' + book.book_id)
+        .then(response => response.json())
+        .then(book => {
+            searchBook = book;
+        });
+
+    const booksList = document.getElementById('books-list-' + searchBook.series_id);
+
+    const card = document.createElement('div');
+    card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
+
+    const img = document.createElement('img');
+    img.src = searchBook.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
+    img.alt = searchBook.name || 'No image';
+    img.className = 'h-24 object-cover rounded-md mr-4';
+
+    const content = document.createElement('div');
+    content.className = 'flex-1';
+
+    const title = document.createElement('h2');
+    title.className = 'text-white text-lg font-bold';
+    title.textContent = searchBook.name;
+
+    let startedDate = new Date(searchBook.startedReading).toLocaleDateString();
+
+    const startedReading = document.createElement('p');
+    startedReading.className = 'text-gray-400 text-sm';
+    startedReading.textContent = `Started Reading: ${startedDate}`;
+
+    let endedDate = new Date(searchBook.endedReading).toLocaleDateString();
+
+    const endedReading = document.createElement('p');
+    endedReading.className = 'text-gray-400 text-sm';
+    endedReading.textContent = `Ended Reading: ${endedDate}`;
+
+    content.appendChild(title);
+    content.appendChild(startedReading);
+    content.appendChild(endedReading);
+
+    card.appendChild(img);
+    card.appendChild(content);
+
+    booksList.appendChild(card);
+
+    requestAnimationFrame(() => {
+        card.classList.remove('opacity-0', 'translate-y-4');
+    });
+
+    card.addEventListener('click', function () {
+        fetchBookData(book.book_id);
+    });
+}
+
+async function renderSearchBookCard(book) {
+    let searchBook;
+    await fetch(api + '/book/' + book.book_id)
+        .then(response => response.json())
+        .then(book => {
+            searchBook = book;
+        });
+
+    const booksList = document.getElementById('books-list-' + searchBook.series_id);
+
+    const card = document.createElement('div');
+    card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
+
+    const img = document.createElement('img');
+    img.src = searchBook.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
+    img.alt = searchBook.name || 'No image';
+    img.className = 'h-24 object-cover rounded-md mr-4';
+
+    const content = document.createElement('div');
+    content.className = 'flex-1';
+
+    const title = document.createElement('h2');
+    title.className = 'text-white text-lg font-bold';
+    title.textContent = searchBook.name;
+
+    let startedDate = new Date(searchBook.startedReading).toLocaleDateString();
+
+    const startedReading = document.createElement('p');
+    startedReading.className = 'text-gray-400 text-sm';
+    startedReading.textContent = `Started Reading: ${startedDate}`;
+
+    let endedDate = new Date(searchBook.endedReading).toLocaleDateString();
+
+    const endedReading = document.createElement('p');
+    endedReading.className = 'text-gray-400 text-sm';
+    endedReading.textContent = `Ended Reading: ${endedDate}`;
+
+    content.appendChild(title);
+    content.appendChild(startedReading);
+    content.appendChild(endedReading);
+
+    card.appendChild(img);
+    card.appendChild(content);
+
+    booksList.appendChild(card);
+
+    requestAnimationFrame(() => {
+        card.classList.remove('opacity-0', 'translate-y-4');
+    });
+
+    card.addEventListener('click', function () {
+        fetchSearchBookData(book.chapters);
+    });
+}
+
+async function fetchSearchBookData(chapterList) {
+    const chapterPromises = chapterList.map(chapter =>
+        fetch(api + '/chapter/' + chapter.chapter_id).then(response => response.json())
+    );
+    const chapterData = await Promise.all(chapterPromises);
+    renderSearchBookData(chapterData)
+}
+
+async function renderSearchBookData(chapterData) {
+    document.body.classList.add('overflow-hidden');
+
+    let searchBook;
+    await fetch(api + '/book/' + chapterData[0].book_id)
+        .then(response => response.json())
+        .then(book => {
+            searchBook = book;
+        });
+
+    const container = document.createElement('div');
+    container.className = 'fixed bottom-0 left-0 w-full h-2/3 md:h-2/3 bg-[#191818] p-6 transform translate-y-full transition-transform duration-500 ease-in-out flex items-center justify-center border-t-4 border-[#2A2A2A] overflow-y-auto md:overflow-hidden';
+    container.id = 'book-details-container';
+
+    const contentWrapper = document.createElement('div');
+    contentWrapper.className = 'flex flex-col md:flex-row h-full';
+
+    const img = document.createElement('img');
+    img.src = searchBook.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
+    img.alt = searchBook.name || 'No image';
+    img.className = 'object-cover rounded-md mb-4 md:mb-0 md:mr-6 w-full md:w-auto md:max-w-md mx-auto';
+
+    const textWrapper = document.createElement('div');
+    textWrapper.className = 'flex-1 flex flex-col h-full';
+
+    const title = document.createElement('h2');
+    title.className = 'text-white text-3xl font-bold mb-4';
+    title.textContent = searchBook.name;
+
+    const chaptersList = document.createElement('ul');
+    chaptersList.className = 'text-white space-y-2 overflow-y-auto flex-1 mb-4 md:mb-0';
+
+    chapterData.forEach(chapter => {
+        const chapterItem = document.createElement('li');
+        chapterItem.className = 'p-2 bg-[#2A2A2A] rounded-md max-w-md flex justify-between items-center';
+
+        const chapterName = document.createElement('span');
+        chapterName.className = 'mr-2';
+        chapterName.textContent = chapter.name;
+
+        const chapterDate = document.createElement('span');
+        chapterDate.className = 'text-gray-400 text-sm';
+        chapterDate.textContent = new Date(chapter.date).toLocaleDateString();
+
+        chapterItem.appendChild(chapterName);
+        chapterItem.appendChild(chapterDate);
+        chaptersList.appendChild(chapterItem);
+    });
+
+    textWrapper.appendChild(title);
+    textWrapper.appendChild(chaptersList);
+
+    contentWrapper.appendChild(img);
+    contentWrapper.appendChild(textWrapper);
+
+    container.appendChild(contentWrapper);
+
+    document.body.appendChild(container);
+
+    document.addEventListener('click', handleOutsideClick, true);
+
+    requestAnimationFrame(() => {
+        container.classList.remove('translate-y-full');
+    });
+
+    function closeBookDetails() {
+        if (container) {
+            container.classList.add('translate-y-full');
+            setTimeout(() => {
+                container.remove();
+                document.body.classList.remove('overflow-hidden');
+            }, 500);
+        }
+        document.removeEventListener('click', handleOutsideClick, true);
+    }
+
+    function handleOutsideClick(event) {
+        event.stopPropagation();
+        if (container && !container.contains(event.target)) {
+            closeBookDetails();
+        }
     }
 }
