@@ -441,12 +441,22 @@ async function fetchCDNList() {
     }
 }
 
-async function renderCDNList() {
+async function renderCDNList(searchQuery = '') {
     const cdnList = document.getElementById('cdnList');
     cdnList.innerHTML = '';
 
     const list = await fetchCDNList();
-    list.forEach(item => {
+    const filteredList = list.filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()));
+    const limitedList = filteredList.slice(0, 5);
+
+    if(limitedList.length === 0) {
+        const listItem = document.createElement('p');
+        listItem.className = 'bg-[#2A2A2A] p-4 md:p-6 mt-4 rounded-md shadow-lg text-white text-center';
+        listItem.textContent = 'No files found';
+        cdnList.appendChild(listItem);
+    }
+
+    limitedList.forEach(item => {
         const listItem = createListItem(item);
         cdnList.appendChild(listItem);
     });
@@ -472,6 +482,21 @@ function createListItem(item) {
 
     return listItem;
 }
+
+function debounce(func, delay) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+}
+
+document.getElementById('search-cdn').addEventListener('input', debounce((event) => {
+    const searchQuery = event.target.value;
+    renderCDNList(searchQuery);
+}, 250));
 
 async function handleDeleteIconClick(event, item, listItem) {
     event.stopPropagation();

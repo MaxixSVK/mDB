@@ -304,38 +304,64 @@ function setupSearch() {
         if (searchTerm.length > 0) {
             statsElement.classList.add('hidden');
             fetch(api + '/search/' + searchTerm)
-                .then(response => response.json())
+                .then(response => {
+                    if (response.status === 404) {
+                        showNoResultsMessage();
+                        throw new Error('No results found');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     renderSearchResults(data);
+                })
+                .catch(error => {
+                    console.error(error);
                 });
         } else {
             statsElement.classList.remove('hidden');
-            document.getElementById('series-list').innerHTML = `
-            <section id="light-novels-list">
-                    <h2 class="text-2xl mb-2 text-white font-bold">Light Novels</h2>
-            </section>
-            <section id="manga-list" >
-                <h2 class="text-2xl mb-2 text-white font-bold">Manga</h2>
-            </section>`;
+            resetSearchResults();
             fetchSeries();
         }
-    }, 100));
+    }, 250));
+}
+
+function resetSearchResults() {
+    const seriesList = document.getElementById('series-list');
+    seriesList.innerHTML = `
+        <section id="light-novels-list">
+            <h2 class="text-2xl mb-2 text-white font-bold">Light Novels</h2>
+        </section>
+        <section id="manga-list">
+            <h2 class="text-2xl mb-2 text-white font-bold">Manga</h2>
+        </section>`;
+}
+
+function showNoResultsMessage() {
+    const seriesList = document.getElementById('series-list');
+    seriesList.innerHTML = `
+        <section class="bg-[#1F1F1F] rounded-md p-8 mb-4 text-white text-center">
+            <h2 class="text-2xl mb-2 font-bold">No results found</h2>
+            <p class="text-lg mb-4">Oops! We couldn't find any matches for your search.</p>
+            <p class="text-lg">Try searching for something else or check your spelling.</p>
+        </section>`;
 }
 
 async function renderSearchResults(results) {
-    const lightNovelsList = document.getElementById('light-novels-list');
-    const mangaList = document.getElementById('manga-list');
+    const seriesList = document.getElementById('series-list');
+    let lightNovelsList = document.getElementById('light-novels-list');
+    let mangaList = document.getElementById('manga-list');
+
+    if (!lightNovelsList || !mangaList) {
+        resetSearchResults();
+        lightNovelsList = document.getElementById('light-novels-list');
+        mangaList = document.getElementById('manga-list');
+    }
 
     lightNovelsList.innerHTML = '';
     mangaList.innerHTML = '';
 
     if (results.msg === "No results found") {
-        document.getElementById('series-list').innerHTML = `
-            <section class="bg-[#1F1F1F] rounded-md p-8 mb-4 text-white text-center">
-                <h2 class="text-2xl mb-2 font-bold">No results found</h2>
-                <p class="text-lg mb-4">Oops! We couldn't find any matches for your search.</p>
-                <p class="text-lg">Try searching for something else or check your spelling.</p>
-            </section>`;
+        showNoResultsMessage();
         return;
     }
 

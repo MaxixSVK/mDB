@@ -17,10 +17,12 @@ const pool = mariadb.createPool({
     connectionLimit: 5
 });
 
+//V1 endpoints will be deprecated in the future
 app.use('/', require('./routes/data')(pool));
 app.use('/', require('./routes/publicData')(pool));
 app.use('/auth', require('./routes/auth')(pool));
 app.use('/account', require('./routes/account')(pool));
+
 app.use('/cdn', require('./cdn')(pool));
 
 app.use('/v2', require('./routes-v2/publicData')(pool));
