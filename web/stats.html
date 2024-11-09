@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>mDB | Home</title>
+    <title>mDB | Stats</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
@@ -28,8 +28,7 @@
                 mDatabase
             </a>
             <div>
-                <input id="search-input" type="text" placeholder="Search..."
-                    class="px-4 py-2 rounded-md bg-[#1F1F1F] text-white">
+                <a class="text-3xl text-white font-bold">Statistics</a>
             </div>
         </nav>
         <main class="bg-[#191818] rounded-md pt-4 pb-0.5">
@@ -49,16 +48,25 @@
                     </div>
                 </div>
             </section>
-            <div id="series-list" class="mx-2 md:mx-4">
-                <section id="light-novels-list"></section>
-                <section id="manga-list"></section>
+            <h2 class="text-2xl mb-2 mx-2 md:mx-4 text-white font-bold ">Chapters by month</h2>
+            <p id="no-data-message" class="hidden text-white text-center my-4">No data available for the selected year.</p>
+            <canvas id="chart-month" class="bg-[#1F1F1F] border-2 border-[#2A2A2A] rounded-md p-4 md:p-6 mb-2 md:mb-4 mx-2 md:mx-4 shadow-lg">
+            </canvas>
+            <div class="bg-[#1F1F1F] rounded-md flex justify-between items-center mx-2 md:mx-4 mb-2 p-2">
+                <button id="prev-year" class="text-white text-xl mx-2">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h2 id="current-year" class="text-2xl text-white font-bold"></h2>
+                <button id="next-year" class="text-white text-xl mx-2">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
-            <div id="no-results"></div>
         </main>
     </div>
 
-    <script src="assets/js/mdb.js"></script>
-    <!-- <script src="assets/js/darkMode.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+    <script src="assets/js/stats.js"></script>
+
 </body>
 
 </html>

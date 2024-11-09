@@ -282,5 +282,34 @@ module.exports = function (pool) {
         }
     });
 
+    router.get('/stats/month/:year?', async (req, res, next) => {
+        let conn;
+        try {
+            const year = req.params.year || new Date().getFullYear();
+            conn = await pool.getConnection();
+            const query = `
+                SELECT 
+                    DATE_FORMAT(date, '%Y-%m') as month,
+                    COUNT(chapter_id) as chapterCount
+                FROM chapters
+                WHERE YEAR(date) = ?
+                GROUP BY month
+                ORDER BY month;
+            `;
+    
+            const rows = await conn.query(query, [year]);
+            const formattedRows = rows.map(row => ({
+                ...row,
+                chapterCount: row.chapterCount.toString()
+            }));
+            res.send(formattedRows);
+    
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
     return router;
 };

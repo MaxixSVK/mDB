@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function fetchStats() {
+    document.getElementById('stats').addEventListener('click', function () {
+        window.location.href = '/stats';
+    });
     fetch(api + '/stats')
         .then(response => response.json())
         .then(data => {

@@ -49,7 +49,7 @@ async function createSessionToken(userId, userAgent, ipAddress, pool) {
 
 
 module.exports = function (pool) {
-    const validate = require('../auth/tokenValidation')(pool);
+    const validate = require('../tokenValidation/checkToken')(pool);
 
     router.post('/register', async (req, res, next) => {
         const { username, email, password } = req.body;
