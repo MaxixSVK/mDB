@@ -132,16 +132,13 @@ module.exports = function (pool) {
         }
     });
 
-    router.get('/backup-db', validate, async (req, res, next) => {
+   router.get('/backup-db', validate, async (req, res, next) => {
         const dumpFile = path.join(__dirname, 'backup.sql');
         const excludedTables = ['users', 'sessions'];
         const ignoreTables = excludedTables.map(table => `--ignore-table=${process.env.DB_NAME}.${table}`).join(' ');
-
-        const tablesInOrder = ['series', 'books', 'chapters'];
-        const tables = tablesInOrder.join(' ');
-
-        const command = `mariadb-dump -u ${process.env.DB_USER} -p${process.env.DB_PASSWORD} ${process.env.DB_NAME} ${ignoreTables} ${tables} > ${dumpFile}`;
-
+    
+        const command = `mariadb-dump -u ${process.env.DB_USER} -p${process.env.DB_PASSWORD} ${process.env.DB_NAME} ${ignoreTables} > ${dumpFile}`;
+    
         exec(command, (error, stdout, stderr) => {
             if (error) {
                 return next(error);
