@@ -1,4 +1,4 @@
-const api = 'https://apimdb.maxix.sk/v2';
+const api = 'https://apimdb.maxix.sk';
 
 document.addEventListener('DOMContentLoaded', function () {
     fetchStats();
@@ -40,12 +40,12 @@ function renderSeriesCard(series) {
     const lightNovelsList = document.getElementById('light-novels-list');
     const mangaList = document.getElementById('manga-list');
 
-    if (series.seriesType === 'lightNovel' && !lightNovelsList.querySelector('h2')) {
+    if (series.format === 'lightNovel' && !lightNovelsList.querySelector('h2')) {
         const lightNovelsHeader = document.createElement('h2');
         lightNovelsHeader.className = 'text-2xl mb-2 text-white font-bold';
         lightNovelsHeader.textContent = 'Light Novels';
         lightNovelsList.appendChild(lightNovelsHeader);
-    } else if (series.seriesType === 'manga' && !mangaList.querySelector('h2')) {
+    } else if (series.format === 'manga' && !mangaList.querySelector('h2')) {
         const mangaHeader = document.createElement('h2');
         mangaHeader.className = 'text-2xl mb-2 text-white font-bold';
         mangaHeader.textContent = 'Manga';
@@ -105,7 +105,7 @@ function renderSeriesCard(series) {
         }
     });
 
-    if (series.seriesType === 'lightNovel') {
+    if (series.format === 'lightNovel') {
         lightNovelsList.appendChild(card);
     } else {
         mangaList.appendChild(card);
@@ -395,12 +395,12 @@ function renderSearchSeriesCard(series, books) {
     const lightNovelsList = document.getElementById('light-novels-list');
     const mangaList = document.getElementById('manga-list');
 
-    if (series.seriesType === 'lightNovel' && !lightNovelsList.querySelector('h2')) {
+    if (series.format === 'lightNovel' && !lightNovelsList.querySelector('h2')) {
         const lightNovelsHeader = document.createElement('h2');
         lightNovelsHeader.className = 'text-2xl mb-2 text-white font-bold';
         lightNovelsHeader.textContent = 'Light Novels';
         lightNovelsList.appendChild(lightNovelsHeader);
-    } else if (series.seriesType === 'manga' && !mangaList.querySelector('h2')) {
+    } else if (series.format === 'manga' && !mangaList.querySelector('h2')) {
         const mangaHeader = document.createElement('h2');
         mangaHeader.className = 'text-2xl mb-2 text-white font-bold';
         mangaHeader.textContent = 'Manga';
@@ -461,7 +461,7 @@ function renderSearchSeriesCard(series, books) {
         }
     });
 
-    if (series.seriesType === 'lightNovel') {
+    if (series.format === 'lightNovel') {
         lightNovelsList.appendChild(card);
     } else {
         mangaList.appendChild(card);

@@ -349,7 +349,7 @@ function dbBackup() {
 
 async function cdnBackup() {
     try {
-        fetch(api + '/cdn/img-backup', {
+        fetch(cdn + '/img-backup', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -386,7 +386,7 @@ async function cdnBackup() {
 async function uploadCDN(data) {
     try {
         const xhr = new XMLHttpRequest();
-        const url = api + '/cdn/upload';
+        const url = cdn + '/upload';
         const token = getCookie('sessionToken');
 
         xhr.open('POST', url, true);
@@ -423,7 +423,7 @@ async function uploadCDN(data) {
 
 async function fetchCDNList() {
     try {
-        const response = await fetch(api + '/cdn/images', {
+        const response = await fetch(cdn + '/images', {
             headers: {
                 'Authorization': getCookie('sessionToken')
             }
@@ -500,7 +500,7 @@ document.getElementById('search-cdn').addEventListener('input', debounce((event)
 
 async function handleDeleteIconClick(event, item, listItem) {
     event.stopPropagation();
-    const response = await fetch(api + `/cdn/images/${item}`, {
+    const response = await fetch(cdn + `/images/${item}`, {
         method: 'DELETE',
         headers: {
             'Authorization': getCookie('sessionToken')
@@ -539,7 +539,7 @@ function handleRenameIconClick(event, item) {
     renameConfirmButton.onclick = async function () {
         const newFilename = newFilenameInput.value;
         if (newFilename && newFilename !== item) {
-            const response = await fetch(api + `/cdn/images/rename/${item}`, {
+            const response = await fetch(cdn + `/images/rename/${item}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

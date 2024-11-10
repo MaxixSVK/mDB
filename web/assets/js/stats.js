@@ -1,4 +1,4 @@
-const api = 'https://apimdb.maxix.sk/v2';
+const api = 'https://apimdb.maxix.sk';
 
 document.addEventListener('DOMContentLoaded', function () {
     fetchStats();

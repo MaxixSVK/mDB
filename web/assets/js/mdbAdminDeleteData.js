@@ -35,7 +35,10 @@ function deleteDataInit() {
             const seriesSelect = createSelectElement('series_id');
             deleteDataFields.appendChild(seriesSelect);
     
-            const series = await fetchData('/list-series');
+            const seriesIds = await fetchData('/series');
+            const seriesPromises = seriesIds.map(id => fetchData(`/series/${id}`));
+            const series = await Promise.all(seriesPromises);
+    
             await populateSelect(seriesSelect, series, 'name', 'series_id');
     
             if (books) {
@@ -52,12 +55,15 @@ function deleteDataInit() {
     
     async function handleSeriesChange(seriesSelect, bookSelect, chapters) {
         const seriesId = seriesSelect.value;
-        const books = await fetchData(`/list-books/${seriesId}`);
-        if (!books.length) {
+        const books = await fetchData(`/books/${seriesId}`);
+        const bookPromises = books.map(id => fetchData(`/book/${id}`));
+        const bookDetails = await Promise.all(bookPromises);
+    
+        if (!bookDetails.length) {
             showNotification('No books found for this series', 'warning');
             resetToSeries();
         } else {
-            await populateSelect(bookSelect, books, 'name', 'book_id');
+            await populateSelect(bookSelect, bookDetails, 'name', 'book_id');
             if (chapters) {
                 handleBookChange(bookSelect);
             }
@@ -73,12 +79,15 @@ function deleteDataInit() {
     
         bookSelect.addEventListener('change', async function () {
             const bookId = this.value;
-            const chapters = await fetchData(`/list-chapters/${bookId}`);
-            if (!chapters.length) {
+            const chapters = await fetchData(`/chapters/${bookId}`);
+            const chapterPromises = chapters.map(id => fetchData(`/chapter/${id}`));
+            const chapterDetails = await Promise.all(chapterPromises);
+    
+            if (!chapterDetails.length) {
                 resetToSeries();
                 showNotification('No chapters found for this book', 'warning');
             } else {
-                await populateSelect(chapterSelect, chapters, 'name', 'chapter_id');
+                await populateSelect(chapterSelect, chapterDetails, 'name', 'chapter_id');
             }
         });
         bookSelect.dispatchEvent(new Event('change'));
@@ -156,5 +165,4 @@ function deleteDataInit() {
             showNotification(error.message, 'error');
         }
     }
-
 }

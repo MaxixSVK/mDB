@@ -5,41 +5,34 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = function (pool) {
-    const validate = require('../auth/tokenValidation')(pool, admin = true);
+    const validate = require('../tokenValidation/checkToken')(pool, admin = true);
 
-    router.post('/admin', validate, async (req, res) => {
-        res.status(200).send('OK');
-    });
-
-    function buildInsertQuery(type, data) {
-        let columns = [];
-        let placeholders = [];
-        let params = [];
-
-        Object.entries(data).forEach(([key, value]) => {
-            if (value !== '') {
-                columns.push(key);
-                placeholders.push('?');
-                params.push(value);
-            }
-        });
-
-        const sql = `INSERT INTO ${type} (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`;
-        return { sql, params };
-    }
-
-    router.post('/add-data', validate, async (req, res, next) => {
+    router.post('/add-data/:type', validate, async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
-            const { type, ...data } = req.body;
-
+            const { type } = req.params;
+            const data = req.body;
+    
+            // TODO: Add more input validation
             if (!['series', 'books', 'chapters'].includes(type)) {
                 return res.status(400).send({ msg: 'Invalid type specified' });
             }
-
-            const { sql, params } = buildInsertQuery(type, data);
-
+    
+            let columns = [];
+            let placeholders = [];
+            let params = [];
+    
+            Object.entries(data).forEach(([key, value]) => {
+                if (value !== '') {
+                    columns.push(key);
+                    placeholders.push('?');
+                    params.push(value);
+                }
+            });
+    
+            const sql = `INSERT INTO ${type} (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`;
+    
             if (params.length > 0) {
                 const result = await conn.query(sql, params);
                 if (result.affectedRows === 0) {
@@ -56,30 +49,6 @@ module.exports = function (pool) {
         }
     });
 
-    function buildUpdateQuery(type, data, id) {
-        const primaryKeyMapping = {
-            series: 'series_id',
-            books: 'book_id', 
-            chapters: 'chapter_id'
-        };
-    
-        let sql = `UPDATE ${type} SET `;
-        let params = [];
-    
-        Object.entries(data).forEach(([key, value]) => {
-            sql += `${key} = ${value !== '' ? '?' : 'NULL'}, `;
-            if (value !== '') {
-                params.push(value);
-            }
-        });
-    
-        sql = sql.slice(0, -2);
-        sql += ` WHERE ${primaryKeyMapping[type]} = ?`;
-        params.push(id);
-    
-        return { sql, params };
-    }
-
     router.put('/update-data/:type/:id', validate, async (req, res, next) => {
         let conn;
         try {
@@ -87,13 +56,32 @@ module.exports = function (pool) {
             const { type, id } = req.params;
             const data = req.body;
 
+            // TODO: Add more input validation
             if (!['series', 'books', 'chapters'].includes(type)) {
                 return res.status(400).send({ msg: 'Invalid type specified' });
             }
 
-            const { sql, params } = buildUpdateQuery(type, data, id);
+            const primaryKeyMapping = {
+                series: 'series_id',
+                books: 'book_id',
+                chapters: 'chapter_id'
+            };
 
-            if (params.length > 1) { 
+            let sql = `UPDATE ${type} SET `;
+            let params = [];
+
+            Object.entries(data).forEach(([key, value]) => {
+                sql += `${key} = ${value !== '' ? '?' : 'NULL'}, `;
+                if (value !== '') {
+                    params.push(value);
+                }
+            });
+
+            sql = sql.slice(0, -2);
+            sql += ` WHERE ${primaryKeyMapping[type]} = ?`;
+            params.push(id);
+
+            if (params.length > 1) {
                 const result = await conn.query(sql, params);
                 if (result.affectedRows === 0) {
                     return res.status(404).send(`${type} not found or no changes made`);
@@ -111,30 +99,29 @@ module.exports = function (pool) {
 
     router.delete('/delete-data/:type/:id', validate, async (req, res, next) => {
         let conn;
-        let type, id;
         try {
             conn = await pool.getConnection();
-            ({ type, id } = req.params);
-    
-            const validTypes = ['series', 'books', 'chapters'];
-            if (!validTypes.includes(type)) {
+            const { type, id } = req.params;
+
+            // TODO: Add more input validation
+            if (!['series', 'books', 'chapters'].includes(type)) {
                 return res.status(400).send({ msg: 'Invalid type specified' });
             }
-    
+
             const tableName = type;
-    
+
             const primaryKeyMapping = {
                 series: 'series_id',
-                books: 'book_id', 
+                books: 'book_id',
                 chapters: 'chapter_id'
             };
-    
+
             const result = await conn.query(`DELETE FROM ${tableName} WHERE ${primaryKeyMapping[type]} = ?`, [id]);
-    
+
             if (result.affectedRows === 0) {
                 return res.status(404).send({ msg: `${type} with ID ${id} not found` });
             }
-    
+
             res.send({ msg: `${type} with ID ${id} deleted successfully` });
         } catch (err) {
             if (err.code === 'ER_ROW_IS_REFERENCED_2') {
@@ -146,7 +133,7 @@ module.exports = function (pool) {
         }
     });
 
-    router.get('/backup-db', validate, async (req, res, next) => {
+   router.get('/backup-db', validate, async (req, res, next) => {
         const dumpFile = path.join(__dirname, 'backup.sql');
         const excludedTables = ['users', 'sessions'];
         const ignoreTables = excludedTables.map(table => `--ignore-table=${process.env.DB_NAME}.${table}`).join(' ');

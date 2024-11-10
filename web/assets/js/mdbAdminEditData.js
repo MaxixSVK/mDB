@@ -13,13 +13,14 @@ function editDataInit() {
     async function handleDataTypeChange(editDataTypeSelect, editDataFields) {
         const type = editDataTypeSelect.value;
         editDataFields.innerHTML = '';
-
+    
         switch (type) {
             case 'series':
                 await addSeriesSelect();
                 addFormDescription(editDataFields, 'DB Data');
                 addInputField('name', 'Series Name');
                 addInputField('img', 'Image URL');
+                addTypeSelect(editDataFields);
                 await seriesData();
                 break;
             case 'books':
@@ -49,7 +50,10 @@ function editDataInit() {
             const seriesSelect = createSelectElement('series_id');
             editDataFields.appendChild(seriesSelect);
     
-            const series = await fetchData('/list-series');
+            const seriesIds = await fetchData('/series');
+            const seriesPromises = seriesIds.map(id => fetchData(`/series/${id}`));
+            const series = await Promise.all(seriesPromises);
+    
             await populateSelect(seriesSelect, series, 'name', 'series_id');
     
             if (books) {
@@ -66,12 +70,15 @@ function editDataInit() {
     
     async function handleSeriesChange(seriesSelect, bookSelect, chapters) {
         const seriesId = seriesSelect.value;
-        const books = await fetchData(`/list-books/${seriesId}`);
-        if (!books.length) {
+        const books = await fetchData(`/books/${seriesId}`);
+        const bookPromises = books.map(id => fetchData(`/book/${id}`));
+        const bookDetails = await Promise.all(bookPromises);
+    
+        if (!bookDetails.length) {
             showNotification('No books found for this series', 'warning');
             resetToSeries();
         } else {
-            await populateSelect(bookSelect, books, 'name', 'book_id');
+            await populateSelect(bookSelect, bookDetails, 'name', 'book_id');
             if (chapters) {
                 await handleBookChange(bookSelect);
                 const chapterSelect = editDataFields.querySelector('select[name="chapter_id"]');
@@ -91,12 +98,15 @@ function editDataInit() {
         return new Promise((resolve) => {
             bookSelect.addEventListener('change', async function () {
                 const bookId = this.value;
-                const chapters = await fetchData(`/list-chapters/${bookId}`);
-                if (!chapters.length) {
+                const chapters = await fetchData(`/chapters/${bookId}`);
+                const chapterPromises = chapters.map(id => fetchData(`/chapter/${id}`));
+                const chapterDetails = await Promise.all(chapterPromises);
+    
+                if (!chapterDetails.length) {
                     resetToSeries();
                     showNotification('No chapters found for this book', 'warning');
                 } else {
-                    await populateSelect(chapterSelect, chapters, 'name', 'chapter_id');
+                    await populateSelect(chapterSelect, chapterDetails, 'name', 'chapter_id');
                     chapterSelect.dispatchEvent(new Event('change')); 
                 }
                 resolve();
@@ -163,7 +173,8 @@ function editDataInit() {
                 endpoint: `/series/${id}`,
                 fields: {
                     'name': 'name',
-                    'img': 'img'
+                    'img': 'img',
+                    'format': 'format'
                 }
             },
             books: {
@@ -187,9 +198,18 @@ function editDataInit() {
         if (typeMapping[type]) {
             const { endpoint, fields } = typeMapping[type];
             const data = await fetchData(endpoint);
-    
+        
             for (const [field, key] of Object.entries(fields)) {
-                editDataFields.querySelector(`input[name="${field}"]`).value = data[key] || '';
+                const input = editDataFields.querySelector(`input[name="${field}"], select[name="${field}"]`);
+                if (input) {
+                    let value = data[key] || '';
+                    if (input.type === 'date' && value) {
+                        const date = new Date(value);
+                        const userTimezoneOffset = date.getTimezoneOffset() * 60000;
+                        value = new Date(date.getTime() - userTimezoneOffset).toISOString().slice(0, 10);
+                    }
+                    input.value = value;
+                }
             }
         }
     }
@@ -207,6 +227,18 @@ function editDataInit() {
         data.forEach(d => {
             const option = new Option(d[textKey], d[valueKey]);
             select.add(option);
+        });
+    }
+
+    function addTypeSelect(container) {
+        const typeSelect = createSelectElement('format');
+        container.appendChild(typeSelect);
+    
+        const types = ['manga', 'lightNovel'];
+        const names = ['Manga', 'Light Novel'];
+        types.forEach((type, index) => {
+            const option = new Option(names[index], type);
+            typeSelect.add(option);
         });
     }
 

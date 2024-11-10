@@ -65,7 +65,10 @@ function addDataInit() {
             const seriesSelect = createSelectElement('series_id');
             container.appendChild(seriesSelect);
 
-            const series = await fetchData('/list-series');
+            const seriesIds = await fetchData('/series');
+            const seriesPromises = seriesIds.map(id => fetchData(`/series/${id}`));
+            const series = await Promise.all(seriesPromises);
+
             populateSelect(seriesSelect, series, 'name', 'series_id');
 
             if (withBooks) {
@@ -90,16 +93,19 @@ function addDataInit() {
 
     async function updateBookSelect(seriesSelect, bookSelect) {
         bookSelect.innerHTML = '';
-
+    
         try {
             const seriesId = seriesSelect.value;
-            const books = await fetchData(`/list-books/${seriesId}`);
-            if (!books.length) {
+            const books = await fetchData(`/books/${seriesId}`);
+            const bookPromises = books.map(id => fetchData(`/book/${id}`));
+            const bookDetails = await Promise.all(bookPromises);
+    
+            if (!bookDetails.length) {
                 showNotification('No books found for this series', 'warning');
                 addDataTypeSelect.value = 'series';
                 addDataTypeSelect.dispatchEvent(new Event('change'));
             }
-            populateSelect(bookSelect, books, 'name', 'book_id');
+            populateSelect(bookSelect, bookDetails, 'name', 'book_id');
         } catch (error) {
             console.error(error);
         }
@@ -113,7 +119,7 @@ function addDataInit() {
     }
 
     function addTypeSelect(container) {
-        const typeSelect = createSelectElement('seriesType');
+        const typeSelect = createSelectElement('format');
         container.appendChild(typeSelect);
 
         const types = ['manga', 'lightNovel'];
@@ -132,10 +138,11 @@ function addDataInit() {
         return response.json();
     }
 
-    async function handleFormSubmit(event, form) {
-        event.preventDefault();
+    async function handleFormSubmit(e, form) {
+        e.preventDefault();
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
+        console.log(data);
         const type = data.type;
         delete data.type;
 
@@ -144,13 +151,13 @@ function addDataInit() {
         }
 
         try {
-            const response = await fetch(api + '/add-data', {
+            const response = await fetch(api + `/add-data/${type}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'authorization': getCookie('sessionToken')
                 },
-                body: JSON.stringify({ type, ...data })
+                body: JSON.stringify(data)
             });
 
             const responseData = await response.json();
