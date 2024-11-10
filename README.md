@@ -2,12 +2,12 @@
 
 Ever wondered when you read *that* book?
 
-### Features
-- Custom Backend with SQL connection
+## Features
+- Custom Backend with SQL database
 - Custom Frontend (Vanilla JS and Tailwind CSS)
-- Your own CDN
+- Custom CDN for images
 
-### Requirements
+## Requirements
 - Node.js
 - MariaDB server (other SQL servers like MySQL can be used with minor modifications)
 - A computer to host the application
@@ -22,16 +22,14 @@ Ever wondered when you read *that* book?
     npm install
     ```
 3. Set up `config.json` and `.env` files (remove `.example` from the filenames and fill them out).
-4. Start the API and CDN:
+4. Setup Database with `setup.sql`
+5. Start the API and CDN:
     ```sh
     npm start
     ```
-
-## Future Plans
-- Multi-user support
 
 ## Security
 For information on security practices, see the [Security Policy](SECURITY.md).
 
 ## License
-This project is licensed under the GNU General Public License v3.0 see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
