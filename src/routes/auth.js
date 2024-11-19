@@ -52,14 +52,13 @@ module.exports = function (pool) {
     const validate = require('../tokenValidation/checkToken')(pool);
 
     router.post('/register', async (req, res, next) => {
-        const { username, email, password } = req.body;
+        const { username, email, password, forcebetaregistration } = req.body;
         const passwordHash = await bcrypt.hash(password, 10);
         const userAgent = req.headers['user-agent'];
         const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
         // Temporarily disable registration
-        const forcebeTaRegistration = req.headers['forcebetaregistration'];
-        if (forcebeTaRegistration !== process.env.FORCE_REGISTRATION) {
+        if (forcebetaregistration !== process.env.FORCE_REGISTRATION) {
             return res.status(403).send({ msg: 'Registration is disabled' });
         }
 

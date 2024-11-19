@@ -59,7 +59,7 @@ function renderSeriesCard(series) {
     header.className = 'flex items-center';
 
     const img = document.createElement('img');
-    img.src = series.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
+    img.src = series.img + '?lowres=true' || 'https://apimdb.maxix.sk/cdn/images/404.png';
     img.alt = series.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 

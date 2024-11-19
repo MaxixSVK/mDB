@@ -5,7 +5,8 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = function (pool) {
-    const validate = require('../tokenValidation/checkToken')(pool, admin = true);
+    const validate = require('../tokenValidation/checkToken')(pool);
+    const validateAdmin = require('../tokenValidation/checkToken')(pool, admin = true);
 
     router.post('/add-data/:type', validate, async (req, res, next) => {
         let conn;
@@ -133,7 +134,7 @@ module.exports = function (pool) {
         }
     });
 
-   router.get('/backup-db', validate, async (req, res, next) => {
+   router.get('/backup-db', validateAdmin, async (req, res, next) => {
         const dumpFile = path.join(__dirname, 'backup.sql');
         const excludedTables = ['users', 'sessions'];
         const ignoreTables = excludedTables.map(table => `--ignore-table=${process.env.DB_NAME}.${table}`).join(' ');
