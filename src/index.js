@@ -21,7 +21,7 @@ app.use('/', require('./routes/publicData')(pool));
 app.use('/account', require('./routes/accountManagement')(pool));
 app.use('/auth', require('./routes/auth')(pool));
 app.use('/', require('./routes/userData')(pool));
-app.use('/ai', require('./routes/ai')(pool));
+app.use('/intelligence', require('./routes/intelligence')(pool));
 
 app.use('/cdn', require('./cdn')(pool));
 

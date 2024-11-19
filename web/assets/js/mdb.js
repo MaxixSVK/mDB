@@ -136,7 +136,7 @@ function renderBookCard(book) {
     card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
 
     const img = document.createElement('img');
-    img.src = book.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
+    img.src = book.img + '?lowres=true'  || 'https://apimdb.maxix.sk/cdn/images/404.png';
     img.alt = book.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 

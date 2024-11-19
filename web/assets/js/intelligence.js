@@ -70,7 +70,7 @@
     
             messageInput.value = '';
     
-            const response = await fetch(api + '/ai/chat', {
+            const response = await fetch(api + '/intelligence/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
