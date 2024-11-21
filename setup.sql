@@ -68,12 +68,14 @@ CREATE TABLE `sessions` (
   CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 );
 
+DROP TABLE IF EXISTS `logs`;
+
 CREATE TABLE logs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    change_type VARCHAR(50),
-    table_name VARCHAR(50),
-    record_id INT,
-    old_data JSON,
-    new_data JSON,
-    change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `change_type` VARCHAR(50),
+    `table_name` VARCHAR(50),
+    `record_id` INT,
+    `old_data` JSON,
+    `new_data` JSON,
+    `change_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
