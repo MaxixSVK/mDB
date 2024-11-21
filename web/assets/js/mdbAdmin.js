@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     checkLogin();
+    displayUser();
 
     const logoutButton = document.getElementById('logout');
     logoutButton.addEventListener('click', handleLogout);
@@ -115,6 +116,22 @@ function handleLogout() {
     });
 }
 
+async function displayUser() {
+    try {
+        const response = await fetch(api + '/account', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': getCookie('sessionToken')
+            },
+        });
+        const data = await response.json();
+        document.getElementById('username').textContent = data.username
+        document.getElementById('useremail').textContent = data.email
+    } catch (error) {
+        console.error('Error fetching user:', error);
+    }
+}
 
 function showNotification(message, type = 'info', progress = null) {
     const container = document.getElementById('notification-container');
@@ -437,7 +454,7 @@ async function renderCDNList(searchQuery = '') {
     const filteredList = list.filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()));
     const limitedList = filteredList.slice(0, 5);
 
-    if(limitedList.length === 0) {
+    if (limitedList.length === 0) {
         const listItem = document.createElement('p');
         listItem.className = 'bg-[#2A2A2A] p-4 md:p-6 mt-4 rounded-md shadow-lg text-white text-center';
         listItem.textContent = 'No files found';

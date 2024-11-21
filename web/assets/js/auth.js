@@ -1,9 +1,7 @@
 const api = 'https://apimdb.maxix.sk';
 
 document.addEventListener("DOMContentLoaded", function () {
-    if (document.cookie.includes('sessionToken')) {
-        window.location.href = '/dashboard';
-    }
+    checkLogin()
 
     const loginForm = document.forms['login'];
     loginForm.addEventListener('submit', function (e) {
@@ -26,12 +24,12 @@ document.addEventListener("DOMContentLoaded", function () {
             forcebetaregistration: RegisterForm.elements['forcebetaregistration'].value
         });
     });
-    
+
     const switchToRegister = document.getElementById('switchToRegister');
     switchToRegister.addEventListener('click', function () {
         const loginSection = document.getElementById('login-section');
         const registerSection = document.getElementById('register-section');
-        
+
         loginSection.classList.add('animate-fadeOut');
         setTimeout(() => {
             loginSection.classList.add('hidden');
@@ -40,12 +38,12 @@ document.addEventListener("DOMContentLoaded", function () {
             registerSection.classList.add('animate-fadeIn');
         }, 500);
     });
-    
+
     const switchToLogin = document.getElementById('switchToLogin');
     switchToLogin.addEventListener('click', function () {
         const loginSection = document.getElementById('login-section');
         const registerSection = document.getElementById('register-section');
-        
+
         registerSection.classList.add('animate-fadeOut');
         setTimeout(() => {
             registerSection.classList.add('hidden');
@@ -57,6 +55,42 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // TODO: SUPPORT FOR QR CODE LOGIN
 });
+
+async function checkLogin() {
+    const session = getCookie('sessionToken');
+    if (session) {
+        try {
+            const response = await fetch(api + '/account/validate', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authorization': session
+                },
+            });
+
+            if (response.ok) {
+                window.location.href = '/dashboard';
+            } else {
+                document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            }
+        } catch (error) {
+            console.error('Login failed:', error);
+        }
+    } else {
+        window.location.href = '/auth';
+    }
+}
+
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
 
 async function handleLogin(loginData) {
     try {

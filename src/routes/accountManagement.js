@@ -8,7 +8,7 @@ module.exports = function (pool) {
         try {
             const connection = await pool.getConnection();
             const rows = await connection.query(
-                'SELECT username, email FROM users WHERE id = ?',
+                'SELECT username, email, role FROM users WHERE id = ?',
                 [req.userId]
             );
             connection.release();

@@ -15,7 +15,6 @@ module.exports = function (pool) {
             const { type } = req.params;
             const data = req.body;
     
-            // TODO: Add more input validation
             if (!['series', 'books', 'chapters'].includes(type)) {
                 return res.status(400).send({ msg: 'Invalid type specified' });
             }
@@ -39,6 +38,10 @@ module.exports = function (pool) {
                 if (result.affectedRows === 0) {
                     return res.status(500).send(`Failed to add ${type}`);
                 }
+    
+                const logSql = `INSERT INTO logs (change_type, table_name, record_id, new_data) VALUES (?, ?, ?, ?)`;
+                await conn.query(logSql, ['INSERT', type, result.insertId, JSON.stringify(data)]);
+    
                 res.send({ msg: `${type} added successfully` });
             } else {
                 res.send({ msg: `No valid fields provided to add ${type}` });
@@ -56,37 +59,43 @@ module.exports = function (pool) {
             conn = await pool.getConnection();
             const { type, id } = req.params;
             const data = req.body;
-
-            // TODO: Add more input validation
+    
             if (!['series', 'books', 'chapters'].includes(type)) {
                 return res.status(400).send({ msg: 'Invalid type specified' });
             }
-
+    
             const primaryKeyMapping = {
                 series: 'series_id',
                 books: 'book_id',
                 chapters: 'chapter_id'
             };
-
+    
+            const oldDataSql = `SELECT * FROM ${type} WHERE ${primaryKeyMapping[type]} = ?`;
+            const [oldData] = await conn.query(oldDataSql, [id]);
+    
             let sql = `UPDATE ${type} SET `;
             let params = [];
-
+    
             Object.entries(data).forEach(([key, value]) => {
                 sql += `${key} = ${value !== '' ? '?' : 'NULL'}, `;
                 if (value !== '') {
                     params.push(value);
                 }
             });
-
+    
             sql = sql.slice(0, -2);
             sql += ` WHERE ${primaryKeyMapping[type]} = ?`;
             params.push(id);
-
+    
             if (params.length > 1) {
                 const result = await conn.query(sql, params);
                 if (result.affectedRows === 0) {
                     return res.status(404).send(`${type} not found or no changes made`);
                 }
+    
+                const logSql = `INSERT INTO logs (change_type, table_name, record_id, old_data, new_data) VALUES (?, ?, ?, ?, ?)`;
+                await conn.query(logSql, ['UPDATE', type, id, JSON.stringify(oldData), JSON.stringify(data)]);
+    
                 res.send({ msg: `${type} updated successfully` });
             } else {
                 res.send({ msg: `No valid fields provided to update ${type}` });
@@ -103,26 +112,30 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const { type, id } = req.params;
-
-            // TODO: Add more input validation
+    
             if (!['series', 'books', 'chapters'].includes(type)) {
                 return res.status(400).send({ msg: 'Invalid type specified' });
             }
-
+    
             const tableName = type;
-
             const primaryKeyMapping = {
                 series: 'series_id',
                 books: 'book_id',
                 chapters: 'chapter_id'
             };
-
+    
+            const oldDataSql = `SELECT * FROM ${tableName} WHERE ${primaryKeyMapping[type]} = ?`;
+            const [oldData] = await conn.query(oldDataSql, [id]);
+    
             const result = await conn.query(`DELETE FROM ${tableName} WHERE ${primaryKeyMapping[type]} = ?`, [id]);
-
+    
             if (result.affectedRows === 0) {
                 return res.status(404).send({ msg: `${type} with ID ${id} not found` });
             }
-
+    
+            const logSql = `INSERT INTO logs (change_type, table_name, record_id, old_data) VALUES (?, ?, ?, ?)`;
+            await conn.query(logSql, ['DELETE', type, id, JSON.stringify(oldData)]);
+    
             res.send({ msg: `${type} with ID ${id} deleted successfully` });
         } catch (err) {
             if (err.code === 'ER_ROW_IS_REFERENCED_2') {
@@ -153,6 +166,48 @@ module.exports = function (pool) {
                 }
             });
         });
+    });
+
+    const fs = require('fs');
+    const path = require('path');
+    
+    router.get('/logs', validate, async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { limit = 10, offset = 0, all = 'false', format = 'file' } = req.query;
+    
+            let sql;
+            let params;
+    
+            if (all === 'true') {
+                sql = `SELECT * FROM logs ORDER BY change_date DESC`;
+                params = [];
+            } else {
+                sql = `SELECT * FROM logs ORDER BY change_date DESC LIMIT ? OFFSET ?`;
+                params = [parseInt(limit), parseInt(offset)];
+            }
+    
+            const logs = await conn.query(sql, params);
+    
+            if (format === 'file') {
+                const filePath = path.join(__dirname, 'logs.json');
+                fs.writeFileSync(filePath, JSON.stringify(logs, null, 2));
+                res.download(filePath, 'logs.json', err => {
+                    if (err) {
+                        next(err);
+                    } else {
+                        fs.unlinkSync(filePath);
+                    }
+                });
+            } else {
+                res.send(logs);
+            }
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.end();
+        }
     });
 
     return router;
