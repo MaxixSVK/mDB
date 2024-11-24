@@ -1,10 +1,61 @@
 const api = 'https://apimdb.maxix.sk';
 
 document.addEventListener('DOMContentLoaded', function () {
+    checkLogin();
     fetchStats();
     fetchSeries();
     setupSearch();
 });
+
+async function checkLogin() {
+    const session = getCookie('sessionToken');
+    if (session) {
+        try {
+            const response = await fetch(api + '/account/validate', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authorization': session
+                },
+            });
+
+            if (response.ok) {
+                const userData = await fetch(api + '/account', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'authorization': session
+                    },
+                }).then(response => response.json());
+                document.getElementById('login').classList.add('hidden');
+                document.getElementById('pfp').src = api + '/cdn/pfp/' + userData.username + '.png';
+                document.getElementById('pfp').addEventListener('click', function () {
+                    window.location.href = '/dashboard';
+                });
+            } else {
+                document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            }
+        } catch (error) {
+            console.error('Login failed:', error);
+        }
+    } else {
+        document.getElementById('pfp').classList.add('hidden');
+        document.getElementById('login').addEventListener('click', function () {
+            window.location.href = '/auth';
+        });
+    }
+}
+
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
 
 function fetchStats() {
     document.getElementById('stats').addEventListener('click', function () {

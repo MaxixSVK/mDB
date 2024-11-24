@@ -35,6 +35,59 @@ module.exports = function (pool) {
     res.status(200).send({ msg: 'File uploaded.', filename: req.file.originalname });
   });
 
+  const createPfpStorage = () => {
+    return multer.diskStorage({
+      destination: (req, file, cb) => {
+        const uploadPath = path.resolve(__dirname, '../uploads/pfp');
+        if (!fs.existsSync(uploadPath)) {
+          fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        cb(null, uploadPath);
+      },
+      filename: (req, file, cb) => {
+        const username = req.body.username;
+        const fileExtension = path.extname(file.originalname);
+        cb(null, `pfp_${username}${fileExtension}`);
+      }
+    });
+  };
+
+  const uploadPfp = multer({ storage: createPfpStorage() });
+
+  router.post('/upload-pfp', validate, uploadPfp.single('image'), (req, res) => {
+    if (!req.file) {
+      return res.status(400).send({ msg: 'Please upload a file.' });
+    }
+    // TODO: change filename to username
+    res.status(200).send({ msg: 'Profile picture uploaded.', filename: req.file.filename });
+  });
+
+  router.get('/pfp/:filename', (req, res) => {
+    const filename = sanitize(req.params.filename);
+    const uploadsDir = path.join(__dirname, '../uploads/pfp');
+    const filePath = path.join(uploadsDir, filename);
+    const normalizedPath = path.normalize(filePath);
+    const isLowRes = req.query.lowres === 'true';
+
+    if (normalizedPath.startsWith(uploadsDir) && fs.existsSync(normalizedPath)) {
+      if (isLowRes) {
+        sharp(filePath)
+          .resize(200)
+          .toBuffer()
+          .then(data => {
+            res.type('image').send(data);
+          })
+          .catch(err => {
+            res.status(500).send({ error: err.message });
+          });
+      } else {
+        res.type('image').sendFile(normalizedPath);
+      }
+    } else {
+      res.type('image').sendFile(path.join(__dirname, '../uploads/pfp/default.png'));
+    }
+  });
+
   router.get('/images/:filename', (req, res) => {
     const filename = sanitize(req.params.filename);
     const uploadsDir = path.join(__dirname, '../uploads');
@@ -87,42 +140,6 @@ module.exports = function (pool) {
     });
   });
 
-  router.get('/img-backup', (req, res, next) => {
-    const uploadPath = path.resolve(__dirname, '../uploads');
-
-    fs.readdir(uploadPath, (err, files) => {
-      if (err) {
-        next(err);
-      }
-
-      if (files.length === 0) {
-        return res.status(404).send({ msg: 'No files to backup.' });
-      }
-
-      const currentDate = new Date().toISOString().split('T')[0];
-      const zipFilename = `mdb-cdn-backup-${currentDate}.zip`;
-      res.setHeader('Content-Disposition', `attachment; filename=${zipFilename}`);
-      res.setHeader('Content-Type', 'application/zip');
-
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      archive.on('error', (err) => {
-        res.status(500).send({ error: err.message });
-      });
-
-      archive.pipe(res);
-
-      files.forEach((file) => {
-        const filePath = path.join(uploadPath, file);
-        archive.file(filePath, { name: file });
-      });
-
-      archive.finalize();
-    });
-  });
-
   router.put('/images/rename/:filename', validate, async (req, res, next) => {
     const { filename } = req.params;
     const { newFilename } = req.body;
@@ -171,6 +188,42 @@ module.exports = function (pool) {
     } else {
       res.status(404).send({ msg: 'File not found.' });
     }
+  });
+
+  router.get('/img-backup', (req, res, next) => {
+    const uploadPath = path.resolve(__dirname, '../uploads');
+
+    fs.readdir(uploadPath, (err, files) => {
+      if (err) {
+        next(err);
+      }
+
+      if (files.length === 0) {
+        return res.status(404).send({ msg: 'No files to backup.' });
+      }
+
+      const currentDate = new Date().toISOString().split('T')[0];
+      const zipFilename = `mdb-cdn-backup-${currentDate}.zip`;
+      res.setHeader('Content-Disposition', `attachment; filename=${zipFilename}`);
+      res.setHeader('Content-Type', 'application/zip');
+
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      archive.on('error', (err) => {
+        res.status(500).send({ error: err.message });
+      });
+
+      archive.pipe(res);
+
+      files.forEach((file) => {
+        const filePath = path.join(uploadPath, file);
+        archive.file(filePath, { name: file });
+      });
+
+      archive.finalize();
+    });
   });
 
   return router;

@@ -76,8 +76,6 @@ async function checkLogin() {
         } catch (error) {
             console.error('Login failed:', error);
         }
-    } else {
-        window.location.href = '/auth';
     }
 }
 

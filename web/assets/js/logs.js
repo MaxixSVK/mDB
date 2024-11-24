@@ -5,7 +5,7 @@ let limit = 10;
 let offset = 0;
 
 document.addEventListener('DOMContentLoaded', function () {
-    fetchLogs();
+    checkLogin();
 
     document.getElementById('load-more').addEventListener('click', function () {
         offset += limit;
@@ -35,6 +35,32 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+async function checkLogin() {
+    const session = getCookie('sessionToken');
+    if (session) {
+        try {
+            const response = await fetch(api + '/account/validate', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authorization': session
+                },
+            });
+
+            if (response.ok) {
+                fetchLogs();
+            } else {
+                document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                window.location.href = '/auth';
+            }
+        } catch (error) {
+            console.error('Login failed:', error);
+        }
+    } else {
+        window.location.href = '/auth';
+    }
+}
 
 async function fetchLogs() {
     try {
@@ -128,8 +154,8 @@ function getChangeTypeColor(changeType) {
 
 function createDataElement(data) {
     return `
-        <div class="text-white mb-2">
-            <pre class="bg-[#2A2A2A] p-2 rounded">${JSON.stringify(data, null, 2)}</pre>
+        <div class="text-white mb-2 overflow-x-auto">
+            <pre class="bg-[#2A2A2A] p-2 rounded whitespace-pre-wrap md:whitespace-pre">${JSON.stringify(data, null, 2)}</pre>
         </div>
     `;
 }
