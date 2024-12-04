@@ -2,7 +2,7 @@ const router = require('express').Router();
 const bcrypt = require('bcrypt');
 
 module.exports = function (pool) {
-    const validate = require('../auth/tokenValidation')(pool);
+    const validate = require('../tokenValidation/checkToken')(pool);
 
     router.get('/', validate, async (req, res, next) => {
         try {

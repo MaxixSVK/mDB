@@ -173,7 +173,7 @@ function fetchBooks(seriesId) {
             return Promise.all(bookPromises);
         })
         .then(bookData => {
-            bookData.sort((a, b) => a.name.localeCompare(b.startedReading)); // I WANT TO CHANGE HOW THINGS ARE SORTED IN THE FUTURE
+            bookData.sort((a, b) => a.startedReading.localeCompare(b.startedReading));
             bookData.forEach(book => {
                 renderBookCard(book);
             });
@@ -384,38 +384,7 @@ function showNoResultsMessage() {
         </section>`;
 }
 
-function setupSearch() {
-    const searchInput = document.getElementById('search-input');
-    const statsElement = document.getElementById('stats');
-
-    searchInput.addEventListener('input', debounce(function () {
-        const searchTerm = searchInput.value.trim();
-        if (searchTerm.length > 0) {
-            statsElement.classList.add('hidden');
-            fetch(api + '/search/' + searchTerm)
-                .then(response => {
-                    if (response.status === 404) {
-                        showNoResultsMessage();
-                        throw new Error('No results found');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    renderSearchResults(data);
-                })
-                .catch(error => {
-                    console.error(error);
-                });
-        } else {
-            statsElement.classList.remove('hidden');
-            resetSearchResults();
-            fetchSeries();
-        }
-    }, 250));
-}
-
 function renderSearchResults(results) {
-    const seriesList = document.getElementById('series-list');
     let lightNovelsList = document.getElementById('light-novels-list');
     let mangaList = document.getElementById('manga-list');
 
@@ -465,7 +434,7 @@ function renderSearchSeriesCard(series, books) {
     header.className = 'flex items-center';
 
     const img = document.createElement('img');
-    img.src = series.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
+    img.src = series.img ? series.img + '?lowres=true' : 'https://apimdb.maxix.sk/cdn/images/404.png?lowres=true';
     img.alt = series.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 
@@ -506,9 +475,7 @@ function renderSearchSeriesCard(series, books) {
                 }, 250);
             });
         } else {
-            books.forEach(book => {
-                renderSearchBookCard(book);
-            });
+            fetchSearchBooks(books);
         }
     });
 
@@ -519,77 +486,37 @@ function renderSearchSeriesCard(series, books) {
     }
 }
 
-async function renderSearchBookCard(book) {
-    let searchBook
-    await fetch(api + '/book/' + book.book_id)
-        .then(response => response.json())
-        .then(book => {
-            searchBook = book;
+function fetchSearchBooks(data) {
+    const bookPromises = data.map(book =>
+        fetch(api + '/book/' + book.book_id)
+            .then(response => response.json())
+            .then(bookData => {
+                bookData.chapters = book.chapters;
+                return bookData;
+            })
+    );
+    Promise.all(bookPromises)
+        .then(bookData => {
+            bookData.sort((a, b) => a.startedReading.localeCompare(b.startedReading));
+            renderBooksSequentially(bookData);
         });
+}
 
-    const booksList = document.getElementById('books-list-' + searchBook.series_id);
-
-    const card = document.createElement('div');
-    card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
-
-    const img = document.createElement('img');
-    img.src = searchBook.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
-    img.alt = searchBook.name || 'No image';
-    img.className = 'h-24 object-cover rounded-md mr-4';
-
-    const content = document.createElement('div');
-    content.className = 'flex-1';
-
-    const title = document.createElement('h2');
-    title.className = 'text-white text-lg font-bold';
-    title.textContent = searchBook.name;
-
-    let startedDate = new Date(searchBook.startedReading).toLocaleDateString();
-
-    const startedReading = document.createElement('p');
-    startedReading.className = 'text-gray-400 text-sm';
-    startedReading.textContent = `Started Reading: ${startedDate}`;
-
-    let endedDate = new Date(searchBook.endedReading).toLocaleDateString();
-
-    const endedReading = document.createElement('p');
-    endedReading.className = 'text-gray-400 text-sm';
-    endedReading.textContent = `Ended Reading: ${endedDate}`;
-
-    content.appendChild(title);
-    content.appendChild(startedReading);
-    content.appendChild(endedReading);
-
-    card.appendChild(img);
-    card.appendChild(content);
-
-    booksList.appendChild(card);
-
-    requestAnimationFrame(() => {
-        card.classList.remove('opacity-0', 'translate-y-4');
-    });
-
-    card.addEventListener('click', function () {
-        fetchBookData(book.book_id);
-    });
+async function renderBooksSequentially(bookData) {
+    for (const book of bookData) {
+        await renderSearchBookCard(book);
+    }
 }
 
 async function renderSearchBookCard(book) {
-    let searchBook;
-    await fetch(api + '/book/' + book.book_id)
-        .then(response => response.json())
-        .then(book => {
-            searchBook = book;
-        });
-
-    const booksList = document.getElementById('books-list-' + searchBook.series_id);
+    const booksList = document.getElementById('books-list-' + book.series_id);
 
     const card = document.createElement('div');
     card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
 
     const img = document.createElement('img');
-    img.src = searchBook.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
-    img.alt = searchBook.name || 'No image';
+    img.src = book.img ? book.img + '?lowres=true' : 'https://apimdb.maxix.sk/cdn/images/404.png?lowres=true';
+    img.alt = book.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 
     const content = document.createElement('div');
@@ -597,15 +524,15 @@ async function renderSearchBookCard(book) {
 
     const title = document.createElement('h2');
     title.className = 'text-white text-lg font-bold';
-    title.textContent = searchBook.name;
+    title.textContent = book.name;
 
-    let startedDate = new Date(searchBook.startedReading).toLocaleDateString();
+    let startedDate = new Date(book.startedReading).toLocaleDateString();
 
     const startedReading = document.createElement('p');
     startedReading.className = 'text-gray-400 text-sm';
     startedReading.textContent = `Started Reading: ${startedDate}`;
 
-    let endedDate = new Date(searchBook.endedReading).toLocaleDateString();
+    let endedDate = new Date(book.endedReading).toLocaleDateString();
 
     const endedReading = document.createElement('p');
     endedReading.className = 'text-gray-400 text-sm';

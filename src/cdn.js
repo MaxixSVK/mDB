@@ -9,7 +9,7 @@ const fs = require('fs');
 const router = express.Router();
 
 module.exports = function (pool) {
-  const validate = require('./auth/tokenValidation')(pool, admin = true);
+  const validate = require('./tokenValidation/checkToken')(pool, admin = true);
 
   const createStorage = () => {
     return multer.diskStorage({
@@ -28,7 +28,7 @@ module.exports = function (pool) {
 
   const upload = multer({ storage: createStorage() });
 
-  router.post('/upload', validate, upload.single('image'), (req, res) => {
+  router.post('/upload', validate, upload.single('image'), (req, res, next) => {
     if (!req.file) {
       return res.status(400).send({ msg: 'Please upload a file.' });
     }
@@ -45,24 +45,32 @@ module.exports = function (pool) {
         cb(null, uploadPath);
       },
       filename: (req, file, cb) => {
-        const username = req.body.username;
-        const fileExtension = path.extname(file.originalname);
-        cb(null, `pfp_${username}${fileExtension}`);
+        const userId = req.userId;
+        cb(null, `${userId}.png`);
       }
     });
   };
-
+  
   const uploadPfp = multer({ storage: createPfpStorage() });
-
-  router.post('/upload-pfp', validate, uploadPfp.single('image'), (req, res) => {
+  
+  router.post('/upload-pfp', validate, uploadPfp.single('image'), async (req, res) => {
     if (!req.file) {
       return res.status(400).send({ msg: 'Please upload a file.' });
     }
-    // TODO: change filename to username
-    res.status(200).send({ msg: 'Profile picture uploaded.', filename: req.file.filename });
+  
+    const filePath = path.resolve(__dirname, '../uploads/pfp', `${req.userId}.png`);
+    try {
+      await sharp(req.file.path)
+        .png()
+        .toFile(filePath);
+      fs.unlinkSync(req.file.path);
+      res.status(200).send({ msg: 'Profile picture uploaded and converted to PNG.', filename: `${req.userId}.png` });
+    } catch (error) {
+      res.status(500).send({ msg: 'Error processing the image.' });
+    }
   });
 
-  router.get('/pfp/:filename', (req, res) => {
+  router.get('/pfp/:filename', (req, res, next) => {
     const filename = sanitize(req.params.filename);
     const uploadsDir = path.join(__dirname, '../uploads/pfp');
     const filePath = path.join(uploadsDir, filename);
@@ -78,7 +86,7 @@ module.exports = function (pool) {
             res.type('image').send(data);
           })
           .catch(err => {
-            res.status(500).send({ error: err.message });
+            next(err);
           });
       } else {
         res.type('image').sendFile(normalizedPath);
@@ -88,7 +96,7 @@ module.exports = function (pool) {
     }
   });
 
-  router.get('/images/:filename', (req, res) => {
+  router.get('/images/:filename', (req, res, next) => {
     const filename = sanitize(req.params.filename);
     const uploadsDir = path.join(__dirname, '../uploads');
     const filePath = path.join(uploadsDir, filename);
@@ -104,7 +112,7 @@ module.exports = function (pool) {
             res.type('image').send(data);
           })
           .catch(err => {
-            res.status(500).send({ error: err.message });
+            next(err);
           });
       } else {
         res.type('image').sendFile(normalizedPath);
@@ -212,7 +220,7 @@ module.exports = function (pool) {
       });
 
       archive.on('error', (err) => {
-        res.status(500).send({ error: err.message });
+        next(err);
       });
 
       archive.pipe(res);

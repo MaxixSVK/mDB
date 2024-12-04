@@ -128,6 +128,8 @@ async function displayUser() {
         const data = await response.json();
         document.getElementById('username').textContent = data.username
         document.getElementById('useremail').textContent = data.email
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('pfp').src = api + '/cdn/pfp/' + data.username + '.png';
     } catch (error) {
         console.error('Error fetching user:', error);
     }
