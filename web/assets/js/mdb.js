@@ -28,6 +28,7 @@ async function checkLogin() {
                     },
                 }).then(response => response.json());
                 document.getElementById('login').classList.add('hidden');
+                document.getElementById('pfp').classList.remove('hidden');
                 document.getElementById('pfp').src = api + '/cdn/pfp/' + userData.username + '.png';
                 document.getElementById('pfp').addEventListener('click', function () {
                     window.location.href = '/dashboard';
