@@ -47,9 +47,8 @@ async function createSessionToken(userId, userAgent, ipAddress, pool) {
     }
 }
 
-
 module.exports = function (pool) {
-    const validate = require('../tokenValidation/checkToken')(pool);
+    const validate = require('../middleware/checkToken')(pool);
 
     router.post('/register', async (req, res, next) => {
         const { username, email, password, forcebetaregistration } = req.body;
@@ -59,7 +58,7 @@ module.exports = function (pool) {
 
         // Temporarily disable registration
         if (forcebetaregistration !== process.env.FORCE_REGISTRATION) {
-            return res.status(403).send({ msg: 'Registration is disabled' });
+            return res.error('Registration is disabled', 403);
         }
 
         try {
@@ -71,7 +70,7 @@ module.exports = function (pool) {
             );
 
             if (existingUsername) {
-                return res.status(409).send({ msg: 'Username is already in use' });
+                return res.error('Username is already in use', 409);
             }
 
             const [existingEmail] = await connection.query(
@@ -80,7 +79,7 @@ module.exports = function (pool) {
             );
 
             if (existingEmail) {
-                return res.status(409).send({ msg: 'Email is already in use' });
+                return res.error('Email is already in use', 409);
             }
 
             const result = await connection.query(
@@ -91,7 +90,7 @@ module.exports = function (pool) {
             const userId = result.insertId.toString();
             const sessionToken = await createSessionToken(userId, userAgent, ipAddress, pool);
 
-            res.status(200).send({ sessionToken });
+            res.success({ sessionToken });
         } catch (error) {
             next(error);
         }
@@ -111,19 +110,19 @@ module.exports = function (pool) {
             connection.release();
 
             if (rows.length === 0) {
-                return res.status(404).send({ msg: 'User not found' });
+                return res.error('User not found', 404);
             }
 
             const user = rows[0];
             const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
             if (!isPasswordValid) {
-                return res.status(401).send({ msg: 'Invalid password' });
+                return res.error('Invalid password', 401);
             }
 
             const sessionToken = await createSessionToken(user.id, userAgent, ipAddress, pool);
 
-            res.status(200).send({ sessionToken });
+            res.success({ sessionToken });
         } catch (error) {
             next(error);
         }
@@ -137,7 +136,7 @@ module.exports = function (pool) {
         try {
             const sessionToken = await createSessionToken(userId, userAgent, ipAddress, pool);
             const qrCodeUrl = await QRCode.toDataURL(sessionToken);
-            res.status(200).send({ qrCodeUrl });
+            res.success({ qrCodeUrl });
         } catch (error) {
             next(error);
         }

@@ -43,8 +43,8 @@
                             <h3 id="username" class="text-xl font-semibold"></h3>
                             <p id="useremail" class="text-sm text-gray-400"></p>
                         </div>
-                        <img id="pfp" class="ml-4 w-10 h-10 rounded-full cursor-pointer hidden">
-                        <div id="login" class="ml-4 flex items-center cursor-pointer">
+                        <img id="pfp" class="ml-4 w-10 h-10 rounded-full hidden">
+                        <div id="login" class="ml-4 flex items-center">
                             <i class="fas fa-user text-white text-2xl"></i>
                         </div>
                         <button id="logout"
@@ -264,15 +264,16 @@
             </div>
         </section>
 
-        <script>const api = 'https://apimdb.maxix.sk'; const cdn = 'https://apimdb.maxix.sk/cdn' </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/1.0.37/ua-parser.min.js"
+        integrity="sha512-LAchvH0Y4sxYM1ouOaqHQ6WbSXvOgkioPaiyW0oPOFNNMNfpsBEpvzYmsxgDf8pQM/fMaMdxYP/nFenquTAkdw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+        <script src="assets/js/api.js"></script>
         <script src="assets/js/mdbAdmin.js"></script>
         <script src="assets/js/mdbAdminAddData.js"></script>
         <script src="assets/js/mdbAdminEditData.js"></script>
         <script src="assets/js/mdbAdminDeleteData.js"></script>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/1.0.37/ua-parser.min.js"
-            integrity="sha512-LAchvH0Y4sxYM1ouOaqHQ6WbSXvOgkioPaiyW0oPOFNNMNfpsBEpvzYmsxgDf8pQM/fMaMdxYP/nFenquTAkdw=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </body>
 
 </html>

@@ -2,7 +2,7 @@ const router = require('express').Router();
 const bcrypt = require('bcrypt');
 
 module.exports = function (pool) {
-    const validate = require('../tokenValidation/checkToken')(pool);
+    const validate = require('../middleware/checkToken')(pool);
 
     router.get('/', validate, async (req, res, next) => {
         try {
@@ -13,14 +13,14 @@ module.exports = function (pool) {
             );
             connection.release();
 
-            res.status(200).send(rows[0]);
+            res.success(rows[0]);
         } catch (error) {
             next(error);
         }
     });
 
     router.get('/validate', validate, (req, res) => {
-        res.status(200).send({ userId: req.userId, sessionId: req.sessionId });
+        res.success({ userId: req.userId, sessionId: req.sessionId });
     });
 
     router.get('/logout', validate, async (req, res, next) => {
@@ -32,7 +32,7 @@ module.exports = function (pool) {
             );
             connection.release();
     
-            res.status(200).send({ msg: 'Logged out' });
+            res.success({ msg: 'Logged out' });
         } catch (error) {
             next(error);
         }
@@ -47,7 +47,7 @@ module.exports = function (pool) {
             );
             connection.release();
     
-            res.status(200).send({ msg: 'Logged out from all devices' });
+            res.success({ msg: 'Logged out from all devices' });
         } catch (error) {
             next(error);
         }
@@ -62,7 +62,7 @@ module.exports = function (pool) {
             );
             connection.release();
     
-            res.status(200).json(rows);
+            res.success(rows);
         } catch (error) {
             next(error);
         }
@@ -77,7 +77,7 @@ module.exports = function (pool) {
             );
             connection.release();
     
-            res.status(200).send({ msg: 'Session destroyed' });
+            res.success({ msg: 'Session destroyed' });
         } catch (error) {
             next(error);
         }
@@ -94,7 +94,7 @@ module.exports = function (pool) {
             const user = rows[0];
             if (!await bcrypt.compare(req.body.oldPassword, user.password_hash)) {
                 connection.release();
-                return res.status(400).send({ msg: 'Invalid old password' });
+                return res.error('Invalid old password', 400);
             }
     
             const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
@@ -104,7 +104,7 @@ module.exports = function (pool) {
             );
             connection.release();
     
-            res.status(200).send({ msg: 'Password changed' });
+            res.success({ msg: 'Password changed' });
         } catch (error) {
             next(error);
         }

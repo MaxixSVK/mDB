@@ -1,5 +1,3 @@
-const api = 'https://apimdb.maxix.sk';
-
 document.addEventListener('DOMContentLoaded', function () {
     checkLogin();
     fetchStats();

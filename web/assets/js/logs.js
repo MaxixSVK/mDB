@@ -1,5 +1,3 @@
-const api = 'https://apimdb.maxix.sk';
-
 const logsContainer = document.getElementById('logs');
 let limit = 10;
 let offset = 0;

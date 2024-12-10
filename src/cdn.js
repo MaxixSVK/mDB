@@ -1,3 +1,5 @@
+// I should remake this to use AWS S3 instead of local storage 
+
 const express = require('express');
 const multer = require('multer');
 const archiver = require('archiver');
@@ -9,7 +11,7 @@ const fs = require('fs');
 const router = express.Router();
 
 module.exports = function (pool) {
-  const validate = require('./tokenValidation/checkToken')(pool, admin = true);
+  const validate = require('./middleware/checkToken')(pool, admin = true);
 
   const createStorage = () => {
     return multer.diskStorage({
@@ -26,15 +28,6 @@ module.exports = function (pool) {
     });
   };
 
-  const upload = multer({ storage: createStorage() });
-
-  router.post('/upload', validate, upload.single('image'), (req, res, next) => {
-    if (!req.file) {
-      return res.status(400).send({ msg: 'Please upload a file.' });
-    }
-    res.status(200).send({ msg: 'File uploaded.', filename: req.file.originalname });
-  });
-
   const createPfpStorage = () => {
     return multer.diskStorage({
       destination: (req, file, cb) => {
@@ -50,9 +43,17 @@ module.exports = function (pool) {
       }
     });
   };
-  
+
+  const upload = multer({ storage: createStorage() });
   const uploadPfp = multer({ storage: createPfpStorage() });
-  
+
+  router.post('/upload', validate, upload.single('image'), (req, res, next) => {
+    if (!req.file) {
+      return res.status(400).send({ msg: 'Please upload a file.' });
+    }
+    res.success({ msg: 'File uploaded.', filename: req.file.originalname });
+  });
+
   router.post('/upload-pfp', validate, uploadPfp.single('image'), async (req, res) => {
     if (!req.file) {
       return res.status(400).send({ msg: 'Please upload a file.' });
@@ -64,9 +65,35 @@ module.exports = function (pool) {
         .png()
         .toFile(filePath);
       fs.unlinkSync(req.file.path);
-      res.status(200).send({ msg: 'Profile picture uploaded and converted to PNG.', filename: `${req.userId}.png` });
+      res.success({ msg: 'Profile picture uploaded and converted to PNG.', filename: `${req.userId}.png` });
     } catch (error) {
-      res.status(500).send({ msg: 'Error processing the image.' });
+      next(error);
+    }
+  });
+
+  router.get('/images/:filename', (req, res, next) => {
+    const filename = sanitize(req.params.filename);
+    const uploadsDir = path.join(__dirname, '../uploads');
+    const filePath = path.join(uploadsDir, filename);
+    const normalizedPath = path.normalize(filePath);
+    const isLowRes = req.query.lowres === 'true';
+
+    if (normalizedPath.startsWith(uploadsDir) && fs.existsSync(normalizedPath)) {
+      if (isLowRes) {
+        sharp(filePath)
+          .resize(200)
+          .toBuffer()
+          .then(data => {
+            res.type('image').send(data);
+          })
+          .catch(err => {
+            next(err);
+          });
+      } else {
+        res.type('image').sendFile(normalizedPath);
+      }
+    } else {
+      res.error('File not found.', 404);
     }
   });
 
@@ -96,32 +123,6 @@ module.exports = function (pool) {
     }
   });
 
-  router.get('/images/:filename', (req, res, next) => {
-    const filename = sanitize(req.params.filename);
-    const uploadsDir = path.join(__dirname, '../uploads');
-    const filePath = path.join(uploadsDir, filename);
-    const normalizedPath = path.normalize(filePath);
-    const isLowRes = req.query.lowres === 'true';
-
-    if (normalizedPath.startsWith(uploadsDir) && fs.existsSync(normalizedPath)) {
-      if (isLowRes) {
-        sharp(filePath)
-          .resize(200)
-          .toBuffer()
-          .then(data => {
-            res.type('image').send(data);
-          })
-          .catch(err => {
-            next(err);
-          });
-      } else {
-        res.type('image').sendFile(normalizedPath);
-      }
-    } else {
-      res.status(404).send({ msg: 'File not found.' });
-    }
-  });
-
   router.delete('/images/:filename', validate, (req, res, next) => {
     const filename = req.params.filename;
     const filePath = path.join(__dirname, '../uploads', filename);
@@ -131,30 +132,16 @@ module.exports = function (pool) {
         if (err) {
           next(err);
         }
-        res.status(200).send({ msg: 'File deleted.' });
+        res.success({ msg: 'File deleted.' });
       });
     } else {
-      res.status(404).send({ msg: 'File not found.' });
+      res.error('File not found.', 404);
     }
-  });
-
-  router.get('/images', (req, res, next) => {
-    const uploadPath = path.resolve(__dirname, '../uploads');
-    fs.readdir(uploadPath, (err, files) => {
-      if (err) {
-        next(err);
-      }
-      res.status(200).send(files);
-    });
   });
 
   router.put('/images/rename/:filename', validate, async (req, res, next) => {
     const { filename } = req.params;
     const { newFilename } = req.body;
-
-    if (!newFilename) {
-      return res.status(400).send({ msg: 'Please provide new filename.' });
-    }
 
     let newFilenameWithExtension;
     if (path.extname(newFilename) === '') {
@@ -186,7 +173,7 @@ module.exports = function (pool) {
             'UPDATE books SET img = ? WHERE img = ?',
             [newLink, oldLink]
           );
-          res.status(200).send({ msg: 'File renamed, DB references updated.', filename: newFilenameWithExtension });
+          res.success({ msg: 'File renamed, DB references updated.', filename: newFilenameWithExtension });
         } catch (dbErr) {
           next(dbErr);
         } finally {
@@ -194,10 +181,11 @@ module.exports = function (pool) {
         }
       });
     } else {
-      res.status(404).send({ msg: 'File not found.' });
+      res.error('File not found.', 404);
     }
   });
 
+  // TODO: maybe include PFPS in the backup
   router.get('/img-backup', (req, res, next) => {
     const uploadPath = path.resolve(__dirname, '../uploads');
 

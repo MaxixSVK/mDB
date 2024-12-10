@@ -5,17 +5,13 @@ const axios = require('axios');
 const openai = new OpenAI();
 
 module.exports = function (pool) {
-    const validate = require('../tokenValidation/checkToken')(pool);
+    const validate = require('../middleware/checkToken')(pool);
     const conversations = {};
 
-    router.post('/chat', validate, async (req, res) => {
+    router.post('/chat', validate, async (req, res, next) => {
         const sessionId = req.sessionId;
         const userMessage = req.body.message;
-
-        if (!sessionId) {
-            return res.status(400).json({ error: "Session ID is required" });
-        }
-
+        
         initializeConversation(sessionId);
 
         conversations[sessionId].push({
@@ -26,9 +22,9 @@ module.exports = function (pool) {
         try {
             let responseMessage = await handleConversation(sessionId);
             conversations[sessionId].push(responseMessage);
-            res.json({ response: responseMessage });
+            res.success({ response: responseMessage });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            next(error);
         }
     });
 

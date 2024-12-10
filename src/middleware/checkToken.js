@@ -8,7 +8,7 @@ const validateToken = (pool, admin = false) => {
         const sessionToken = req.headers['authorization'];
 
         if (!sessionToken) {
-            return res.status(401).json({ error: 'Session token is required' });
+            return res.error('Session token is required', 401);
         }
 
         try {
@@ -23,12 +23,12 @@ const validateToken = (pool, admin = false) => {
             connection.release();
 
             if (rows.length === 0) {
-                return res.status(401).json({ error: 'Invalid or expired session' });
+                return res.error('Invalid or expired session', 401);
             }
 
             const match = await bcrypt.compare(sessionToken, rows.session_token);
             if (!match) {
-                return res.status(401).json({ error: 'Invalid or expired session' });
+                return res.error('Invalid or expired session', 401);
             }
 
             req.userId = userId;
@@ -42,13 +42,13 @@ const validateToken = (pool, admin = false) => {
                 );
                 connection.release();
 
-                if (userRows.role !== 'admin') {
-                    return res.status(403).json({ error: 'Missing admin privileges' });
+                if (userRows[0].role !== 'admin') {
+                    return res.error('Missing admin privileges', 403);
                 }
             }
             next();
         } catch (error) {
-            return res.status(401).json({ error: 'Error validating session token' });
+            return next(error);
         }
     };
 };

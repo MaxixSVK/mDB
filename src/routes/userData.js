@@ -5,8 +5,8 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = function (pool) {
-    const validate = require('../tokenValidation/checkToken')(pool);
-    const validateAdmin = require('../tokenValidation/checkToken')(pool, admin = true);
+    const validate = require('../middleware/checkToken')(pool);
+    const validateAdmin = require('../middleware/checkToken')(pool, admin = true);
 
     router.post('/add-data/:type', validate, async (req, res, next) => {
         let conn;
@@ -16,7 +16,7 @@ module.exports = function (pool) {
             const data = req.body;
     
             if (!['series', 'books', 'chapters'].includes(type)) {
-                return res.status(400).send({ msg: 'Invalid type specified' });
+                return res.error('Invalid type specified', 400);
             }
     
             let columns = [];
@@ -36,15 +36,15 @@ module.exports = function (pool) {
             if (params.length > 0) {
                 const result = await conn.query(sql, params);
                 if (result.affectedRows === 0) {
-                    return res.status(500).send(`Failed to add ${type}`);
+                    return res.error(`Failed to add ${type}`, 500);
                 }
     
                 const logSql = `INSERT INTO logs (change_type, table_name, record_id, new_data) VALUES (?, ?, ?, ?)`;
                 await conn.query(logSql, ['INSERT', type, result.insertId, JSON.stringify(data)]);
     
-                res.send({ msg: `${type} added successfully` });
+                res.success({ msg: `${type} added successfully` });
             } else {
-                res.send({ msg: `No valid fields provided to add ${type}` });
+                res.success({ msg: `No valid fields provided to add ${type}` });
             }
         } catch (err) {
             next(err);
@@ -61,7 +61,7 @@ module.exports = function (pool) {
             const data = req.body;
     
             if (!['series', 'books', 'chapters'].includes(type)) {
-                return res.status(400).send({ msg: 'Invalid type specified' });
+                return res.error('Invalid type specified', 400);
             }
     
             const primaryKeyMapping = {
@@ -90,15 +90,15 @@ module.exports = function (pool) {
             if (params.length > 1) {
                 const result = await conn.query(sql, params);
                 if (result.affectedRows === 0) {
-                    return res.status(404).send(`${type} not found or no changes made`);
+                    return res.error(`${type} not found or no changes made`, 404);
                 }
     
                 const logSql = `INSERT INTO logs (change_type, table_name, record_id, old_data, new_data) VALUES (?, ?, ?, ?, ?)`;
                 await conn.query(logSql, ['UPDATE', type, id, JSON.stringify(oldData), JSON.stringify(data)]);
     
-                res.send({ msg: `${type} updated successfully` });
+                res.success({ msg: `${type} updated successfully` });
             } else {
-                res.send({ msg: `No valid fields provided to update ${type}` });
+                res.success({ msg: `No valid fields provided to update ${type}` });
             }
         } catch (err) {
             next(err);
@@ -114,7 +114,7 @@ module.exports = function (pool) {
             const { type, id } = req.params;
     
             if (!['series', 'books', 'chapters'].includes(type)) {
-                return res.status(400).send({ msg: 'Invalid type specified' });
+                return res.error('Invalid type specified', 400);
             }
     
             const tableName = type;
@@ -130,16 +130,16 @@ module.exports = function (pool) {
             const result = await conn.query(`DELETE FROM ${tableName} WHERE ${primaryKeyMapping[type]} = ?`, [id]);
     
             if (result.affectedRows === 0) {
-                return res.status(404).send({ msg: `${type} with ID ${id} not found` });
+                return res.error(`${type} with ID ${id} not found`, 404);
             }
     
             const logSql = `INSERT INTO logs (change_type, table_name, record_id, old_data) VALUES (?, ?, ?, ?)`;
             await conn.query(logSql, ['DELETE', type, id, JSON.stringify(oldData)]);
     
-            res.send({ msg: `${type} with ID ${id} deleted successfully` });
+            res.success({ msg: `${type} with ID ${id} deleted successfully` });
         } catch (err) {
             if (err.code === 'ER_ROW_IS_REFERENCED_2') {
-                return res.status(409).send({ msg: `${type} with ID ${id} is referenced in another table` });
+                return res.error(`${type} with ID ${id} is referenced in another table`, 409);
             }
             next(err);
         } finally {
@@ -147,7 +147,7 @@ module.exports = function (pool) {
         }
     });
 
-   router.get('/backup-db', validateAdmin, async (req, res, next) => {
+    router.get('/backup-db', validateAdmin, async (req, res, next) => {
         const dumpFile = path.join(__dirname, 'backup.sql');
         const excludedTables = ['users', 'sessions'];
         const ignoreTables = excludedTables.map(table => `--ignore-table=${process.env.DB_NAME}.${table}`).join(' ');
@@ -168,9 +168,6 @@ module.exports = function (pool) {
         });
     });
 
-    const fs = require('fs');
-    const path = require('path');
-    
     router.get('/logs', validate, async (req, res, next) => {
         let conn;
         try {
@@ -201,7 +198,7 @@ module.exports = function (pool) {
                     }
                 });
             } else {
-                res.send(logs);
+                res.success(logs);
             }
         } catch (err) {
             next(err);

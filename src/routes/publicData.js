@@ -9,7 +9,7 @@ module.exports = function (pool) {
             const query = 'SELECT series_id FROM series';
             const rows = await conn.query(query);
             const seriesIds = rows.map(row => row.series_id);
-            res.send(seriesIds);
+            res.success(seriesIds);
         } catch (err) {
             next(err);
         } finally {
@@ -26,11 +26,10 @@ module.exports = function (pool) {
             const rows = await conn.query(query, [series_id]);
 
             if (rows.length === 0) {
-                res.status(404).send({ msg: 'Series not found' });
-                return;
+                return res.error('Series not found', 404);
             }
 
-            res.send(rows[0]);
+            res.success(rows[0]);
         } catch (err) {
             next(err);
         } finally {
@@ -46,7 +45,7 @@ module.exports = function (pool) {
             const query = 'SELECT book_id FROM books WHERE series_id = ?';
             const rows = await conn.query(query, [series_id]);
             const bookIds = rows.map(row => row.book_id);
-            res.send(bookIds);
+            res.success(bookIds);
         } catch (err) {
             next(err);
         } finally {
@@ -63,14 +62,13 @@ module.exports = function (pool) {
             const rows = await conn.query(query, [book_id]);
 
             if (rows.length === 0) {
-                res.status(404).send({ msg: 'Book not found' });
-                return;
+                return res.error('Book not found', 404);
             }
 
             rows[0].startedReading = rows[0].startedReading || null;
             rows[0].endedReading = rows[0].endedReading || null;
 
-            res.send(rows[0]);
+            res.success(rows[0]);
         } catch (err) {
             next(err);
         } finally {
@@ -86,14 +84,13 @@ module.exports = function (pool) {
             const query = 'SELECT chapter_id FROM chapters WHERE book_id = ?';
             const rows = await conn.query(query, [book_id]);
             const chapterIds = rows.map(row => row.chapter_id);
-            res.send(chapterIds);
+            res.success(chapterIds);
         } catch (err) {
             next(err);
         } finally {
             if (conn) conn.end();
         }
     });
-
 
     router.get('/chapter/:chapter_id', async (req, res, next) => {
         let conn;
@@ -104,13 +101,12 @@ module.exports = function (pool) {
             const rows = await conn.query(query, [chapter_id]);
 
             if (rows.length === 0) {
-                res.status(404).send({ msg: 'Chapter not found' });
-                return;
+                return res.error('Chapter not found', 404);
             }
 
             rows[0].date = rows[0].date || null;
 
-            res.send(rows[0]);
+            res.success(rows[0]);
         } catch (err) {
             next(err);
         } finally {
@@ -165,11 +161,10 @@ module.exports = function (pool) {
             }));
 
             if (seriesArray.length === 0) {
-                res.status(404).send({ msg: 'No results found' });
-                return;
+                return res.error('No results found', 404);
             }
 
-            res.send(seriesArray);
+            res.success(seriesArray);
         } catch (err) {
             next(err);
         } finally {
@@ -198,7 +193,7 @@ module.exports = function (pool) {
                 mangaCount: rows[0].mangaCount.toString(),
                 lightNovelCount: rows[0].lightNovelCount.toString()
             };
-            res.send(stats);
+            res.success(stats);
 
         } catch (err) {
             next(err);
@@ -227,7 +222,7 @@ module.exports = function (pool) {
                 ...row,
                 chapterCount: row.chapterCount.toString()
             }));
-            res.send(formattedRows);
+            res.success(formattedRows);
 
         } catch (err) {
             next(err);
