@@ -71,6 +71,16 @@ module.exports = function (pool) {
     }
   });
 
+  router.get('/images', (req, res, next) => {
+    const uploadPath = path.resolve(__dirname, '../uploads');
+    fs.readdir(uploadPath, (err, files) => {
+      if (err) {
+        next(err);
+      }
+      res.status(200).send(files);
+    });
+  });
+
   router.get('/images/:filename', (req, res, next) => {
     const filename = sanitize(req.params.filename);
     const uploadsDir = path.join(__dirname, '../uploads');
