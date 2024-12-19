@@ -20,6 +20,7 @@ function editDataInit() {
                 addFormDescription(editDataFields, 'DB Data');
                 addInputField('name', 'Series Name');
                 addInputField('img', 'Image URL');
+                addStatusSelect(editDataFields);
                 addTypeSelect(editDataFields);
                 await seriesData();
                 break;
@@ -174,7 +175,8 @@ function editDataInit() {
                 fields: {
                     'name': 'name',
                     'img': 'img',
-                    'format': 'format'
+                    'format': 'format',
+                    'status': 'status'
                 }
             },
             books: {
@@ -239,6 +241,18 @@ function editDataInit() {
         types.forEach((type, index) => {
             const option = new Option(names[index], type);
             typeSelect.add(option);
+        });
+    }
+
+    function addStatusSelect(container) {
+        const statusSelect = createSelectElement('status');
+        container.appendChild(statusSelect);
+
+        const statuses = ['reading', 'stopped', 'finished', 'paused'];
+        const statusNames = ['Reading', 'Stopped', 'Finished', 'Paused'];
+        statuses.forEach((status, index) => {
+            const option = new Option(statusNames[index], status);
+            statusSelect.add(option);
         });
     }
 

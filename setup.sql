@@ -8,10 +8,9 @@ CREATE TABLE `series` (
   `name` varchar(255) NOT NULL,
   `img` varchar(255) DEFAULT NULL,
   `format` varchar(255) DEFAULT NULL,
-  `finished` tinyint(1) DEFAULT 0,
+  `status` ENUM('reading', 'finished', 'stopped', 'paused') NOT NULL DEFAULT 'ongoing',
   PRIMARY KEY (`series_id`)
 );
-
 DROP TABLE IF EXISTS `books`;
 
 CREATE TABLE `books` (

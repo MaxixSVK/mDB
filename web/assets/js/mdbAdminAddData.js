@@ -19,6 +19,7 @@ function addDataInit() {
                 addFormDescription(addDataFieldsDiv, 'New DB Data:');
                 addInputField(addDataFieldsDiv, 'name', 'Series Name');
                 addInputField(addDataFieldsDiv, 'img', 'Image URL');
+                addStatusSelect(addDataFieldsDiv);
                 addTypeSelect(addDataFieldsDiv);
                 break;
             case 'books':
@@ -127,6 +128,18 @@ function addDataInit() {
         types.forEach((type, index) => {
             const option = new Option(names[index], type);
             typeSelect.add(option);
+        });
+    }
+
+    function addStatusSelect(container) {
+        const statusSelect = createSelectElement('status');
+        container.appendChild(statusSelect);
+
+        const statuses = ['reading', 'stopped', 'finished', 'paused'];
+        const statusNames = ['Reading', 'Stopped', 'Finished', 'Paused'];
+        statuses.forEach((status, index) => {
+            const option = new Option(statusNames[index], status);
+            statusSelect.add(option);
         });
     }
 

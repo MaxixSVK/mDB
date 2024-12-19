@@ -121,8 +121,27 @@ function renderSeriesCard(series) {
     title.textContent = series.name;
 
     const status = document.createElement('span');
-    status.className = series.finished === 1 ? 'text-green-500' : 'text-red-500';
-    status.textContent = series.finished === 1 ? 'Finished' : 'Still reading';
+    const statusClasses = {
+        reading: 'text-blue-500',
+        finished: 'text-green-500',
+        stopped: 'text-gray-500',
+        paused: 'text-yellow-500',
+        default: 'text-red-500'
+    };
+    
+    const statusTexts = {
+        reading: 'Reading',
+        finished: 'Finished',
+        stopped: 'Stopped',
+        paused: 'Paused',
+        default: 'Unknown'
+    };
+    
+    const statusClass = statusClasses[series.status] || statusClasses.default;
+    const statusText = statusTexts[series.status] || statusTexts.default;
+    
+    status.className = statusClass;
+    status.textContent = statusText;
 
     content.appendChild(title);
     content.appendChild(status);
