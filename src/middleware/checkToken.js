@@ -16,17 +16,17 @@ const validateToken = (pool, admin = false) => {
             const { userId, sessionId } = decoded;
 
             const connection = await pool.getConnection();
-            const [rows] = await connection.query(
+            const [session] = await connection.query(
                 'SELECT session_token FROM sessions WHERE user_id = ? AND id = ? AND expires_at > NOW()',
                 [userId, sessionId]
             );
             connection.release();
 
-            if (rows.length === 0) {
+            if (session.length === 0) {
                 return res.error('Invalid or expired session', 401);
             }
 
-            const match = await bcrypt.compare(sessionToken, rows.session_token);
+            const match = await bcrypt.compare(sessionToken, session.session_token);
             if (!match) {
                 return res.error('Invalid or expired session', 401);
             }
@@ -36,13 +36,13 @@ const validateToken = (pool, admin = false) => {
 
             if (admin) {
                 const connection = await pool.getConnection();
-                const [userRows] = await connection.query(
+                const [user] = await connection.query(
                     'SELECT role FROM users WHERE id = ?',
                     [req.userId]
                 );
                 connection.release();
 
-                if (userRows[0].role !== 'admin') {
+                if (user.role !== 'admin') {
                     return res.error('Missing admin privileges', 403);
                 }
             }
