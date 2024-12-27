@@ -1,54 +1,36 @@
 document.addEventListener("DOMContentLoaded", function () {
-    checkLogin()
+    checkLogin();
 
     const loginForm = document.forms['login'];
     loginForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        const LoginForm = document.getElementById('login');
+        const loginForm = document.getElementById('login');
         handleLogin({
-            username: LoginForm.elements['username'].value,
-            password: LoginForm.elements['password'].value
+            username: loginForm.elements['username'].value,
+            password: loginForm.elements['password'].value
         });
     });
 
     const registerForm = document.forms['register'];
     registerForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        const RegisterForm = document.getElementById('register');
+        const registerForm = document.getElementById('register');
         handleRegister({
-            username: RegisterForm.elements['username'].value,
-            password: RegisterForm.elements['password'].value,
-            email: RegisterForm.elements['email'].value,
-            forcebetaregistration: RegisterForm.elements['forcebetaregistration'].value
+            username: registerForm.elements['username'].value,
+            password: registerForm.elements['password'].value,
+            email: registerForm.elements['email'].value,
+            forcebetaregistration: registerForm.elements['forcebetaregistration'].value
         });
     });
 
     const switchToRegister = document.getElementById('switchToRegister');
     switchToRegister.addEventListener('click', function () {
-        const loginSection = document.getElementById('login-section');
-        const registerSection = document.getElementById('register-section');
-
-        loginSection.classList.add('animate-fadeOut');
-        setTimeout(() => {
-            loginSection.classList.add('hidden');
-            loginSection.classList.remove('animate-fadeOut');
-            registerSection.classList.remove('hidden');
-            registerSection.classList.add('animate-fadeIn');
-        }, 500);
+        switchSection('login-section', 'register-section');
     });
 
     const switchToLogin = document.getElementById('switchToLogin');
     switchToLogin.addEventListener('click', function () {
-        const loginSection = document.getElementById('login-section');
-        const registerSection = document.getElementById('register-section');
-
-        registerSection.classList.add('animate-fadeOut');
-        setTimeout(() => {
-            registerSection.classList.add('hidden');
-            registerSection.classList.remove('animate-fadeOut');
-            loginSection.classList.remove('hidden');
-            loginSection.classList.add('animate-fadeIn');
-        }, 500);
+        switchSection('register-section', 'login-section');
     });
 
     // TODO: SUPPORT FOR QR CODE LOGIN
@@ -104,11 +86,12 @@ async function handleLogin(loginData) {
             window.location.href = '/dashboard';
         } else {
             const responseData = await response.json();
-            showError(responseData.msg);
+            console.log(responseData);
+            showError('login', responseData.msg);
         }
     } catch (error) {
         console.error('Login failed:', error);
-        showError('An unexpected error occurred. Please try again.');
+        showError('login', 'An unexpected error occurred. Please try again.');
     }
 }
 
@@ -128,21 +111,23 @@ async function handleRegister(registerData) {
             window.location.href = '/dashboard';
         } else {
             const responseData = await response.json();
-            showError(responseData.msg);
+            showError('register', responseData.msg);
         }
     } catch (error) {
         console.error('Registration failed:', error);
-        showError('An unexpected error occurred. Please try again.');
+        showError('register', 'An unexpected error occurred. Please try again.');
     }
 }
 
-// TODO: REMAKE APROACH AND DESIGN
-function showError(message) {
-    document.getElementById('notification-container').innerHTML = `
-        <div class="bg-red-500 text-white px-4 py-3 rounded relative" role="alert">
-            <span class="block sm:inline">${message}</span>
-        </div>
-    `;
+function showError(section, message) {
+    const errorDiv = document.getElementById(`${section}-error`);
+    errorDiv.textContent = message;
+    errorDiv.classList.remove('hidden');
+}
+
+function hideError(section) {
+    const errorDiv = document.getElementById(`${section}-error`);
+    errorDiv.classList.add('hidden');
 }
 
 function setCookie(name, value, days) {
@@ -153,4 +138,17 @@ function setCookie(name, value, days) {
         expires = "; expires=" + date.toUTCString();
     }
     document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function switchSection(hideSectionId, showSectionId) {
+    const hideSection = document.getElementById(hideSectionId);
+    const showSection = document.getElementById(showSectionId);
+
+    hideSection.classList.add('animate-fadeOut');
+    setTimeout(() => {
+        hideSection.classList.add('hidden');
+        hideSection.classList.remove('animate-fadeOut');
+        showSection.classList.remove('hidden');
+        showSection.classList.add('animate-fadeIn');
+    }, 500);
 }

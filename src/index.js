@@ -26,7 +26,7 @@ routes.forEach(({ path, route }) => {
 });
 
 app.get('/', (req, res) => {
-    res.success(`API ${package.version}`);
+    res.success(package.version);
 });
 
 app.use((req, res, next) => {

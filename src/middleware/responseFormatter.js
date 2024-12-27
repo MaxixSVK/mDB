@@ -9,7 +9,7 @@ module.exports = (req, res, next) => {
 
     res.error = (message, code = 500) => {
         res.status(code).json({
-            message: message
+            msg: message
         });
     };
 

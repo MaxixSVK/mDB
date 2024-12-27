@@ -109,7 +109,7 @@ function renderSeriesCard(series) {
     header.className = 'flex items-center';
 
     const img = document.createElement('img');
-    img.src = series.img ? series.img + '?lowres=true' : 'https://apimdb.maxix.sk/cdn/images/404.png?lowres=true';
+    img.src = series.img ? series.img + '?lowres=true' : cdn + '/images/404.png?lowres=true';
     img.alt = series.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 
@@ -205,7 +205,7 @@ function renderBookCard(book) {
     card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
 
     const img = document.createElement('img');
-    img.src = book.img ? book.img + '?lowres=true' : 'https://apimdb.maxix.sk/cdn/images/404.png?lowres=true';
+    img.src = book.img ? book.img + '?lowres=true' : cdn + '/images/404.png?lowres=true';
     img.alt = book.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 
@@ -222,11 +222,15 @@ function renderBookCard(book) {
     startedReading.className = 'text-gray-400 text-sm';
     startedReading.textContent = `Started Reading: ${startedDate}`;
 
-    let endedDate = new Date(book.endedReading).toLocaleDateString();
-
     const endedReading = document.createElement('p');
     endedReading.className = 'text-gray-400 text-sm';
-    endedReading.textContent = `Ended Reading: ${endedDate}`;
+    
+    if (book.endedReading) {
+        const endedDate = new Date(book.endedReading).toLocaleDateString();
+        endedReading.textContent = `Ended Reading: ${endedDate}`;
+    } else {
+        endedReading.textContent = 'Still reading';
+    }
 
     content.appendChild(title);
     content.appendChild(startedReading);
@@ -275,7 +279,7 @@ function renderBookData(bookData, chapterData) {
     contentWrapper.className = 'flex flex-col md:flex-row h-full';
 
     const img = document.createElement('img');
-    img.src = bookData.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
+    img.src = bookData.img || cdn + '/images/404.png';
     img.alt = bookData.name || 'No image';
     img.className = 'object-cover rounded-md mb-4 md:mb-0 md:mr-6 w-full md:w-auto md:max-w-md mx-auto';
 
@@ -452,7 +456,7 @@ function renderSearchSeriesCard(series, books) {
     header.className = 'flex items-center';
 
     const img = document.createElement('img');
-    img.src = series.img ? series.img + '?lowres=true' : 'https://apimdb.maxix.sk/cdn/images/404.png?lowres=true';
+    img.src = series.img ? series.img + '?lowres=true' : cdn + '/images/404.png?lowres=true';
     img.alt = series.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 
@@ -533,7 +537,7 @@ async function renderSearchBookCard(book) {
     card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
 
     const img = document.createElement('img');
-    img.src = book.img ? book.img + '?lowres=true' : 'https://apimdb.maxix.sk/cdn/images/404.png?lowres=true';
+    img.src = book.img ? book.img + '?lowres=true' : cdn + '/images/404.png?lowres=true';
     img.alt = book.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 
@@ -550,11 +554,15 @@ async function renderSearchBookCard(book) {
     startedReading.className = 'text-gray-400 text-sm';
     startedReading.textContent = `Started Reading: ${startedDate}`;
 
-    let endedDate = new Date(book.endedReading).toLocaleDateString();
-
     const endedReading = document.createElement('p');
     endedReading.className = 'text-gray-400 text-sm';
-    endedReading.textContent = `Ended Reading: ${endedDate}`;
+    
+    if (book.endedReading) {
+        const endedDate = new Date(book.endedReading).toLocaleDateString();
+        endedReading.textContent = `Ended Reading: ${endedDate}`;
+    } else {
+        endedReading.textContent = 'Still reading';
+    }
 
     content.appendChild(title);
     content.appendChild(startedReading);
@@ -600,7 +608,7 @@ async function renderSearchBookData(chapterData) {
     contentWrapper.className = 'flex flex-col md:flex-row h-full';
 
     const img = document.createElement('img');
-    img.src = searchBook.img || 'https://apimdb.maxix.sk/cdn/images/404.png';
+    img.src = searchBook.img || cdn + '/images/404.png';
     img.alt = searchBook.name || 'No image';
     img.className = 'object-cover rounded-md mb-4 md:mb-0 md:mr-6 w-full md:w-auto md:max-w-md mx-auto';
 

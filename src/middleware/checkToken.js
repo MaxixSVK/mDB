@@ -22,12 +22,7 @@ const validateToken = (pool, admin = false) => {
             );
             connection.release();
 
-            if (session.length === 0) {
-                return res.error('Invalid or expired session', 401);
-            }
-
-            const match = await bcrypt.compare(sessionToken, session.session_token);
-            if (!match) {
+            if (session.length === 0 || !(await bcrypt.compare(sessionToken, session.session_token))) {
                 return res.error('Invalid or expired session', 401);
             }
 
@@ -42,7 +37,7 @@ const validateToken = (pool, admin = false) => {
                 );
                 connection.release();
 
-                if (user.role !== 'admin') {
+                if (user.length === 0 || user.role !== 'admin') {
                     return res.error('Missing admin privileges', 403);
                 }
             }
