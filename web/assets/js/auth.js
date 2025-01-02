@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
     checkLogin();
+    setupEventListeners();
+});
 
+function setupEventListeners() {
     const loginForm = document.forms['login'];
     loginForm.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -32,12 +35,13 @@ document.addEventListener("DOMContentLoaded", function () {
     switchToLogin.addEventListener('click', function () {
         switchSection('register-section', 'login-section');
     });
-
-    // TODO: SUPPORT FOR QR CODE LOGIN
-});
+}
 
 async function checkLogin() {
-    const session = getCookie('sessionToken');
+    const sessionCookieName = 'sessionToken=';
+    const cookies = document.cookie.split(';').map(cookie => cookie.trim());
+    const session = cookies.find(cookie => cookie.startsWith(sessionCookieName))?.substring(sessionCookieName.length) || null;
+
     if (session) {
         try {
             const response = await fetch(api + '/account/validate', {
@@ -57,17 +61,6 @@ async function checkLogin() {
             console.error('Login failed:', error);
         }
     }
-}
-
-function getCookie(name) {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-    }
-    return null;
 }
 
 async function handleLogin(loginData) {
@@ -123,11 +116,6 @@ function showError(section, message) {
     const errorDiv = document.getElementById(`${section}-error`);
     errorDiv.textContent = message;
     errorDiv.classList.remove('hidden');
-}
-
-function hideError(section) {
-    const errorDiv = document.getElementById(`${section}-error`);
-    errorDiv.classList.add('hidden');
 }
 
 function setCookie(name, value, days) {

@@ -1,37 +1,10 @@
-const logsContainer = document.getElementById('logs');
-let limit = 10;
-let offset = 0;
+let limit, offset;
 
 document.addEventListener('DOMContentLoaded', function () {
+    limit = 10;
+    offset = 0;
     checkLogin();
-
-    document.getElementById('load-more').addEventListener('click', function () {
-        offset += limit;
-        fetchLogs();
-    });
-
-    document.getElementById('logs-backup').addEventListener('click', async function () {
-        try {
-            const session = getCookie('sessionToken');
-            const response = await fetch(`${api}/logs?all=true&format=file`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': session
-                },
-            });
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'logs.json';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Error fetching logs:', error);
-        }
-    });
+    addEventListeners();
 });
 
 async function checkLogin() {
@@ -60,6 +33,36 @@ async function checkLogin() {
     }
 }
 
+function addEventListeners() {
+    document.getElementById('load-more').addEventListener('click', function () {
+        offset += limit;
+        fetchLogs();
+    });
+
+    document.getElementById('logs-backup').addEventListener('click', async function () {
+        try {
+            const session = getCookie('sessionToken');
+            const response = await fetch(`${api}/logs?all=true&format=file`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authorization': session
+                },
+            });
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'logs.json';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error fetching logs:', error);
+        }
+    });
+}
+
 async function fetchLogs() {
     try {
         const session = getCookie('sessionToken');
@@ -70,25 +73,20 @@ async function fetchLogs() {
                 'authorization': session
             },
         });
+
         const logs = await response.json();
+
         if (logs.length === 0) {
             displayNoResults();
         } else {
             displayLogs(logs);
+            if (logs.length < limit) {
+                displayNoResults();
+            }
         }
     } catch (error) {
         console.error('Error fetching logs:', error);
     }
-}
-
-function displayNoResults() {
-    const logsContainer = document.getElementById('logs');
-    logsContainer.innerHTML += `
-        <div class="p-4 bg-[#1F1F1F] mx-4 rounded-md text-white text-center">
-            End of logs
-        </div>
-    `;
-    document.getElementById('load-more').classList.add('hidden');
 }
 
 function getCookie(name) {
@@ -108,6 +106,16 @@ function displayLogs(logs) {
         const logElement = createLogElement(log);
         logContainer.appendChild(logElement);
     });
+}
+
+function displayNoResults() {
+    const logsContainer = document.getElementById('logs');
+    logsContainer.innerHTML += `
+        <div class="p-4 bg-[#1F1F1F] mx-4 rounded-md text-white text-center">
+            End of logs
+        </div>
+    `;
+    document.getElementById('load-more').classList.add('hidden');
 }
 
 function createLogElement(log) {

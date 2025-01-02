@@ -1,46 +1,53 @@
 document.addEventListener("DOMContentLoaded", function () {
     checkLogin();
-    displayUser();
+    setupEventListeners();
+});
 
-    const logoutButton = document.getElementById('logout');
-    logoutButton.addEventListener('click', handleLogout);
+function setupEventListeners() {
+    setupButtonEvent('logout', 'click', handleLogout);
+    setupButtonEvent('db-backup', 'click', dbBackup);
+    setupButtonEvent('cdn-backup', 'click', cdnBackup);
+    setupToggleEvent('passwordHeader', 'changePassowrd');
+    setupToggleEvent('sessionHeader', 'sessionList');
+    setupFormSubmitEvent('cdn-upload-form', handleCDNUpload);
+    setupFileInputChangeEvent('cdn-upload', 'file-name');
+    setupFileNameClickEvent('file-name');
+    setupFormSubmitEvent('changePassowrd', changePassowrd);
+    setupButtonEvent('qrGenHeader', 'click', genQRCode);
+    setupSearchEvent('search-cdn', renderCDNList, 250);
+}
 
-    const dbBackupButton = document.getElementById('db-backup');
-    dbBackupButton.addEventListener('click', dbBackup);
+function setupButtonEvent(elementId, eventType, handler) {
+    const element = document.getElementById(elementId);
+    element.addEventListener(eventType, handler);
+}
 
-    const cdnBackupButton = document.getElementById('cdn-backup');
-    cdnBackupButton.addEventListener('click', cdnBackup);
-
-    const tooglePaswordDiv = document.getElementById('passwordHeader');
-    tooglePaswordDiv.addEventListener('click', function () {
-        const passwordForm = document.getElementById('changePassowrd');
-        passwordForm.classList.toggle('hidden');
+function setupToggleEvent(headerId, contentId) {
+    const header = document.getElementById(headerId);
+    header.addEventListener('click', function () {
+        const content = document.getElementById(contentId);
+        content.classList.toggle('hidden');
     });
+}
 
-    const toogleSessionsDiv = document.getElementById('sessionHeader');
-    toogleSessionsDiv.addEventListener('click', function () {
-        const sessionsList = document.getElementById('sessionList');
-        sessionsList.classList.toggle('hidden');
-    });
-
-    const uploadToCDN = document.getElementById('cdn-upload-form');
-    uploadToCDN.addEventListener('submit', function (e) {
+function setupFormSubmitEvent(formId, handler) {
+    const form = document.getElementById(formId);
+    form.addEventListener('submit', function (e) {
         e.preventDefault();
-        const form = new FormData();
-        const fileInput = document.getElementById('cdn-upload');
-        const file = fileInput.files[0];
-        if (!file) return showNotification('Please select a file', 'error');
-        form.append('image', file);
-        uploadCDN(form);
+        handler();
     });
+}
 
-    const cdnUploadButton = document.getElementById('cdn-upload');
-    cdnUploadButton.addEventListener('change', function () {
+function setupFileInputChangeEvent(inputId, fileNameId) {
+    const fileInput = document.getElementById(inputId);
+    fileInput.addEventListener('change', function () {
         const fileName = this.files.length > 0 ? this.files[0].name : 'Nothing selected';
-        document.getElementById('file-name').textContent = fileName;
+        document.getElementById(fileNameId).textContent = fileName;
     });
+}
 
-    const fileName = document.getElementById('file-name');
+function setupFileNameClickEvent(fileNameId) {
+    const fileName = document.getElementById(fileNameId);
     fileName.textContent = 'Nothing selected';
     fileName.addEventListener('click', function () {
         const textToCopy = fileName.textContent;
@@ -52,18 +59,24 @@ document.addEventListener("DOMContentLoaded", function () {
             showNotification('Link copied to clipboard', 'success');
         }
     });
+}
 
-    const changePasswordForm = document.getElementById('changePassowrd');
-    changePasswordForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        changePassowrd();
-    });
+function setupSearchEvent(searchId, handler, delay) {
+    const searchElement = document.getElementById(searchId);
+    searchElement.addEventListener('input', debounce((event) => {
+        const searchQuery = event.target.value;
+        handler(searchQuery);
+    }, delay));
+}
 
-    const qrGenHeader = document.getElementById('qrGenHeader');
-    qrGenHeader.addEventListener('click', function () {
-        genQRCode();
-    });
-});
+function handleCDNUpload() {
+    const form = new FormData();
+    const fileInput = document.getElementById('cdn-upload');
+    const file = fileInput.files[0];
+    if (!file) return showNotification('Please select a file', 'error');
+    form.append('image', file);
+    uploadCDN(form);
+}
 
 async function checkLogin() {
     const session = getCookie('sessionToken');
@@ -78,11 +91,11 @@ async function checkLogin() {
             });
 
             if (response.ok) {
+                displayUser();
                 fetchSessions();
                 renderCDNList();
             } else {
                 handleLogout();
-                window.location.href = '/auth';
             }
         } catch (error) {
             console.error('Login failed:', error);
@@ -202,7 +215,6 @@ function refreshContent() {
     deleteDataTypeSelect.dispatchEvent(new Event('change'));
 }
 
-
 async function fetchSessions() {
     const sessionToken = getCookie('sessionToken');
 
@@ -317,7 +329,6 @@ async function destroySession(sessionId) {
         console.error('Error destroying session:', error);
     }
 }
-
 
 function dbBackup() {
     try {
@@ -500,11 +511,6 @@ function debounce(func, delay) {
         }, delay);
     };
 }
-
-document.getElementById('search-cdn').addEventListener('input', debounce((event) => {
-    const searchQuery = event.target.value;
-    renderCDNList(searchQuery);
-}, 250));
 
 async function handleDeleteIconClick(event, item, listItem) {
     event.stopPropagation();

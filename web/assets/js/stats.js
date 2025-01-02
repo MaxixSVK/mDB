@@ -1,9 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
     fetchStats();
+
     const currentYear = new Date().getFullYear();
     updateYear(currentYear);
     fetchStatsByMonth(currentYear);
 
+    addEventListeners();
+});
+
+function addEventListeners() {
     document.getElementById('prev-year').addEventListener('click', function () {
         const year = parseInt(document.getElementById('current-year').textContent, 10) - 1;
         updateYear(year);
@@ -15,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updateYear(year);
         fetchStatsByMonth(year);
     });
-});
+}
 
 function fetchStats() {
     fetch(api + '/stats')
@@ -87,6 +92,7 @@ function fetchStatsByMonth(year) {
         })
         .catch(error => console.error('Error fetching data:', error));
 }
+
 function updateYear(year) {
     document.getElementById('current-year').textContent = year;
 }

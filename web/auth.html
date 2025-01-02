@@ -25,7 +25,7 @@
     <div id="full-h" class="h-screen flex items-center justify-center">
         <main class="rounded-md pb-0.5 flex flex-col flex-grow items-center">
             <section id="login-section"
-                class="bg-[#191818] rounded-md px-6 pt-6 pb-4 mx-4 mb-4 text-white w-full max-w-md">
+                class="bg-[#191818] rounded-md px-6 pt-6 pb-4 mx-4 text-white w-full max-w-md">
                 <h2 class="text-4xl mb-2 font-bold">Login</h2>
                 <div id="login-error" class="hidden bg-red-500 text-white text-sm p-2 rounded mb-2"></div>
                 <form id="login">
@@ -51,7 +51,7 @@
                 </div>
             </section>
             <section id="register-section"
-                class="bg-[#191818] rounded-md px-6 pt-6 pb-4 mx-4 mb-4 text-white w-full max-w-md hidden">
+                class="bg-[#191818] rounded-md px-6 pt-6 pb-4 mx-4 text-white w-full max-w-md hidden">
                 <h2 class="text-4xl mb-2 font-bold">Register</h2>
                 <div id="register-error" class="hidden bg-red-500 text-white text-sm p-2 rounded mb-2"></div>
                 <form id="register">
@@ -93,6 +93,13 @@
                             class="text-[#FFA500] hover:underline">Login</a></p>
                 </div>
             </section>
+            <div class="text-center">
+                <button onclick="window.location.href='/';"
+                    class="inline-flex items-center px-4 py-2 rounded-md bg-orange-500 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Back to main page
+                </button>
+            </div>
         </main>
         <section id="notification-container" class="fixed top-4 right-4 space-y-4 z-50"></section>
     </div>
