@@ -273,7 +273,7 @@ async function fetchBookData(book, isSearch) {
         [bookData, chapterData] = await Promise.all([bookPromise, chaptersPromise]);
     }
 
-    chapterData.sort((a, b) => a.name.localeCompare(b.date));
+    chapterData.sort((a, b) => a.date.localeCompare(b.date));
     renderBookData(bookData, chapterData);
 }
 
