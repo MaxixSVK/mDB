@@ -350,7 +350,7 @@ function dbBackup() {
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = url;
-                a.download = `mdb-backup-${new Date().toISOString().split('T')[0]}.sql`;
+                a.download = `mdb-db-backup-${new Date().toISOString().split('T')[0]}.sql`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
@@ -368,7 +368,7 @@ function dbBackup() {
 
 async function cdnBackup() {
     try {
-        fetch(cdn + '/img-backup', {
+        fetch(cdn + '/backup', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -386,7 +386,7 @@ async function cdnBackup() {
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = url;
-                a.download = `cdn-backup-${new Date().toISOString().split('T')[0]}.zip`;
+                a.download = `mdb-cdn-backup-${new Date().toISOString().split('T')[0]}.zip`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);

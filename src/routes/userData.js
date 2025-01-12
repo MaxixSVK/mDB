@@ -8,6 +8,8 @@ module.exports = function (pool) {
     const validate = require('../middleware/checkToken')(pool);
     const validateAdmin = require('../middleware/checkToken')(pool, admin = true);
 
+    const { backupDatabase } = require('../backup/db');
+
     router.post('/add-data/:type', validate, async (req, res, next) => {
         let conn;
         try {
@@ -148,24 +150,23 @@ module.exports = function (pool) {
     });
 
     router.get('/backup-db', validateAdmin, async (req, res, next) => {
-        const dumpFile = path.join(__dirname, 'backup.sql');
-        const excludedTables = ['users', 'sessions'];
-        const ignoreTables = excludedTables.map(table => `--ignore-table=${process.env.DB_NAME}.${table}`).join(' ');
-    
-        const command = `mariadb-dump -u ${process.env.DB_USER} -p${process.env.DB_PASSWORD} ${process.env.DB_NAME} ${ignoreTables} > ${dumpFile}`;
-    
-        exec(command, (error, stdout, stderr) => {
-            if (error) {
-                return next(error);
-            }
-            res.download(dumpFile, 'backup.sql', (err) => {
+        let dumpFile;
+        try {
+            dumpFile = await backupDatabase();
+            const date = new Date().toISOString().split('T')[0];
+            const fileName = `mdb-db-backup-${date}.sql`;
+            res.download(dumpFile, fileName, (err) => {
                 if (err) {
                     next(err);
-                } else {
-                    fs.unlinkSync(dumpFile);
                 }
             });
-        });
+        } catch (error) {
+            next(error);
+        } finally {
+            if (dumpFile) {
+                fs.unlinkSync(dumpFile);
+            }
+        }
     });
 
     router.get('/logs', validate, async (req, res, next) => {

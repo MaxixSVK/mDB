@@ -1,8 +1,5 @@
-// I should remake this to use AWS S3 instead of local storage 
-
 const express = require('express');
 const multer = require('multer');
-const archiver = require('archiver');
 const sanitize = require('sanitize-filename');
 const sharp = require('sharp');
 const path = require('path');
@@ -12,6 +9,7 @@ const router = express.Router();
 
 module.exports = function (pool) {
   const validate = require('./middleware/checkToken')(pool, admin = true);
+  const { backupCDN } = require('./backup/cdn');
 
   const createStorage = () => {
     return multer.diskStorage({
@@ -49,16 +47,16 @@ module.exports = function (pool) {
 
   router.post('/upload', validate, upload.single('image'), (req, res, next) => {
     if (!req.file) {
-      return res.status(400).send({ msg: 'Please upload a file.' });
+      return res.error('Please upload a file.', 400);
     }
     res.success({ msg: 'File uploaded.', filename: req.file.originalname });
   });
 
   router.post('/upload-pfp', validate, uploadPfp.single('image'), async (req, res) => {
     if (!req.file) {
-      return res.status(400).send({ msg: 'Please upload a file.' });
+      return res.error('Please upload a file.', 400);
     }
-  
+
     const filePath = path.resolve(__dirname, '../uploads/pfp', `${req.userId}.png`);
     try {
       await sharp(req.file.path)
@@ -77,7 +75,7 @@ module.exports = function (pool) {
       if (err) {
         next(err);
       }
-      res.status(200).send(files);
+      res.send(files);
     });
   });
 
@@ -195,41 +193,24 @@ module.exports = function (pool) {
     }
   });
 
-  // TODO: maybe include PFPS in the backup
-  router.get('/img-backup', (req, res, next) => {
-    const uploadPath = path.resolve(__dirname, '../uploads');
-
-    fs.readdir(uploadPath, (err, files) => {
-      if (err) {
-        next(err);
+  router.get('/backup', validate, async (req, res, next) => {
+    let backupFile;
+    try {
+      backupFile = await backupCDN();
+      const date = new Date().toISOString().split('T')[0];
+      const fileName = `mdb-cdn-backup-${date}.tar.gz`;
+      res.download(backupFile, fileName, (err) => {
+        fs.unlinkSync(backupFile);
+        if (err) {
+          next(err);
+        }
+      });
+    } catch (error) {
+      if (backupFile) {
+        fs.unlinkSync(backupFile);
       }
-
-      if (files.length === 0) {
-        return res.status(404).send({ msg: 'No files to backup.' });
-      }
-
-      const currentDate = new Date().toISOString().split('T')[0];
-      const zipFilename = `mdb-cdn-backup-${currentDate}.zip`;
-      res.setHeader('Content-Disposition', `attachment; filename=${zipFilename}`);
-      res.setHeader('Content-Type', 'application/zip');
-
-      const archive = archiver('zip', {
-        zlib: { level: 9 }
-      });
-
-      archive.on('error', (err) => {
-        next(err);
-      });
-
-      archive.pipe(res);
-
-      files.forEach((file) => {
-        const filePath = path.join(uploadPath, file);
-        archive.file(filePath, { name: file });
-      });
-
-      archive.finalize();
-    });
+      next(error);
+    }
   });
 
   return router;

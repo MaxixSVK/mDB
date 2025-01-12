@@ -1,0 +1,9 @@
+{
+    "port": "<port_number>", // The port number on which the server will run
+    "backup": {
+        "db": "<true_or_false>", // Whether to backup the database
+        "cdn": "<true_or_false>", // Whether to backup the CDN
+        "dbInterval": "<interval_in_milliseconds>", // Interval for database backup in milliseconds
+        "cdnInterval": "<interval_in_milliseconds>" // Interval for CDN backup in milliseconds
+    }
+}

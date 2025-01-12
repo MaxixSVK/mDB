@@ -22,7 +22,7 @@ Ever wondered when you read *that* book?
     npm install
     ```
 3. Setup Database with `setup.sql`
-4. Set `.env` file (remove `.example` from the filename and fill it out).
+4. Set `.env` and `config.json` files (remove `.example` from the filename and fill them out).
 5. Change `web/assets/js/api.js` to your prod url
 6. Start the API and CDN:
     ```sh
