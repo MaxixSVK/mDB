@@ -19,9 +19,6 @@ async function backupDatabase(includeSensitiveTables = false) {
 
         exec(command, (error, stdout, stderr) => {
             if (error) {
-                if (fs.existsSync(tempFile)) {
-                    fs.unlinkSync(tempFile);
-                }
                 return reject(error);
             }
             resolve(tempFile);
