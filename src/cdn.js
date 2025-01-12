@@ -69,16 +69,22 @@ module.exports = function (pool) {
     }
   });
 
-  router.get('/images', (req, res, next) => {
+  router.get('/images/search/:search', (req, res, next) => {
     const uploadPath = path.resolve(__dirname, '../uploads');
+    const search = sanitize(req.params.search);
+
     fs.readdir(uploadPath, (err, files) => {
       if (err) {
         next(err);
       }
-      res.send(files);
+      const filteredFiles = files.filter(file => file.includes(search));
+      if (filteredFiles.length === 0) {
+        return res.error('No files found.', 404);
+      }
+      res.send(filteredFiles);
     });
   });
-
+  
   router.get('/images/:filename', (req, res, next) => {
     const filename = sanitize(req.params.filename);
     const uploadsDir = path.join(__dirname, '../uploads');

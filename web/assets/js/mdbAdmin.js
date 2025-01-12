@@ -61,14 +61,6 @@ function setupFileNameClickEvent(fileNameId) {
     });
 }
 
-function setupSearchEvent(searchId, handler, delay) {
-    const searchElement = document.getElementById(searchId);
-    searchElement.addEventListener('input', debounce((event) => {
-        const searchQuery = event.target.value;
-        handler(searchQuery);
-    }, delay));
-}
-
 function handleCDNUpload() {
     const form = new FormData();
     const fileInput = document.getElementById('cdn-upload');
@@ -440,9 +432,9 @@ async function uploadCDN(data) {
     }
 }
 
-async function fetchCDNList() {
+async function fetchCDNList(searchQuery = '') {
     try {
-        const response = await fetch(cdn + '/images', {
+        const response = await fetch(`${cdn}/images/search/${searchQuery}`, {
             headers: {
                 'Authorization': getCookie('sessionToken')
             }
@@ -460,11 +452,27 @@ async function fetchCDNList() {
     }
 }
 
+function setupSearchEvent(searchId, handler, delay) {
+    const searchElement = document.getElementById(searchId);
+    searchElement.addEventListener('input', debounce((event) => {
+        const searchQuery = event.target.value;
+        handler(searchQuery);
+    }, delay));
+}
+
 async function renderCDNList(searchQuery = '') {
     const cdnList = document.getElementById('cdnList');
     cdnList.innerHTML = '';
 
-    const list = await fetchCDNList();
+    if (searchQuery.trim() === '') {
+        const listItem = document.createElement('p');
+        listItem.className = 'bg-[#2A2A2A] p-4 md:p-6 mt-4 rounded-md shadow-lg text-white text-center';
+        listItem.textContent = 'Please enter a search query';
+        cdnList.appendChild(listItem);
+        return;
+    }
+
+    const list = await fetchCDNList(searchQuery);
     const filteredList = list.filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()));
     const limitedList = filteredList.slice(0, 5);
 
@@ -479,7 +487,7 @@ async function renderCDNList(searchQuery = '') {
         const listItem = createListItem(item);
         cdnList.appendChild(listItem);
     });
-}
+}   
 
 function createListItem(item) {
     const listItem = document.createElement('li');
