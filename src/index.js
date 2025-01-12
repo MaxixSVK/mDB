@@ -5,6 +5,7 @@ const config = require('../config.json');
 require('dotenv').config();
 
 const { automaticBackup } = require('./backup/automaticBackup');
+const { startupCheck } = require('./startupCheck');
 const package = require('../package.json');
 const responseFormatter = require('./middleware/responseFormatter');
 const logger = require('./logger');
@@ -46,6 +47,7 @@ const startServer = async () => {
         logger.info('Database connection established');
         app.listen(config.port, () => {
             logger.info(`Server version ${package.version} started on port ${config.port}`);
+            startupCheck();
             automaticBackup();
         });
     } catch (err) {

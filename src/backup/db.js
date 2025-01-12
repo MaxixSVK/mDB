@@ -1,16 +1,12 @@
-const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { exec } = require('child_process');
 
 async function backupDatabase(includeSensitiveTables = false) {
     return new Promise((resolve, reject) => {
         const date = new Date().toISOString();
-        const tempDir = path.join(__dirname, '../../temp');
+        const tempDir = os.tmpdir();
         const tempFile = path.join(tempDir, `mdb-db-backup-${date}.sql`);
-
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-        }
 
         const excludedTables = ['users', 'sessions'];
         const ignoreTables = includeSensitiveTables ? '' : excludedTables.map(table => `--ignore-table=${process.env.DB_NAME}.${table}`).join(' ');
