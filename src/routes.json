@@ -4,5 +4,6 @@
     { "path": "/", "route": "./routes/publicData" },
     { "path": "/account", "route": "./routes/accountManagement" },
     { "path": "/intelligence", "route": "./routes/intelligence" },
-    { "path": "/cdn", "route": "./cdn" }
+    { "path": "/cdn", "route": "./cdn" },
+    { "path": "/server", "route": "./routes/server" }
 ]

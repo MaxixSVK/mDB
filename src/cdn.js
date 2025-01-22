@@ -84,28 +84,43 @@ module.exports = function (pool) {
       res.send(filteredFiles);
     });
   });
-  
+
+  const sendImage = (filePath, isLowRes, isMidRes, res, next) => {
+    if (isLowRes) {
+      sharp(filePath)
+        .resize(200)
+        .toBuffer()
+        .then(data => {
+          res.type('image').send(data);
+        })
+        .catch(err => {
+          next(err);
+        });
+    } else if (isMidRes) {
+      sharp(filePath)
+        .resize(500)
+        .toBuffer()
+        .then(data => {
+          res.type('image').send(data);
+        })
+        .catch(err => {
+          next(err);
+        });
+    } else {
+      res.type('image').sendFile(filePath);
+    }
+  };
+
   router.get('/images/:filename', (req, res, next) => {
     const filename = sanitize(req.params.filename);
     const uploadsDir = path.join(__dirname, '../uploads');
     const filePath = path.join(uploadsDir, filename);
     const normalizedPath = path.normalize(filePath);
     const isLowRes = req.query.lowres === 'true';
+    const isMidRes = req.query.midres === 'true';
 
     if (normalizedPath.startsWith(uploadsDir) && fs.existsSync(normalizedPath)) {
-      if (isLowRes) {
-        sharp(filePath)
-          .resize(200)
-          .toBuffer()
-          .then(data => {
-            res.type('image').send(data);
-          })
-          .catch(err => {
-            next(err);
-          });
-      } else {
-        res.type('image').sendFile(normalizedPath);
-      }
+      sendImage(filePath, isLowRes, isMidRes, res, next);
     } else {
       res.error('File not found.', 404);
     }
@@ -117,25 +132,16 @@ module.exports = function (pool) {
     const filePath = path.join(uploadsDir, filename);
     const normalizedPath = path.normalize(filePath);
     const isLowRes = req.query.lowres === 'true';
+    const isMidRes = req.query.midres === 'true';
 
     if (normalizedPath.startsWith(uploadsDir) && fs.existsSync(normalizedPath)) {
-      if (isLowRes) {
-        sharp(filePath)
-          .resize(200)
-          .toBuffer()
-          .then(data => {
-            res.type('image').send(data);
-          })
-          .catch(err => {
-            next(err);
-          });
-      } else {
-        res.type('image').sendFile(normalizedPath);
-      }
+      sendImage(filePath, isLowRes, isMidRes, res, next);
     } else {
       res.type('image').sendFile(path.join(__dirname, '../uploads/pfp/default.png'));
     }
   });
+
+  module.exports = router;
 
   router.delete('/images/:filename', validate, (req, res, next) => {
     const filename = req.params.filename;
