@@ -21,3 +21,6 @@ server.log
 
 # Backup files
 backups/
+
+# VS Code directory
+.vscode/

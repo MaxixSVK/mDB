@@ -300,7 +300,7 @@ function renderBookData(bookData, chapterData) {
     title.textContent = bookData ? bookData.name : 'No title';
 
     const chaptersList = document.createElement('ul');
-    chaptersList.className = 'text-white space-y-2 overflow-y-auto flex-1 mb-4 md:mb-0';
+    chaptersList.className = 'text-white space-y-2 overflow-y-auto flex-1 mb-4 md:mb-0 scrollbar scrollbar-thumb-[#2A2A2A] scrollbar-track-[#191818]';
 
     chapterData.forEach(chapter => {
         const chapterItem = document.createElement('li');
@@ -368,7 +368,7 @@ function setupSearch() {
         } else {
             statsElement.classList.remove('hidden');
             resetSearchResults();
-            fetchSeries();
+            fetchSeriesList();
         }
     }
 }

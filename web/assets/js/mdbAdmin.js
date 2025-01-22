@@ -220,12 +220,13 @@ async function fetchSessions() {
 }
 
 async function getLocation(ip) {
-    if (window.location.hostname !== 'localhost') {
-        return ip;
-    }
-
     const ipList = ip.split(',').map(ip => ip.trim());
     const firstIp = ipList[0];
+
+
+    if (window.location.hostname !== 'localhost') {
+        return ipList[0];
+    }
 
     try {
         const response = await fetch(`http://ip-api.com/json/${firstIp}`);
@@ -324,6 +325,7 @@ async function destroySession(sessionId) {
 
 function dbBackup() {
     try {
+        showNotification('Sending request to backup database, please wait this may take a while', 'info');
         fetch(api + '/backup-db', {
             method: 'GET',
             headers: {
@@ -360,6 +362,7 @@ function dbBackup() {
 
 async function cdnBackup() {
     try {
+        showNotification('Sending request to backup CDN, please wait this may take a while', 'info');
         fetch(cdn + '/backup', {
             method: 'GET',
             headers: {
