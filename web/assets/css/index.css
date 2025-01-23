@@ -806,14 +806,6 @@ video {
   height: 100vh;
 }
 
-.h-80 {
-  height: 20rem;
-}
-
-.h-72 {
-  height: 18rem;
-}
-
 .min-h-screen {
   min-height: 100vh;
 }
@@ -1540,16 +1532,8 @@ video {
   height: 8px;
 }
 
-.scrollbar-track-gray-100 {
-  --scrollbar-track: #f3f4f6 !important;
-}
-
 .scrollbar-track-\[\#191818\] {
   --scrollbar-track: #191818 !important;
-}
-
-.scrollbar-thumb-gray-900 {
-  --scrollbar-thumb: #111827 !important;
 }
 
 .scrollbar-thumb-\[\#2A2A2A\] {
