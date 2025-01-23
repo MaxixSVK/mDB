@@ -7,7 +7,7 @@ CREATE TABLE `series` (
   `series_id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `img` varchar(255) DEFAULT NULL,
-  `format` varchar(255) DEFAULT NULL,
+  `format` ENUM('lightNovel', 'manga') NOT NULL,
   `status` ENUM('reading', 'finished', 'stopped', 'paused') NOT NULL DEFAULT 'reading',
   PRIMARY KEY (`series_id`)
 );

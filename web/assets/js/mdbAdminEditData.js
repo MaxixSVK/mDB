@@ -232,16 +232,21 @@ function editDataInit() {
         });
     }
 
-    function addTypeSelect(container) {
+    async function addTypeSelect(container) {
         const typeSelect = createSelectElement('format');
         container.appendChild(typeSelect);
     
-        const types = ['manga', 'lightNovel'];
-        const names = ['Manga', 'Light Novel'];
-        types.forEach((type, index) => {
-            const option = new Option(names[index], type);
-            typeSelect.add(option);
-        });
+        try {
+            const response = await fetch(api + '/series/formats');
+            const allowedFormats = await response.json();
+    
+            allowedFormats.forEach(field => {
+                const option = new Option(field.name, field.format);
+                typeSelect.add(option);
+            });
+        } catch (error) {
+            console.error('Error fetching formats:', error);
+        }
     }
 
     function addStatusSelect(container) {

@@ -17,6 +17,14 @@ module.exports = function (pool) {
         }
     });
 
+    router.get('/series/formats', async (req, res, next) => {
+        const allowedFormats = [
+            { format: 'lightNovel', name: 'Light Novel', pluralName: 'Light Novels' },
+            { format: 'manga', name: 'Manga', pluralName: 'Manga' }
+        ];
+        res.success(allowedFormats);
+    });
+
     router.get('/series/:series_id', async (req, res, next) => {
         let conn;
         try {

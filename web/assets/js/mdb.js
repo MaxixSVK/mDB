@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     checkLogin();
     fetchStats();
-    fetchSeriesList();
+    createFormatLists();
     setupSearch();
 });
 
@@ -61,6 +61,50 @@ function fetchStats() {
         });
 }
 
+function createFormatLists() {
+    fetch(api + '/series/formats')
+        .then(response => response.json()
+            .then(data => {
+                data.forEach(a => {
+                    const existingSection = document.getElementById(a.format);
+                    if (existingSection) {
+                        existingSection.remove();
+                    }
+
+                    const section = document.createElement('section');
+                    section.id = a.format;
+                    section.className = 'hidden';
+
+                    const header = document.createElement('h2');
+                    header.className = 'text-2xl mb-2 text-white font-bold';
+                    header.textContent = a.pluralName;
+
+                    section.appendChild(header);
+                    document.getElementById('series-list').appendChild(section);
+                });
+                fetchSeriesList();
+            })
+        );
+}
+
+function showFormatList(formatId) {
+    const section = document.getElementById(formatId);
+    if (section && section.classList.contains('hidden')) {
+        section.classList.remove('hidden');
+    }
+}
+
+function cleanAllFormatLists() {
+    const sections = document.querySelectorAll('#series-list section');
+    sections.forEach(section => section.classList.add('hidden'));
+    sections.forEach(section => document.querySelectorAll('#' + section.id + ' > div').forEach(div => div.remove()));
+}
+
+function getUniqueFormats(seriesData) {
+    const formats = seriesData.map(series => series.format);
+    return [...new Set(formats)];
+}
+
 function fetchSeriesList() {
     fetch(api + '/series')
         .then(response => response.json())
@@ -72,27 +116,21 @@ function fetchSeriesList() {
         })
         .then(seriesData => {
             seriesData.sort((a, b) => a.name.localeCompare(b.name));
+
+            const uniqueFormats = getUniqueFormats(seriesData);
+            uniqueFormats.forEach(format => showFormatList(format));
+
             seriesData.forEach(series => {
-                renderSeriesCard(series);
+                renderSeries(series);
             });
         });
 }
 
-function renderSeriesCard(series, isSearch = false) {
-    const lightNovelsList = document.getElementById('light-novels-list');
-    const mangaList = document.getElementById('manga-list');
-
-    const createHeader = (text) => {
-        const header = document.createElement('h2');
-        header.className = 'text-2xl mb-2 text-white font-bold';
-        header.textContent = text;
-        return header;
-    };
+function renderSeries(series, isSearch = false) {
+    const formatSection = document.getElementById(series.format);
     
-    if (series.format === 'lightNovel' && !lightNovelsList.querySelector('h2')) {
-        lightNovelsList.appendChild(createHeader('Light Novels'));
-    } else if (series.format === 'manga' && !mangaList.querySelector('h2')) {
-        mangaList.appendChild(createHeader('Manga'));
+    if (isSearch) {
+        showFormatList(series.format);
     }
 
     const card = document.createElement('div');
@@ -167,8 +205,7 @@ function renderSeriesCard(series, isSearch = false) {
         }
     });
 
-    const list = (series.format === 'lightNovel') ? lightNovelsList : mangaList;
-    list.appendChild(card);
+    formatSection.appendChild(card);
 }
 
 function fetchBookList(data, isSearch) {
@@ -185,7 +222,7 @@ function fetchBookList(data, isSearch) {
         Promise.all(bookPromises)
             .then(bookData => {
                 bookData.sort((a, b) => a.startedReading.localeCompare(b.startedReading));
-                bookData.forEach(book => renderBookCard(book, true));
+                bookData.forEach(book => renderBook(book, true));
             });
     } else {
         fetch(api + '/books/' + data)
@@ -193,12 +230,12 @@ function fetchBookList(data, isSearch) {
             .then(bookIds => Promise.all(bookIds.map(fetchBookData)))
             .then(bookData => {
                 bookData.sort((a, b) => a.startedReading.localeCompare(b.startedReading));
-                bookData.forEach(book => renderBookCard(book));
+                bookData.forEach(book => renderBook(book));
             });
     }
 }
 
-function renderBookCard(book, isSearch = false) {
+function renderBook(book, isSearch = false) {
     const booksList = document.getElementById('books-list-' + book.series_id);
 
     const card = document.createElement('div');
@@ -225,10 +262,10 @@ function renderBookCard(book, isSearch = false) {
     const endedReading = document.createElement('p');
     endedReading.className = 'text-gray-400 text-sm';
 
-    const endedReadingText = book.endedReading 
-        ? `Ended Reading: ${new Date(book.endedReading).toLocaleDateString()}` 
+    const endedReadingText = book.endedReading
+        ? `Ended Reading: ${new Date(book.endedReading).toLocaleDateString()}`
         : 'Still reading';
-    
+
     endedReading.textContent = endedReadingText;
 
     content.appendChild(title);
@@ -245,11 +282,11 @@ function renderBookCard(book, isSearch = false) {
     });
 
     card.addEventListener('click', function () {
-        fetchBookData(book, isSearch);
+        fetchBookDetails(book, isSearch);
     });
 }
 
-async function fetchBookData(book, isSearch) {
+async function fetchBookDetails(book, isSearch) {
     let bookData;
     let chapterData;
 
@@ -274,10 +311,10 @@ async function fetchBookData(book, isSearch) {
     }
 
     chapterData.sort((a, b) => a.date.localeCompare(b.date));
-    renderBookData(bookData, chapterData);
+    renderBookDetails(bookData, chapterData);
 }
 
-function renderBookData(bookData, chapterData) {
+function renderBookDetails(bookData, chapterData) {
     document.body.classList.add('overflow-hidden');
 
     const container = document.createElement('div');
@@ -355,21 +392,69 @@ function renderBookData(bookData, chapterData) {
 }
 
 function setupSearch() {
+    const seriesList = document.getElementById('series-list');
     const searchInput = document.getElementById('search-input');
     const statsElement = document.getElementById('stats');
+    const noResultsElement = document.getElementById('no-results');
 
     searchInput.addEventListener('input', debounce(handleSearchInput, 250));
 
     function handleSearchInput() {
         const searchTerm = searchInput.value.trim();
         if (searchTerm.length > 0) {
-            statsElement.classList.add('hidden');
+            toggleVisibility(statsElement, true);
+            toggleVisibility(noResultsElement, true);
+            toggleVisibility(seriesList);
             performSearch(searchTerm);
         } else {
-            statsElement.classList.remove('hidden');
-            resetSearchResults();
-            fetchSeriesList();
+            toggleVisibility(statsElement);
+            toggleVisibility(seriesList);
+            toggleVisibility(noResultsElement, true);
+            createFormatLists();
         }
+    }
+}
+
+function performSearch(searchTerm) {
+    fetch(`${api}/search/${searchTerm}`)
+        .then(response => {
+            if (response.status === 404) {
+                showNoResultsMessage();
+                return null;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data) {
+                renderSearchResults(data);
+            }
+        })
+        .catch(error => console.error(error));
+}
+
+function renderSearchResults(results) {
+    cleanAllFormatLists();
+
+    results.forEach(result => {
+        fetch(`${api}/series/${result.series_id}`)
+        .then(response => response.json())
+        .then(series => {
+            series.books = result.books;
+            renderSeries(series, true);
+        });
+    });
+}
+
+function showNoResultsMessage() {
+    toggleVisibility(document.getElementById('series-list'), true);
+    toggleVisibility(document.getElementById('no-results'));
+}
+
+function toggleVisibility(element, hide) {
+    if (hide) {
+        element.classList.add('hidden');
+    } else {
+        element.classList.remove('hidden');
     }
 }
 
@@ -379,70 +464,4 @@ function debounce(func, delay) {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => func.apply(this, args), delay);
     };
-}
-
-function performSearch(searchTerm) {
-    fetch(`${api}/search/${searchTerm}`)
-        .then(response => {
-            if (response.status === 404) {
-                showNoResultsMessage();
-                throw new Error('No results found');
-            }
-            return response.json();
-        })
-        .then(data => renderSearchResults(data))
-        .catch(error => console.error(error));
-}
-
-function resetSearchResults() {
-    const seriesList = document.getElementById('series-list');
-    seriesList.innerHTML = `
-        <section id="light-novels-list">
-            <h2 class="text-2xl mb-2 text-white font-bold">Light Novels</h2>
-        </section>
-        <section id="manga-list">
-            <h2 class="text-2xl mb-2 text-white font-bold">Manga</h2>
-        </section>`;
-}
-
-function showNoResultsMessage() {
-    const seriesList = document.getElementById('series-list');
-    seriesList.innerHTML = `
-        <section class="bg-[#1F1F1F] rounded-md p-8 mb-4 text-white text-center">
-            <h2 class="text-2xl mb-2 font-bold">No results found</h2>
-            <p class="text-lg mb-4">Oops! We couldn't find any matches for your search.</p>
-            <p class="text-lg">Try searching for something else or check your spelling.</p>
-        </section>`;
-}
-
-function renderSearchResults(results) {
-    let lightNovelsList = document.getElementById('light-novels-list');
-    let mangaList = document.getElementById('manga-list');
-
-    if (!lightNovelsList || !mangaList) {
-        resetSearchResults();
-        lightNovelsList = document.getElementById('light-novels-list');
-        mangaList = document.getElementById('manga-list');
-    }
-
-    lightNovelsList.innerHTML = '';
-    mangaList.innerHTML = '';
-
-    if (results.msg === "No results found") {
-        showNoResultsMessage();
-        return;
-    }
-
-    results.forEach(result => {
-        fetchSeriesDetails(result.series_id, result.books);
-    });
-}
-
-function fetchSeriesDetails(seriesId, books) {
-    fetch(`${api}/series/${seriesId}`)
-        .then(response => response.json())
-        .then(series => {
-            series.books = books;
-            renderSeriesCard(series, true);
-        });
 }

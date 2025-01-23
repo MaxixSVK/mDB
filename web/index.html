@@ -9,6 +9,10 @@
         content="mDatabase - Maxix's personal database of manga and light novels. Open source on Github">
     <meta name="keywords" content="manga, light novel, database, maxix">
     <meta name="author" content="Maxix">
+    <meta property="og:title" content="mDB | Home" />
+    <meta property="og:description" content="mDatabase - Maxix's personal database of manga and light novels. Open source on Github" />
+    <meta property="og:image" content="https://mdb.maxix.sk/assets/img/favicon.png" />
+    <meta name="theme-color" content="#131313">
     <link rel="canonical" href="https://maxix.sk" />
     <link rel="icon" href="assets/img/favicon.png" type="image/x-icon">
     <link rel="stylesheet" href="assets/css/index.css" />
@@ -19,9 +23,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
         integrity="sha512-5Hs3dF2AEPkpNAR7UiOHba+lRSJNeM2ECkwxUIxC1Q/FLycGTbNapWXB4tP889k5T5Ju8fs4b1P5z/iB4nMfSQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <meta property="og:title" content="mDB | Home" />
-    <meta property="og:description" content="mDatabase - Maxix's personal database of manga and light novels. Open source on Github" />
-    <meta property="og:image" content="https://mdb.maxix.sk/assets/img/favicon.png" />
 </head>
 <body class="bg-[#131313] font-figtree">
     <div id="app" class="max-w-screen-xl xl:mx-auto mx-4">
@@ -60,10 +61,14 @@
                 </div>
             </section>
             <div id="series-list" class="mx-2 md:mx-4">
-                <section id="light-novels-list"></section>
-                <section id="manga-list"></section>
             </div>
-            <div id="no-results"></div>
+            <div id="no-results" class="mx-2 md:mx-4 hidden">
+                <section class="bg-[#1F1F1F] rounded-md p-8 mb-4 text-white text-center">
+                    <h2 class="text-2xl mb-2 font-bold">No results found</h2>
+                    <p class="text-lg mb-4">Oops! We couldn't find any matches for your search.</p>
+                    <p class="text-lg">Try searching for something else or check your spelling.</p>
+                </section>
+            </div>
         </main>
     </div>
 
