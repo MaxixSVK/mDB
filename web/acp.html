@@ -10,7 +10,8 @@
     <meta name="keywords" content="manga, light novel, database, maxix">
     <meta name="author" content="Maxix">
     <meta property="og:title" content="mDB | ACP" />
-    <meta property="og:description" content="mDatabase - Maxix's personal database of manga and light novels. Open source on Github" />
+    <meta property="og:description"
+        content="mDatabase - Maxix's personal database of manga and light novels. Open source on Github" />
     <meta property="og:image" content="https://mdb.maxix.sk/assets/img/favicon.png" />
     <meta name="theme-color" content="#131313">
     <link rel="canonical" href="https://maxix.sk" />
@@ -45,16 +46,52 @@
             </div>
         </nav>
         <main class="bg-[#191818] rounded-md pt-4 pb-0.5 flex flex-col flex-grow mb-4">
-            <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 p-4 md:p-6 rounded-md">
-                <h2 class="text-2xl font-bold">Admin Control Panel</h2>
-                <p class="text-lg">Manage the mDB server, configuration, and more.</p>
+            <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 mb:mb-6 p-4 md:p-6 rounded-md">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold">Welcome to the mDB ACP</h2>
+                        <p class="text-lg">Manage the mDB server, configuration, and more.</p>
+                    </div>
+                    <div class="flex items-center space-x-4 p-4 bg-[#2C2C2C] rounded-lg mt-4 sm:mt-0">
+                        <div class="text-right">
+                            <h3 id="username" class="text-xl font-semibold"></h3>
+                            <p id="useremail" class="text-sm text-gray-400"></p>
+                        </div>
+                        <img id="pfp" class="ml-4 w-10 h-10 rounded-full hidden">
+                        <div id="login" class="ml-4 flex items-center">
+                            <i class="fas fa-user text-white text-2xl"></i>
+                        </div>
+                        <button id="logout"
+                            class="w-full sm:w-auto border-2 border-dashed border-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-500 hover:text-black transition duration-300">
+                            Logout
+                        </button>
+                    </div>
+                </div>
             </section>
-            <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 p-4 md:p-6 rounded-md">
+            <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 p-4 md:p-6 rounded-md hidden">
                 <h2 class="text-2xl font-bold mb-2">Control</h2>
                 <button id="restart-server"
                     class="w-full sm:w-auto border-2 border-dashed border-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-500 hover:text-black transition duration-300">
                     Restart
                 </button>
+            </section>
+            <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6  mb:mb-6 p-4 md:p-6 rounded-md">
+                <h2 class="text-2xl font-bold">Backup</h2>
+                <p class="text-lg">Download backups of the database, CDN, and logs.</p>
+                <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
+                    <button id="db-backup"
+                        class="w-full md:w-auto border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300 mb-3 md:mb-0">
+                        Download DB Backup
+                    </button>
+                    <button id="cdn-backup"
+                        class="w-full md:w-auto border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300 mb-3 md:mb-0">
+                        Download CDN Backup
+                    </button>
+                    <button id="logs-backup" onclick="window.location.href = '/logs'"
+                        class="w-full md:w-auto border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300 mb-3 md:mb-0">
+                        Show Logs
+                    </button>
+                </div>
             </section>
             <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 p-4 md:p-6 rounded-md">
                 <h2 class="text-2xl font-bold">Configuration</h2>
