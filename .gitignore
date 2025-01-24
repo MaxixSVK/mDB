@@ -1,26 +1,11 @@
-# Environment variables
 .env
-
-# Node modules
 node_modules/
-
-# Dependency directories
 package-lock.json
 
-# Uploads directory
-uploads/
+backups/
+cdn/
 
-# Temporary files
-temp/
-
-# Configuration files
 config.json
-
-# Log files
 server.log
 
-# Backup files
-backups/
-
-# VS Code directory
 .vscode/

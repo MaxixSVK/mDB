@@ -30,7 +30,7 @@ async function checkLogin() {
                 }).then(response => response.json());
                 document.getElementById('login').classList.add('hidden');
                 document.getElementById('pfp').classList.remove('hidden');
-                document.getElementById('pfp').src = api + '/cdn/pfp/' + userData.username + '.png';
+                document.getElementById('pfp').src = cdn + '/users/pfp/' + userData.username + '.png'; //TODO: Change PFP on frontend to use user ID instead of username
                 document.getElementById('pfp').addEventListener('click', function () {
                     window.location.href = '/dashboard';
                 });
@@ -140,7 +140,7 @@ function renderSeries(series, isSearch = false) {
     header.className = 'flex items-center';
 
     const img = document.createElement('img');
-    img.src = series.img ? series.img + '?lowres=true' : cdn + '/images/404.png?lowres=true';
+    img.src = series.img ? cdn + '/library/' + series.img + '?lowres=true' : cdn + '/library/404.png?lowres=true';
     img.alt = series.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 
@@ -242,7 +242,7 @@ function renderBook(book, isSearch = false) {
     card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
 
     const img = document.createElement('img');
-    img.src = book.img ? book.img + '?lowres=true' : cdn + '/images/404.png?lowres=true';
+    img.src = book.img ? cdn + '/library/' + book.img + '?lowres=true' : cdn + '/library/404.png?lowres=true';
     img.alt = book.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 
@@ -325,7 +325,7 @@ function renderBookDetails(bookData, chapterData) {
     contentWrapper.className = 'flex flex-col md:flex-row h-full';
 
     const img = document.createElement('img');
-    img.src = bookData?.img || cdn + '/images/404.png';
+    img.src = bookData.img ? cdn + '/library/' + bookData.img : cdn + '/library/404.png';
     img.alt = bookData ? bookData.name : 'No image';
     img.className = 'object-cover rounded-md mb-4 md:mb-0 md:mr-6 w-full md:w-auto md:max-w-md mx-auto';
 

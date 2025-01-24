@@ -1,4 +1,4 @@
-module.exports = (req, res, next) => {
+const responseFormatter = (req, res, next) => {
     res.success = (data) => {
         if (typeof data === 'object') {
             res.json(data);
@@ -15,3 +15,5 @@ module.exports = (req, res, next) => {
 
     next();
 };
+
+module.exports = responseFormatter;

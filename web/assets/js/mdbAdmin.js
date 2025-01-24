@@ -135,7 +135,7 @@ async function displayUser() {
         document.getElementById('useremail').textContent = data.email
         document.getElementById('login').classList.add('hidden');
         document.getElementById('pfp').classList.remove('hidden');
-        document.getElementById('pfp').src = api + '/cdn/pfp/' + data.username + '.png';
+        document.getElementById('pfp').src = cdn + '/users/pfp/' + data.username + '.png';
     } catch (error) {
         console.error('Error fetching user:', error);
     }
@@ -400,7 +400,7 @@ async function cdnBackup() {
 async function uploadCDN(data) {
     try {
         const xhr = new XMLHttpRequest();
-        const url = cdn + '/upload';
+        const url = cdn + '/library/upload';
         const token = getCookie('sessionToken');
 
         xhr.open('POST', url, true);
@@ -437,7 +437,7 @@ async function uploadCDN(data) {
 
 async function fetchCDNList(searchQuery = '') {
     try {
-        const response = await fetch(`${cdn}/images/search/${searchQuery}`, {
+        const response = await fetch(cdn + `/library/search/${searchQuery}`, {
             headers: {
                 'Authorization': getCookie('sessionToken')
             }
@@ -498,16 +498,13 @@ function createListItem(item) {
 
     listItem.innerHTML = `
         <span class="font-bold text-white item-text flex-grow truncate overflow-hidden whitespace-nowrap">${item}</span>
-        <i class="fas fa-edit text-blue-500 cursor-pointer rename-icon transition duration-200 ease-in-out mr-2"></i>
         <i class="fas fa-trash-alt text-red-500 cursor-pointer delete-icon transition duration-200 ease-in-out"></i>
     `;
 
     const deleteIcon = listItem.querySelector('.delete-icon');
-    const renameIcon = listItem.querySelector('.rename-icon');
     const itemText = listItem.querySelector('.item-text');
 
     deleteIcon.addEventListener('click', event => handleDeleteIconClick(event, item, listItem));
-    renameIcon.addEventListener('click', event => handleRenameIconClick(event, item));
     itemText.addEventListener('click', () => handleItemTextClick(item));
 
     return listItem;
@@ -525,7 +522,7 @@ function debounce(func, delay) {
 
 async function handleDeleteIconClick(event, item, listItem) {
     event.stopPropagation();
-    const response = await fetch(cdn + `/images/${item}`, {
+    const response = await fetch(cdn + `/library/delete/${item}`, {
         method: 'DELETE',
         headers: {
             'Authorization': getCookie('sessionToken')
@@ -540,58 +537,8 @@ async function handleDeleteIconClick(event, item, listItem) {
     }
 }
 
-function handleRenameIconClick(event, item) {
-    event.stopPropagation();
-    const renameModal = document.getElementById('renameModal');
-    const newFilenameInput = document.getElementById('newFilenameInput');
-    const renameConfirmButton = document.getElementById('renameConfirmButton');
-    const renameCancelButton = document.getElementById('renameCancelButton');
-
-    newFilenameInput.value = item;
-    renameModal.classList.remove('hidden');
-    document.body.classList.add('overflow-hidden');
-    newFilenameInput.focus();
-
-    newFilenameInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-            renameConfirmButton.click();
-        } else if (e.key === 'Escape') {
-            renameModal.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        }
-    });
-
-    renameConfirmButton.onclick = async function () {
-        const newFilename = newFilenameInput.value;
-        if (newFilename && newFilename !== item) {
-            const response = await fetch(cdn + `/images/rename/${item}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': getCookie('sessionToken')
-                },
-                body: JSON.stringify({ newFilename })
-            });
-
-            if (response.ok) {
-                showNotification('File renamed successfully', 'success');
-                renderCDNList();
-            } else {
-                showNotification('File rename failed', 'error');
-            }
-        }
-        renameModal.classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-    };
-
-    renameCancelButton.onclick = function () {
-        renameModal.classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-    };
-}
-
 function handleItemTextClick(item) {
-    navigator.clipboard.writeText(`https://apimdb.maxix.sk/cdn/images/${item}`).then(() => {
+    navigator.clipboard.writeText(cdn + '/library/' + item).then(() => {
         showNotification('Link copied to clipboard', 'success');
     }).catch(err => {
         showNotification('Failed to copy link to clipboard', 'error');

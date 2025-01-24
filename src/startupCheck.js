@@ -29,7 +29,7 @@ function checkConfigFormat() {
 }
 
 function checkRequiredFolders() {
-    const folders = ['backups', 'uploads', 'uploads/pfp'];
+    const folders = ['backups', 'cdn', 'cdn/library', 'cdn/users', 'cdn/users/pfp'];
 
     folders.forEach(folder => {
         const folderPath = path.resolve(__dirname, `../${folder}`);
