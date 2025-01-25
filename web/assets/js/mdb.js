@@ -157,7 +157,6 @@ function renderSeries(series, isSearch = false) {
         finished: 'text-green-500',
         stopped: 'text-gray-500',
         paused: 'text-yellow-500',
-        default: 'text-red-500'
     };
 
     const statusTexts = {
@@ -165,11 +164,10 @@ function renderSeries(series, isSearch = false) {
         finished: 'Finished',
         stopped: 'Stopped',
         paused: 'Paused',
-        default: 'Unknown'
     };
 
-    const statusClass = statusClasses[series.status] || statusClasses.default;
-    const statusText = statusTexts[series.status] || statusTexts.default;
+    const statusClass = statusClasses[series.status];
+    const statusText = statusTexts[series.status];
 
     status.className = statusClass;
     status.textContent = statusText;
@@ -334,7 +332,7 @@ function renderBookDetails(bookData, chapterData) {
 
     const title = document.createElement('h2');
     title.className = 'text-white text-3xl font-bold mb-4';
-    title.textContent = bookData ? bookData.name : 'No title';
+    title.textContent = bookData.name;
 
     const chaptersList = document.createElement('ul');
     chaptersList.className = 'text-white space-y-2 overflow-y-auto flex-1 mb-4 md:mb-0 scrollbar scrollbar-thumb-[#2A2A2A] scrollbar-track-[#191818]';
@@ -416,15 +414,13 @@ function setupSearch() {
 }
 
 function performSearch(searchTerm) {
-    fetch(`${api}/search/${searchTerm}`)
-        .then(response => {
-            if (response.status === 404) {
+    fetch(api + '/search/' + searchTerm)
+        .then(response => response.json())
+        .then(data => {
+            if (data.length === 0) {
                 showNoResultsMessage();
                 return null;
             }
-            return response.json();
-        })
-        .then(data => {
             if (data) {
                 renderSearchResults(data);
             }
@@ -433,10 +429,11 @@ function performSearch(searchTerm) {
 }
 
 function renderSearchResults(results) {
+    console.log(results);
     cleanAllFormatLists();
 
     results.forEach(result => {
-        fetch(`${api}/series/${result.series_id}`)
+        fetch(api + '/series/' + result.series_id)
         .then(response => response.json())
         .then(series => {
             series.books = result.books;

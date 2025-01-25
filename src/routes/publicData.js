@@ -33,10 +33,6 @@ module.exports = function (pool) {
             const query = 'SELECT * FROM series WHERE series_id = ?';
             const rows = await conn.query(query, [series_id]);
 
-            if (rows.length === 0) {
-                return res.error('Series not found', 404);
-            }
-
             res.success(rows[0]);
         } catch (err) {
             next(err);
@@ -52,8 +48,8 @@ module.exports = function (pool) {
             const { series_id } = req.params;
             const query = 'SELECT book_id FROM books WHERE series_id = ?';
             const rows = await conn.query(query, [series_id]);
-            const bookIds = rows.map(row => row.book_id);
-            res.success(bookIds);
+
+            res.success(rows.map(row => row.book_id));
         } catch (err) {
             next(err);
         } finally {
@@ -68,13 +64,6 @@ module.exports = function (pool) {
             const { book_id } = req.params;
             const query = 'SELECT * FROM books WHERE book_id = ?';
             const rows = await conn.query(query, [book_id]);
-
-            if (rows.length === 0) {
-                return res.error('Book not found', 404);
-            }
-
-            rows[0].startedReading = rows[0].startedReading || null;
-            rows[0].endedReading = rows[0].endedReading || null;
 
             res.success(rows[0]);
         } catch (err) {
@@ -91,8 +80,8 @@ module.exports = function (pool) {
             const { book_id } = req.params;
             const query = 'SELECT chapter_id FROM chapters WHERE book_id = ?';
             const rows = await conn.query(query, [book_id]);
-            const chapterIds = rows.map(row => row.chapter_id);
-            res.success(chapterIds);
+
+            res.success(rows.map(row => row.chapter_id));
         } catch (err) {
             next(err);
         } finally {
@@ -108,12 +97,6 @@ module.exports = function (pool) {
             const query = 'SELECT * FROM chapters WHERE chapter_id = ?';
             const rows = await conn.query(query, [chapter_id]);
 
-            if (rows.length === 0) {
-                return res.error('Chapter not found', 404);
-            }
-
-            rows[0].date = rows[0].date || null;
-
             res.success(rows[0]);
         } catch (err) {
             next(err);
@@ -122,6 +105,7 @@ module.exports = function (pool) {
         }
     });
 
+    //TODO: change reply format
     router.get('/search/:search', async (req, res, next) => {
         let conn;
         try {
@@ -167,10 +151,6 @@ module.exports = function (pool) {
                     }))
                 }))
             }));
-
-            if (seriesArray.length === 0) {
-                return res.error('No results found', 404);
-            }
 
             res.success(seriesArray);
         } catch (err) {

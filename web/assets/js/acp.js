@@ -85,7 +85,7 @@ async function displayUser() {
 function dbBackup() {
     try {
         showNotification('Sending request to backup database, please wait this may take a while', 'info');
-        fetch(api + '/backup-db', {
+        fetch(api + '/server/backup-db', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

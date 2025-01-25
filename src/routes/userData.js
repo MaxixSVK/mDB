@@ -1,24 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
 
 module.exports = function (pool) {
     const validate = require('../middleware/checkToken')(pool);
-    const validateAdmin = require('../middleware/checkToken')(pool, admin = true);
-
-    const { backupDatabase } = require('../backup/db');
-
+    
+    //TODO: Input validation for all routes
+    //TODO: Move type to body for all routes
     router.post('/add-data/:type', validate, async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
             const { type } = req.params;
             const data = req.body;
-
-            if (!['series', 'books', 'chapters'].includes(type)) {
-                return res.error('Invalid type specified', 400);
-            }
 
             let columns = [];
             let placeholders = [];
@@ -60,10 +53,6 @@ module.exports = function (pool) {
             conn = await pool.getConnection();
             const { type, id } = req.params;
             const data = req.body;
-
-            if (!['series', 'books', 'chapters'].includes(type)) {
-                return res.error('Invalid type specified', 400);
-            }
 
             const primaryKeyMapping = {
                 series: 'series_id',
@@ -114,10 +103,6 @@ module.exports = function (pool) {
             conn = await pool.getConnection();
             const { type, id } = req.params;
 
-            if (!['series', 'books', 'chapters'].includes(type)) {
-                return res.error('Invalid type specified', 400);
-            }
-
             const tableName = type;
             const primaryKeyMapping = {
                 series: 'series_id',
@@ -142,65 +127,6 @@ module.exports = function (pool) {
             if (err.code === 'ER_ROW_IS_REFERENCED_2') {
                 return res.error(`${type} with ID ${id} is referenced in another table`, 409);
             }
-            next(err);
-        } finally {
-            if (conn) conn.end();
-        }
-    });
-
-    router.get('/backup-db', validateAdmin, async (req, res, next) => {
-        let backupFile;
-        try {
-            backupFile = await backupDatabase();
-            const date = new Date().toISOString().split('T')[0];
-            const fileName = `mdb-db-backup-${date}.sql`;
-            res.download(backupFile, fileName, (err) => {
-                fs.unlinkSync(backupFile);
-                if (err) {
-                    next(err);
-                }
-            });
-        } catch (error) {
-            if (backupFile) {
-                fs.unlinkSync(backupFile);
-            }
-            next(error);
-        }
-    });
-
-    router.get('/logs', validate, async (req, res, next) => {
-        let conn;
-        try {
-            conn = await pool.getConnection();
-            const { limit = 10, offset = 0, all = 'false', format = 'file' } = req.query;
-
-            let sql;
-            let params;
-
-            if (all === 'true') {
-                sql = `SELECT * FROM logs ORDER BY change_date DESC`;
-                params = [];
-            } else {
-                sql = `SELECT * FROM logs ORDER BY change_date DESC LIMIT ? OFFSET ?`;
-                params = [parseInt(limit), parseInt(offset)];
-            }
-
-            const logs = await conn.query(sql, params);
-
-            if (format === 'file') {
-                const filePath = path.join(__dirname, 'logs.json');
-                fs.writeFileSync(filePath, JSON.stringify(logs, null, 2));
-                res.download(filePath, 'logs.json', err => {
-                    if (err) {
-                        next(err);
-                    } else {
-                        fs.unlinkSync(filePath);
-                    }
-                });
-            } else {
-                res.success(logs);
-            }
-        } catch (err) {
             next(err);
         } finally {
             if (conn) conn.end();

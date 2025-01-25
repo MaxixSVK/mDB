@@ -42,7 +42,7 @@ function addEventListeners() {
     document.getElementById('logs-backup').addEventListener('click', async function () {
         try {
             const session = getCookie('sessionToken');
-            const response = await fetch(`${api}/logs?all=true&format=file`, {
+            const response = await fetch(api + '/server/logs?all=true&format=file', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ function addEventListeners() {
 async function fetchLogs() {
     try {
         const session = getCookie('sessionToken');
-        const response = await fetch(`${api}/logs?limit=${limit}&offset=${offset}`, {
+        const response = await fetch(api + '/server/logs?limit=' + limit +'&offset=' + offset, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
