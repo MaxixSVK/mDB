@@ -22,7 +22,7 @@ function addDataInit() {
                 addStatusSelect(addDataFieldsDiv);
                 addTypeSelect(addDataFieldsDiv);
                 break;
-            case 'books':
+            case 'book':
                 addFormDescription(addDataFieldsDiv, 'Select reference');
                 await addSeriesSelect(addDataFieldsDiv);
                 addFormDescription(addDataFieldsDiv, 'New DB Data');
@@ -31,7 +31,7 @@ function addDataInit() {
                 addInputField(addDataFieldsDiv, 'startedReading', 'Started Reading', 'date');
                 addInputField(addDataFieldsDiv, 'endedReading', 'Ended Reading', 'date');
                 break;
-            case 'chapters':
+            case 'chapter':
                 addFormDescription(addDataFieldsDiv, 'Select reference');
                 await addSeriesSelect(addDataFieldsDiv, true);
                 addFormDescription(addDataFieldsDiv, 'New DB Data');
@@ -158,18 +158,15 @@ function addDataInit() {
 
     async function handleFormSubmit(e, form) {
         e.preventDefault();
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        console.log(data);
-        const type = data.type;
-        delete data.type;
+        let formData = new FormData(form);
+        let data = Object.fromEntries(formData.entries());
 
-        if (type === 'chapters') {
+        if (data.type === 'chapter') {
             delete data.series_id;
         }
 
         try {
-            const response = await fetch(api + `/add-data/${type}`, {
+            const response = await fetch(api + '/mange-library/new',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -180,14 +177,10 @@ function addDataInit() {
 
             const responseData = await response.json();
 
-            if (!response.ok) {
-                throw new Error(responseData.msg);
-            }
-
             refreshContent()
-            showNotification(responseData.msg, 'success');
-        } catch (error) {
-            showNotification(error.message, 'error');
+            showNotification(responseData.data, 'success');
+        } catch (e) {
+            showNotification(e.error, 'error');
         }
     }
 }

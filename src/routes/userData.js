@@ -3,19 +3,30 @@ const router = express.Router();
 
 module.exports = function (pool) {
     const validate = require('../middleware/checkToken')(pool);
-    
+
+    async function logChanges(conn, changeType, tableName, recordId, oldData = null, newData = null) {
+        const logQuery = `INSERT INTO logs (change_type, table_name, record_id, old_data, new_data) VALUES (?, ?, ?, ?, ?)`;
+        await conn.query(logQuery, [changeType, tableName, recordId, oldData, newData]);
+    }
+
     //TODO: Input validation for all routes
-    //TODO: Move type to body for all routes
-    router.post('/add-data/:type', validate, async (req, res, next) => {
+    router.post('/new', validate, async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
-            const { type } = req.params;
-            const data = req.body;
+            const { type, ...data } = req.body;
 
-            let columns = [];
-            let placeholders = [];
-            let params = [];
+            const tableNameMapping = {
+                series: 'series',
+                book: 'books',
+                chapter: 'chapters'
+            };
+
+            const tableName = tableNameMapping[type];
+
+            let columns = ['user_id'];
+            let placeholders = ['?'];
+            let params = [req.userId];
 
             Object.entries(data).forEach(([key, value]) => {
                 if (value !== '') {
@@ -25,20 +36,15 @@ module.exports = function (pool) {
                 }
             });
 
-            const sql = `INSERT INTO ${type} (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`;
+            const sql = `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`;
 
-            if (params.length > 0) {
+            if (params.length > 1) {
                 const result = await conn.query(sql, params);
-                if (result.affectedRows === 0) {
-                    return res.error(`Failed to add ${type}`, 500);
-                }
+                await logChanges(conn, 'INSERT', tableName, result.insertId, null, JSON.stringify(data));
 
-                const logSql = `INSERT INTO logs (change_type, table_name, record_id, new_data) VALUES (?, ?, ?, ?)`;
-                await conn.query(logSql, ['INSERT', type, result.insertId, JSON.stringify(data)]);
-
-                res.success({ msg: `${type} added successfully` });
+                res.success('Added successfully');
             } else {
-                res.success({ msg: `No valid fields provided to add ${type}` });
+                res.success('No valid fields provided to update');
             }
         } catch (err) {
             next(err);
@@ -47,48 +53,53 @@ module.exports = function (pool) {
         }
     });
 
-    router.put('/update-data/:type/:id', validate, async (req, res, next) => {
+    router.put('/update/:id', validate, async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
-            const { type, id } = req.params;
-            const data = req.body;
-
-            const primaryKeyMapping = {
-                series: 'series_id',
-                books: 'book_id',
-                chapters: 'chapter_id'
+            const { id } = req.params;
+            const { type, ...data } = req.body;
+    
+            const tableNameMapping = {
+                series: 'series',
+                book: 'books',
+                chapter: 'chapters'
             };
-
-            const oldDataSql = `SELECT * FROM ${type} WHERE ${primaryKeyMapping[type]} = ?`;
-            const [oldData] = await conn.query(oldDataSql, [id]);
-
-            let sql = `UPDATE ${type} SET `;
+    
+            const tableName = tableNameMapping[type];
+            const primaryKey = `${type}_id`;
+    
+            const checkSql = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
+            const [existingRow] = await conn.query(checkSql, [id, req.userId]);
+    
+            if (!existingRow) {
+                return res.success('Data does not exist');
+            }
+    
+            let sql = `UPDATE ${tableName} SET `;
             let params = [];
-
+    
             Object.entries(data).forEach(([key, value]) => {
                 sql += `${key} = ${value !== '' ? '?' : 'NULL'}, `;
                 if (value !== '') {
                     params.push(value);
                 }
             });
-
+    
             sql = sql.slice(0, -2);
-            sql += ` WHERE ${primaryKeyMapping[type]} = ?`;
-            params.push(id);
-
-            if (params.length > 1) {
-                const result = await conn.query(sql, params);
-                if (result.affectedRows === 0) {
-                    return res.error(`${type} not found or no changes made`, 404);
-                }
-
-                const logSql = `INSERT INTO logs (change_type, table_name, record_id, old_data, new_data) VALUES (?, ?, ?, ?, ?)`;
-                await conn.query(logSql, ['UPDATE', type, id, JSON.stringify(oldData), JSON.stringify(data)]);
-
-                res.success({ msg: `${type} updated successfully` });
+            sql += ` WHERE ${primaryKey} = ? AND user_id = ?`;
+            params.push(id, req.userId);
+    
+            if (params.length > 2) {
+                const oldDataSql = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
+                const [oldData] = await conn.query(oldDataSql, [id, req.userId]);
+    
+                await conn.query(sql, params);
+                await logChanges(conn, 'UPDATE', tableName, id, JSON.stringify(oldData), JSON.stringify(data));
+    
+                res.success('Updated successfully');
             } else {
-                res.success({ msg: `No valid fields provided to update ${type}` });
+                res.success('No valid fields provided to update');
             }
         } catch (err) {
             next(err);
@@ -96,36 +107,40 @@ module.exports = function (pool) {
             if (conn) conn.end();
         }
     });
-
-    router.delete('/delete-data/:type/:id', validate, async (req, res, next) => {
+    
+    router.delete('/delete/:type/:id', validate, async (req, res, next) => {
         let conn;
+        const { id, type } = req.params;
         try {
             conn = await pool.getConnection();
-            const { type, id } = req.params;
-
-            const tableName = type;
-            const primaryKeyMapping = {
-                series: 'series_id',
-                books: 'book_id',
-                chapters: 'chapter_id'
+    
+            const tableNameMapping = {
+                series: 'series',
+                book: 'books',
+                chapter: 'chapters'
             };
-
-            const oldDataSql = `SELECT * FROM ${tableName} WHERE ${primaryKeyMapping[type]} = ?`;
-            const [oldData] = await conn.query(oldDataSql, [id]);
-
-            const result = await conn.query(`DELETE FROM ${tableName} WHERE ${primaryKeyMapping[type]} = ?`, [id]);
-
-            if (result.affectedRows === 0) {
-                return res.error(`${type} with ID ${id} not found`, 404);
+    
+            const tableName = tableNameMapping[type];
+            const primaryKey = `${type}_id`;
+    
+            const checkSql = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
+            const [existingRow] = await conn.query(checkSql, [id, req.userId]);
+    
+            if (!existingRow) {
+                return res.success('Data does not exist');
             }
-
-            const logSql = `INSERT INTO logs (change_type, table_name, record_id, old_data) VALUES (?, ?, ?, ?)`;
-            await conn.query(logSql, ['DELETE', type, id, JSON.stringify(oldData)]);
-
-            res.success({ msg: `${type} with ID ${id} deleted successfully` });
+    
+            const oldDataSql = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
+            const [oldData] = await conn.query(oldDataSql, [id, req.userId]);
+    
+            await conn.query(`DELETE FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`, [id, req.userId]);
+    
+            await logChanges(conn, 'DELETE', tableName, id, JSON.stringify(oldData));
+    
+            res.success('Deleted successfully');
         } catch (err) {
             if (err.code === 'ER_ROW_IS_REFERENCED_2') {
-                return res.error(`${type} with ID ${id} is referenced in another table`, 409);
+                return res.error(`Cannot delete ${type} with ID ${id} because it is used elsewhere`, 409, true);
             }
             next(err);
         } finally {

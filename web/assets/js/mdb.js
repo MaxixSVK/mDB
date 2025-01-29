@@ -227,6 +227,7 @@ function fetchBookList(data, isSearch) {
             .then(response => response.json())
             .then(bookIds => Promise.all(bookIds.map(fetchBookData)))
             .then(bookData => {
+                // TODO: if there are no books, show a message saying there are no books in this series
                 bookData.sort((a, b) => a.startedReading.localeCompare(b.startedReading));
                 bookData.forEach(book => renderBook(book));
             });
@@ -299,6 +300,7 @@ async function fetchBookDetails(book, isSearch) {
         const chaptersPromise = fetch(api + '/chapters/' + book.book_id)
             .then(response => response.json())
             .then(chapterIds => {
+                // TODO: if there are no chapters, show a message saying there are no chapters in this book
                 const chapterPromises = chapterIds.map(chapterId =>
                     fetch(api + '/chapter/' + chapterId).then(response => response.json())
                 );
@@ -429,7 +431,6 @@ function performSearch(searchTerm) {
 }
 
 function renderSearchResults(results) {
-    console.log(results);
     cleanAllFormatLists();
 
     results.forEach(result => {

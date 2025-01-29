@@ -18,10 +18,10 @@ function deleteDataInit() {
             case 'series':
                 await addSeriesSelect();
                 break;
-            case 'books':
+            case 'book':
                 await addSeriesSelect(true);
                 break;
-            case 'chapters':
+            case 'chapter':
                 await addSeriesSelect(true, true);
                 break;
         }
@@ -31,34 +31,34 @@ function deleteDataInit() {
         try {
             deleteDataFields.innerHTML = '';
             addFormDescription(deleteDataFields, 'Select reference');
-    
+
             const seriesSelect = createSelectElement('series_id');
             deleteDataFields.appendChild(seriesSelect);
-    
+
             const seriesIds = await fetchData('/series');
             const seriesPromises = seriesIds.map(id => fetchData(`/series/${id}`));
             const series = await Promise.all(seriesPromises);
-    
+
             await populateSelect(seriesSelect, series, 'name', 'series_id');
-    
+
             if (books) {
                 const bookSelect = createSelectElement('book_id');
                 deleteDataFields.appendChild(bookSelect);
-    
+
                 seriesSelect.addEventListener('change', async () => await handleSeriesChange(seriesSelect, bookSelect, chapters));
-                await handleSeriesChange(seriesSelect, bookSelect, chapters); 
+                await handleSeriesChange(seriesSelect, bookSelect, chapters);
             }
         } catch (error) {
             console.error(error);
         }
     }
-    
+
     async function handleSeriesChange(seriesSelect, bookSelect, chapters) {
         const seriesId = seriesSelect.value;
         const books = await fetchData(`/books/${seriesId}`);
         const bookPromises = books.map(id => fetchData(`/book/${id}`));
         const bookDetails = await Promise.all(bookPromises);
-    
+
         if (!bookDetails.length) {
             showNotification('No books found for this series', 'warning');
             resetToSeries();
@@ -69,20 +69,20 @@ function deleteDataInit() {
             }
         }
     }
-    
+
     async function handleBookChange(bookSelect) {
         let chapterSelect = deleteDataFields.querySelector('select[name="chapter_id"]');
         if (!chapterSelect) {
             chapterSelect = createSelectElement('chapter_id');
             bookSelect.insertAdjacentElement('afterend', chapterSelect);
         }
-    
+
         bookSelect.addEventListener('change', async function () {
             const bookId = this.value;
             const chapters = await fetchData(`/chapters/${bookId}`);
             const chapterPromises = chapters.map(id => fetchData(`/chapter/${id}`));
             const chapterDetails = await Promise.all(chapterPromises);
-    
+
             if (!chapterDetails.length) {
                 resetToSeries();
                 showNotification('No chapters found for this book', 'warning');
@@ -128,25 +128,14 @@ function deleteDataInit() {
 
     async function handleFormSubmit(e, form) {
         e.preventDefault();
+        let formData = new FormData(form);
+        let data = Object.fromEntries(formData.entries());
 
-        const deleteDataTypeSelect = document.getElementById('delete-data-type');
-        const deleteDataFields = document.getElementById('delete-data-fields');
-        const type = deleteDataTypeSelect.value;
-
-        let id;
-        if (type === 'chapters') {
-            const chapterSelect = deleteDataFields.querySelector('select[name="chapter_id"]');
-            id = chapterSelect ? chapterSelect.value : null;
-        } else if (type === 'books') {
-            const bookSelect = deleteDataFields.querySelector('select[name="book_id"]');
-            id = bookSelect ? bookSelect.value : null;
-        } else {
-            const seriesSelect = deleteDataFields.querySelector('select[name="series_id"]');
-            id = seriesSelect ? seriesSelect.value : null;
-        }
+        let id = data.chapter_id || data.book_id || data.series_id;
+        let type = data.type;
 
         try {
-            const response = await fetch(api + `/delete-data/${type}/${id}`, {
+            const response = await fetch(api + '/mange-library/delete/' + type + '/' + id, {
                 method: 'DELETE',
                 headers: {
                     'authorization': getCookie('sessionToken')
@@ -155,14 +144,10 @@ function deleteDataInit() {
 
             const responseData = await response.json();
 
-            if (!response.ok) {
-                throw new Error(responseData.msg || 'Failed to update data');
-            }
-
             refreshContent()
-            showNotification(responseData.msg, 'success');
-        } catch (error) {
-            showNotification(error.message, 'error');
+            showNotification(responseData.data, 'success');
+        } catch (e) {
+            showNotification(e.error, 'error');
         }
     }
 }

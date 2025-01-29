@@ -24,7 +24,7 @@ function editDataInit() {
                 addTypeSelect(editDataFields);
                 await seriesData();
                 break;
-            case 'books':
+            case 'book':
                 await addSeriesSelect(true);
                 addFormDescription(editDataFields, 'DB Data');
                 addInputField('name', 'Book Name');
@@ -33,7 +33,7 @@ function editDataInit() {
                 addInputField('endedReading', 'Ended Reading', 'date');
                 await bookData();
                 break;
-            case 'chapters':
+            case 'chapter':
                 await addSeriesSelect(true, true);
                 addFormDescription(editDataFields, 'DB Data');
                 addInputField('name', 'Chapter Name');
@@ -268,19 +268,17 @@ function editDataInit() {
 
     async function handleFormSubmit(e, form) {
         e.preventDefault();
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        const type = data.type;
-        delete data.type;
+        let formData = new FormData(form);
+        let data = Object.fromEntries(formData.entries());
 
-        if (type === 'chapters') {
+        if (data.type === 'chapter') {
             delete data.series_id;
         }
 
         const id = data.chapter_id || data.book_id || data.series_id;
 
         try {
-            const response = await fetch(api + `/update-data/${type}/${id}`, {
+            const response = await fetch(api + '/mange-library/update/' + id, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -291,14 +289,10 @@ function editDataInit() {
 
             const responseData = await response.json();
 
-            if (!response.ok) {
-                throw new Error(responseData.msg || 'Failed to update data');
-            }
-
             refreshContent()
-            showNotification(responseData.msg, 'success');
-        } catch (error) {
-            showNotification(error.message, 'error');
+            showNotification(responseData.data, 'success');
+        } catch (e) {
+            showNotification(e.error, 'error');
         }
     }
 }

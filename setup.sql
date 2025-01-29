@@ -5,24 +5,31 @@ DROP TABLE IF EXISTS `series`;
 
 CREATE TABLE `series` (
   `series_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `img` varchar(255) DEFAULT NULL,
   `format` ENUM('lightNovel', 'manga') NOT NULL,
   `status` ENUM('reading', 'finished', 'stopped', 'paused') NOT NULL DEFAULT 'reading',
-  PRIMARY KEY (`series_id`)
+  PRIMARY KEY (`series_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `series_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 );
+
 DROP TABLE IF EXISTS `books`;
 
 CREATE TABLE `books` (
   `book_id` int(11) NOT NULL AUTO_INCREMENT,
   `series_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `startedReading` date DEFAULT NULL,
   `endedReading` date DEFAULT NULL,
   `img` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`book_id`),
   KEY `series_id` (`series_id`),
-  CONSTRAINT `books_ibfk_1` FOREIGN KEY (`series_id`) REFERENCES `series` (`series_id`)
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `books_ibfk_1` FOREIGN KEY (`series_id`) REFERENCES `series` (`series_id`),
+  CONSTRAINT `books_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 );
 
 DROP TABLE IF EXISTS `chapters`;
@@ -30,11 +37,14 @@ DROP TABLE IF EXISTS `chapters`;
 CREATE TABLE `chapters` (
   `chapter_id` int(11) NOT NULL AUTO_INCREMENT,
   `book_id` int(11) DEFAULT NULL,
+  `user_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `date` date DEFAULT NULL,
   PRIMARY KEY (`chapter_id`),
   KEY `book_id` (`book_id`),
-  CONSTRAINT `chapters_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`)
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `chapters_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`),
+  CONSTRAINT `chapters_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 );
 
 DROP TABLE IF EXISTS `users`;

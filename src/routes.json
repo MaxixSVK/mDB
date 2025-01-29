@@ -1,6 +1,6 @@
 [
     { "path": "/auth", "route": "./routes/auth" },
-    { "path": "/", "route": "./routes/userData" },
+    { "path": "/mange-library", "route": "./routes/userData" },
     { "path": "/", "route": "./routes/publicData" },
     { "path": "/account", "route": "./routes/accountManagement" },
     { "path": "/intelligence", "route": "./routes/intelligence" },
