@@ -20,11 +20,10 @@ function addDataInit() {
                 addInputField(addDataFieldsDiv, 'name', 'Series Name');
                 addInputField(addDataFieldsDiv, 'img', 'Image URL');
                 addStatusSelect(addDataFieldsDiv);
-                addTypeSelect(addDataFieldsDiv);
+                addFormatSelect(addDataFieldsDiv);
                 break;
             case 'book':
-                addFormDescription(addDataFieldsDiv, 'Select reference');
-                await addSeriesSelect(addDataFieldsDiv);
+                await addLibrarySelect(addDataFieldsDiv);
                 addFormDescription(addDataFieldsDiv, 'New DB Data');
                 addInputField(addDataFieldsDiv, 'name', 'Book Name');
                 addInputField(addDataFieldsDiv, 'img', 'Image URL');
@@ -32,8 +31,7 @@ function addDataInit() {
                 addInputField(addDataFieldsDiv, 'endedReading', 'Ended Reading', 'date');
                 break;
             case 'chapter':
-                addFormDescription(addDataFieldsDiv, 'Select reference');
-                await addSeriesSelect(addDataFieldsDiv, true);
+                await addLibrarySelect(addDataFieldsDiv, true);
                 addFormDescription(addDataFieldsDiv, 'New DB Data');
                 addInputField(addDataFieldsDiv, 'name', 'Chapter Name');
                 addInputField(addDataFieldsDiv, 'date', 'Date', 'date');
@@ -41,28 +39,9 @@ function addDataInit() {
         }
     }
 
-    function addFormDescription(container, text) {
-        const description = document.createElement('label');
-        description.textContent = text;
-        description.className = 'block text-white text-sm font-bold mb-2';
-        container.appendChild(description);
-    }
-
-    function addInputField(container, name, placeholder, type = 'text') {
-        const inputHtml = `
-            <div class="mb-3">
-                <input 
-                    type="${type}" 
-                    name="${name}" 
-                    placeholder="${placeholder}" 
-                    class="shadow border rounded w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-none focus:shadow-outline"
-                >
-            </div>`;
-        container.insertAdjacentHTML('beforeend', inputHtml);
-    }
-
-    async function addSeriesSelect(container, withBooks = false) {
+    async function addLibrarySelect(container, books) {
         try {
+            addFormDescription(container, 'Select reference');
             const seriesSelect = createSelectElement('series_id');
             container.appendChild(seriesSelect);
 
@@ -70,63 +49,43 @@ function addDataInit() {
             const seriesPromises = seriesIds.map(id => fetchData(`/series/${id}`));
             const series = await Promise.all(seriesPromises);
 
-            populateSelect(seriesSelect, series, 'name', 'series_id');
+            await populateSelect(seriesSelect, series, 'name', 'series_id');
 
-            if (withBooks) {
+            if (books) {
                 const bookSelect = createSelectElement('book_id');
                 container.appendChild(bookSelect);
-                await updateBookSelect(seriesSelect, bookSelect);
 
-                seriesSelect.addEventListener('change', () => updateBookSelect(seriesSelect, bookSelect));
+                seriesSelect.addEventListener('change', async () => await handleSeriesChange(seriesSelect, bookSelect));
+                await handleSeriesChange(seriesSelect, bookSelect);
             }
         } catch (error) {
             console.error(error);
         }
     }
 
-    function createSelectElement(name) {
-        const select = document.createElement('select');
-        select.name = name;
-        select.required = true;
-        select.classList.add('shadow', 'border', 'rounded', 'w-full', 'py-2', 'px-3', 'text-white', 'bg-[#191818]', 'leading-tight', 'focus:outline-none', 'focus:shadow-outline', 'mb-3');
-        return select;
-    }
+    async function handleSeriesChange(seriesSelect, bookSelect) {
+        const seriesId = seriesSelect.value;
+        const books = await fetchData(`/books/${seriesId}`);
+        const bookPromises = books.map(id => fetchData(`/book/${id}`));
+        const bookDetails = await Promise.all(bookPromises);
 
-    async function updateBookSelect(seriesSelect, bookSelect) {
-        bookSelect.innerHTML = '';
-    
-        try {
-            const seriesId = seriesSelect.value;
-            const books = await fetchData(`/books/${seriesId}`);
-            const bookPromises = books.map(id => fetchData(`/book/${id}`));
-            const bookDetails = await Promise.all(bookPromises);
-    
-            if (!bookDetails.length) {
-                showNotification('No books found for this series', 'warning');
-                addDataTypeSelect.value = 'series';
-                addDataTypeSelect.dispatchEvent(new Event('change'));
-            }
-            populateSelect(bookSelect, bookDetails, 'name', 'book_id');
-        } catch (error) {
-            console.error(error);
+        if (!bookDetails.length) {
+            showNotification('No books found for this series', 'warning');
+            resetToSeries();
+        } else {
+            await populateSelect(bookSelect, bookDetails, 'name', 'book_id');
+            bookSelect.dispatchEvent(new Event('change'));
         }
     }
 
-    function populateSelect(select, items, textKey, valueKey) {
-        items.forEach(item => {
-            const option = new Option(item[textKey], item[valueKey]);
-            select.add(option);
-        });
-    }
-
-    async function addTypeSelect(container) {
+    async function addFormatSelect(container) {
         const typeSelect = createSelectElement('format');
         container.appendChild(typeSelect);
-    
+
         try {
             const response = await fetch(api + '/series/formats');
             const allowedFormats = await response.json();
-    
+
             allowedFormats.forEach(field => {
                 const option = new Option(field.name, field.format);
                 typeSelect.add(option);
@@ -148,12 +107,46 @@ function addDataInit() {
         });
     }
 
-    async function fetchData(endpoint) {
-        const response = await fetch(api + endpoint);
-        if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
-        }
-        return response.json();
+    function addInputField(container, name, placeholder, type = 'text') {
+        const div = document.createElement('div');
+        div.className = 'mb-3';
+
+        const input = document.createElement('input');
+        input.type = type;
+        input.name = name;
+        input.placeholder = placeholder;
+        input.className = 'shadow border rounded w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-none focus:shadow-outline';
+
+        div.appendChild(input);
+        container.appendChild(div);
+    }
+
+    function addFormDescription(container, text) {
+        const description = document.createElement('label');
+        description.textContent = text;
+        description.className = 'block text-white text-sm font-bold mb-2';
+        container.appendChild(description);
+    }
+
+    function createSelectElement(name) {
+        const select = document.createElement('select');
+        select.name = name;
+        select.required = true;
+        select.classList.add('shadow', 'border', 'rounded', 'w-full', 'py-2', 'px-3', 'text-white', 'bg-[#191818]', 'leading-tight', 'focus:outline-none', 'focus:shadow-outline', 'mb-3');
+        return select;
+    }
+
+    async function populateSelect(select, data, textKey, valueKey) {
+        select.innerHTML = '';
+        data.forEach(d => {
+            const option = new Option(d[textKey], d[valueKey]);
+            select.add(option);
+        });
+    }
+
+    async function fetchData(path) {
+        const response = await fetch(api + path);
+        return await response.json();
     }
 
     async function handleFormSubmit(e, form) {
@@ -166,7 +159,7 @@ function addDataInit() {
         }
 
         try {
-            const response = await fetch(api + '/mange-library/new',{
+            const response = await fetch(api + '/mange-library/new', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -177,10 +170,14 @@ function addDataInit() {
 
             const responseData = await response.json();
 
-            refreshContent()
+            if (!response.ok) {
+                throw new Error(responseData.error || 'Unknown error occurred');
+            }
+
+            refreshContent();
             showNotification(responseData.data, 'success');
         } catch (e) {
-            showNotification(e.error, 'error');
+            showNotification(e.message, 'error');
         }
     }
 }

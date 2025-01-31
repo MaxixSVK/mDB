@@ -16,24 +16,22 @@ function deleteDataInit() {
 
         switch (type) {
             case 'series':
-                await addSeriesSelect();
+                await addLibrarySelect(deleteDataFields);
                 break;
             case 'book':
-                await addSeriesSelect(true);
+                await addLibrarySelect(deleteDataFields, true);
                 break;
             case 'chapter':
-                await addSeriesSelect(true, true);
+                await addLibrarySelect(deleteDataFields, true, true);
                 break;
         }
     }
 
-    async function addSeriesSelect(books = false, chapters = false) {
+    async function addLibrarySelect(container, books, chapters) {
         try {
-            deleteDataFields.innerHTML = '';
-            addFormDescription(deleteDataFields, 'Select reference');
-
+            addFormDescription(container, 'Select reference');
             const seriesSelect = createSelectElement('series_id');
-            deleteDataFields.appendChild(seriesSelect);
+            container.appendChild(seriesSelect);
 
             const seriesIds = await fetchData('/series');
             const seriesPromises = seriesIds.map(id => fetchData(`/series/${id}`));
@@ -43,17 +41,25 @@ function deleteDataInit() {
 
             if (books) {
                 const bookSelect = createSelectElement('book_id');
-                deleteDataFields.appendChild(bookSelect);
+                container.appendChild(bookSelect);
 
-                seriesSelect.addEventListener('change', async () => await handleSeriesChange(seriesSelect, bookSelect, chapters));
-                await handleSeriesChange(seriesSelect, bookSelect, chapters);
+                if (chapters) {
+                    const chapterSelect = createSelectElement('chapter_id');
+                    container.appendChild(chapterSelect);
+
+                    seriesSelect.addEventListener('change', async () => await handleSeriesChange(seriesSelect, bookSelect, chapterSelect));
+                    await handleSeriesChange(seriesSelect, bookSelect, chapterSelect);
+                } else {
+                    seriesSelect.addEventListener('change', async () => await handleSeriesChange(seriesSelect, bookSelect));
+                    await handleSeriesChange(seriesSelect, bookSelect);
+                }
             }
         } catch (error) {
             console.error(error);
         }
     }
 
-    async function handleSeriesChange(seriesSelect, bookSelect, chapters) {
+    async function handleSeriesChange(seriesSelect, bookSelect, chapterSelect) {
         const seriesId = seriesSelect.value;
         const books = await fetchData(`/books/${seriesId}`);
         const bookPromises = books.map(id => fetchData(`/book/${id}`));
@@ -64,33 +70,27 @@ function deleteDataInit() {
             resetToSeries();
         } else {
             await populateSelect(bookSelect, bookDetails, 'name', 'book_id');
-            if (chapters) {
-                handleBookChange(bookSelect);
+            if (chapterSelect) {
+                bookSelect.addEventListener('change', async () => await handleBookChange(bookSelect, chapterSelect));
+                await handleBookChange(bookSelect, chapterSelect);
             }
+            bookSelect.dispatchEvent(new Event('change'));
         }
     }
 
-    async function handleBookChange(bookSelect) {
-        let chapterSelect = deleteDataFields.querySelector('select[name="chapter_id"]');
-        if (!chapterSelect) {
-            chapterSelect = createSelectElement('chapter_id');
-            bookSelect.insertAdjacentElement('afterend', chapterSelect);
+    async function handleBookChange(bookSelect, chapterSelect) {
+        const bookId = bookSelect.value;
+        const chapters = await fetchData(`/chapters/${bookId}`);
+        const chapterPromises = chapters.map(id => fetchData(`/chapter/${id}`));
+        const chapterDetails = await Promise.all(chapterPromises);
+
+        if (!chapterDetails.length) {
+            showNotification('No chapters found for this book', 'warning');
+            resetToSeries();
+        } else {
+            await populateSelect(chapterSelect, chapterDetails, 'name', 'chapter_id');
+            chapterSelect.dispatchEvent(new Event('change'));
         }
-
-        bookSelect.addEventListener('change', async function () {
-            const bookId = this.value;
-            const chapters = await fetchData(`/chapters/${bookId}`);
-            const chapterPromises = chapters.map(id => fetchData(`/chapter/${id}`));
-            const chapterDetails = await Promise.all(chapterPromises);
-
-            if (!chapterDetails.length) {
-                resetToSeries();
-                showNotification('No chapters found for this book', 'warning');
-            } else {
-                await populateSelect(chapterSelect, chapterDetails, 'name', 'chapter_id');
-            }
-        });
-        bookSelect.dispatchEvent(new Event('change'));
     }
 
     function resetToSeries() {
@@ -113,11 +113,6 @@ function deleteDataInit() {
         return select;
     }
 
-    async function fetchData(path) {
-        const response = await fetch(api + path);
-        return await response.json();
-    }
-
     async function populateSelect(select, data, textKey, valueKey) {
         select.innerHTML = '';
         data.forEach(d => {
@@ -126,14 +121,19 @@ function deleteDataInit() {
         });
     }
 
+    async function fetchData(path) {
+        const response = await fetch(api + path);
+        return await response.json();
+    }
+
     async function handleFormSubmit(e, form) {
         e.preventDefault();
         let formData = new FormData(form);
         let data = Object.fromEntries(formData.entries());
-
+    
         let id = data.chapter_id || data.book_id || data.series_id;
         let type = data.type;
-
+    
         try {
             const response = await fetch(api + '/mange-library/delete/' + type + '/' + id, {
                 method: 'DELETE',
@@ -141,13 +141,17 @@ function deleteDataInit() {
                     'authorization': getCookie('sessionToken')
                 }
             });
-
+    
             const responseData = await response.json();
-
-            refreshContent()
+    
+            if (!response.ok) {
+                throw new Error(responseData.error || 'Unknown error occurred');
+            }
+    
+            refreshContent();
             showNotification(responseData.data, 'success');
         } catch (e) {
-            showNotification(e.error, 'error');
+            showNotification(e.message, 'error');
         }
     }
 }

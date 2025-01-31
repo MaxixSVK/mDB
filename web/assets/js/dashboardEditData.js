@@ -13,107 +13,101 @@ function editDataInit() {
     async function handleDataTypeChange(editDataTypeSelect, editDataFields) {
         const type = editDataTypeSelect.value;
         editDataFields.innerHTML = '';
-    
+
         switch (type) {
             case 'series':
-                await addSeriesSelect();
+                await addLibrarySelect(editDataFields);
                 addFormDescription(editDataFields, 'DB Data');
-                addInputField('name', 'Series Name');
-                addInputField('img', 'Image URL');
+                addInputField(editDataFields, 'name', 'Series Name');
+                addInputField(editDataFields, 'img', 'Image URL');
                 addStatusSelect(editDataFields);
-                addTypeSelect(editDataFields);
-                await seriesData();
+                addFormatSelect(editDataFields);
+                showDBdata('series', 'series_id');
                 break;
             case 'book':
-                await addSeriesSelect(true);
+                await addLibrarySelect(editDataFields, true);
                 addFormDescription(editDataFields, 'DB Data');
-                addInputField('name', 'Book Name');
-                addInputField('img', 'Image URL');
-                addInputField('startedReading', 'Started Reading', 'date');
-                addInputField('endedReading', 'Ended Reading', 'date');
-                await bookData();
+                addInputField(editDataFields, 'name', 'Book Name');
+                addInputField(editDataFields, 'img', 'Image URL');
+                addInputField(editDataFields, 'startedReading', 'Started Reading', 'date');
+                addInputField(editDataFields, 'endedReading', 'Ended Reading', 'date');
+                showDBdata('books', 'book_id');
                 break;
             case 'chapter':
-                await addSeriesSelect(true, true);
+                await addLibrarySelect(editDataFields, true, true);
                 addFormDescription(editDataFields, 'DB Data');
-                addInputField('name', 'Chapter Name');
-                addInputField('date', 'Date', 'date');
-                await chapterData();
+                addInputField(editDataFields, 'name', 'Chapter Name');
+                addInputField(editDataFields, 'date', 'Date', 'date');
+                showDBdata('chapters', 'chapter_id');
                 break;
         }
     }
 
-    async function addSeriesSelect(books = false, chapters = false) {
+    async function addLibrarySelect(container, books, chapters) {
         try {
-            editDataFields.innerHTML = '';
-            addFormDescription(editDataFields, 'Select reference');
-    
+            addFormDescription(container, 'Select reference');
             const seriesSelect = createSelectElement('series_id');
-            editDataFields.appendChild(seriesSelect);
-    
+            container.appendChild(seriesSelect);
+
             const seriesIds = await fetchData('/series');
             const seriesPromises = seriesIds.map(id => fetchData(`/series/${id}`));
             const series = await Promise.all(seriesPromises);
-    
+
             await populateSelect(seriesSelect, series, 'name', 'series_id');
-    
+
             if (books) {
                 const bookSelect = createSelectElement('book_id');
-                editDataFields.appendChild(bookSelect);
-    
-                seriesSelect.addEventListener('change', async () => await handleSeriesChange(seriesSelect, bookSelect, chapters));
-                await handleSeriesChange(seriesSelect, bookSelect, chapters); 
+                container.appendChild(bookSelect);
+
+                if (chapters) {
+                    const chapterSelect = createSelectElement('chapter_id');
+                    container.appendChild(chapterSelect);
+
+                    seriesSelect.addEventListener('change', async () => await handleSeriesChange(seriesSelect, bookSelect, chapterSelect));
+                    await handleSeriesChange(seriesSelect, bookSelect, chapterSelect);
+                } else {
+                    seriesSelect.addEventListener('change', async () => await handleSeriesChange(seriesSelect, bookSelect));
+                    await handleSeriesChange(seriesSelect, bookSelect);
+                }
             }
         } catch (error) {
             console.error(error);
         }
     }
-    
-    async function handleSeriesChange(seriesSelect, bookSelect, chapters) {
+
+    async function handleSeriesChange(seriesSelect, bookSelect, chapterSelect) {
         const seriesId = seriesSelect.value;
         const books = await fetchData(`/books/${seriesId}`);
         const bookPromises = books.map(id => fetchData(`/book/${id}`));
         const bookDetails = await Promise.all(bookPromises);
-    
+
         if (!bookDetails.length) {
             showNotification('No books found for this series', 'warning');
             resetToSeries();
         } else {
             await populateSelect(bookSelect, bookDetails, 'name', 'book_id');
-            if (chapters) {
-                await handleBookChange(bookSelect);
-                const chapterSelect = editDataFields.querySelector('select[name="chapter_id"]');
-                chapterSelect.dispatchEvent(new Event('change'));
+            if (chapterSelect) {
+                bookSelect.addEventListener('change', async () => await handleBookChange(bookSelect, chapterSelect));
+                await handleBookChange(bookSelect, chapterSelect);
             }
             bookSelect.dispatchEvent(new Event('change'));
         }
     }
-    
-    async function handleBookChange(bookSelect) {
-        let chapterSelect = editDataFields.querySelector('select[name="chapter_id"]');
-        if (!chapterSelect) {
-            chapterSelect = createSelectElement('chapter_id');
-            bookSelect.insertAdjacentElement('afterend', chapterSelect);
+
+    async function handleBookChange(bookSelect, chapterSelect) {
+        const bookId = bookSelect.value;
+        const chapters = await fetchData(`/chapters/${bookId}`);
+        const chapterPromises = chapters.map(id => fetchData(`/chapter/${id}`));
+        const chapterDetails = await Promise.all(chapterPromises);
+
+        // BUG: If there is valid series and book, but no chapters, the DB data element will be showed more than once
+        if (!chapterDetails.length) {
+            showNotification('No chapters found for this book', 'warning');
+            resetToSeries();
+        } else {
+            await populateSelect(chapterSelect, chapterDetails, 'name', 'chapter_id');
+            chapterSelect.dispatchEvent(new Event('change'));
         }
-    
-        return new Promise((resolve) => {
-            bookSelect.addEventListener('change', async function () {
-                const bookId = this.value;
-                const chapters = await fetchData(`/chapters/${bookId}`);
-                const chapterPromises = chapters.map(id => fetchData(`/chapter/${id}`));
-                const chapterDetails = await Promise.all(chapterPromises);
-    
-                if (!chapterDetails.length) {
-                    resetToSeries();
-                    showNotification('No chapters found for this book', 'warning');
-                } else {
-                    await populateSelect(chapterSelect, chapterDetails, 'name', 'chapter_id');
-                    chapterSelect.dispatchEvent(new Event('change')); 
-                }
-                resolve();
-            });
-            bookSelect.dispatchEvent(new Event('change'));
-        });
     }
 
     function resetToSeries() {
@@ -121,51 +115,13 @@ function editDataInit() {
         editDataTypeSelect.dispatchEvent(new Event('change'));
     }
 
-    function addFormDescription(container, text) {
-        const description = document.createElement('label');
-        description.textContent = text;
-        description.className = 'block text-white text-sm font-bold mb-2';
-        container.appendChild(description);
-    }
-
-    function addInputField(name, placeholder, type = 'text') {
-        const inputHtml = `
-            <div class="mb-3">
-                <input 
-                    type="${type}" 
-                    name="${name}" 
-                    placeholder="${placeholder}" 
-                    class="shadow border rounded w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-none focus:shadow-outline"
-                >
-            </div>`;
-        editDataFields.insertAdjacentHTML('beforeend', inputHtml);
-    }
-
-    async function seriesData() {
-        const seriesSelectDL = editDataFields.querySelector('select[name="series_id"]');
-        seriesSelectDL.addEventListener('change', async function () {
-            const seriesId = this.value;
-            loadOldData('series', seriesId);
+    async function showDBdata(type, selectName) {
+        const selectDL = editDataFields.querySelector(`select[name="${selectName}"]`);
+        selectDL.addEventListener('change', async function () {
+            const id = this.value;
+            loadOldData(type, id);
         });
-        seriesSelectDL.dispatchEvent(new Event('change'));
-    }
-
-    async function bookData() {
-        const bookSelectDL = editDataFields.querySelector('select[name="book_id"]');
-        bookSelectDL.addEventListener('change', async function () {
-            const bookId = this.value;
-            loadOldData('books', bookId);
-        });
-        bookSelectDL.dispatchEvent(new Event('change'));
-    }
-
-    async function chapterData() {
-        const chapterSelectDL = editDataFields.querySelector('select[name="chapter_id"]');
-        chapterSelectDL.addEventListener('change', async function () {
-            const chapterId = this.value;
-            loadOldData('chapters', chapterId);
-        });
-        chapterSelectDL.dispatchEvent(new Event('change'));
+        selectDL.dispatchEvent(new Event('change'));
     }
 
     async function loadOldData(type, id) {
@@ -196,11 +152,11 @@ function editDataInit() {
                 }
             }
         };
-    
+
         if (typeMapping[type]) {
             const { endpoint, fields } = typeMapping[type];
             const data = await fetchData(endpoint);
-        
+
             for (const [field, key] of Object.entries(fields)) {
                 const input = editDataFields.querySelector(`input[name="${field}"], select[name="${field}"]`);
                 if (input) {
@@ -216,30 +172,14 @@ function editDataInit() {
         }
     }
 
-    function createSelectElement(name) {
-        const select = document.createElement('select');
-        select.name = name;
-        select.required = true;
-        select.classList.add('shadow', 'border', 'rounded', 'w-full', 'py-2', 'px-3', 'text-white', 'bg-[#191818]', 'leading-tight', 'focus:outline-none', 'focus:shadow-outline', 'mb-3');
-        return select;
-    }
-
-    async function populateSelect(select, data, textKey, valueKey) {
-        select.innerHTML = '';
-        data.forEach(d => {
-            const option = new Option(d[textKey], d[valueKey]);
-            select.add(option);
-        });
-    }
-
-    async function addTypeSelect(container) {
+    async function addFormatSelect(container) {
         const typeSelect = createSelectElement('format');
         container.appendChild(typeSelect);
-    
+
         try {
             const response = await fetch(api + '/series/formats');
             const allowedFormats = await response.json();
-    
+
             allowedFormats.forEach(field => {
                 const option = new Option(field.name, field.format);
                 typeSelect.add(option);
@@ -258,6 +198,43 @@ function editDataInit() {
         statuses.forEach((status, index) => {
             const option = new Option(statusNames[index], status);
             statusSelect.add(option);
+        });
+    }
+
+    function addInputField(container, name, placeholder, type = 'text') {
+        const div = document.createElement('div');
+        div.className = 'mb-3';
+
+        const input = document.createElement('input');
+        input.type = type;
+        input.name = name;
+        input.placeholder = placeholder;
+        input.className = 'shadow border rounded w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-none focus:shadow-outline';
+
+        div.appendChild(input);
+        container.appendChild(div);
+    }
+
+    function addFormDescription(container, text) {
+        const description = document.createElement('label');
+        description.textContent = text;
+        description.className = 'block text-white text-sm font-bold mb-2';
+        container.appendChild(description);
+    }
+
+    function createSelectElement(name) {
+        const select = document.createElement('select');
+        select.name = name;
+        select.required = true;
+        select.classList.add('shadow', 'border', 'rounded', 'w-full', 'py-2', 'px-3', 'text-white', 'bg-[#191818]', 'leading-tight', 'focus:outline-none', 'focus:shadow-outline', 'mb-3');
+        return select;
+    }
+
+    async function populateSelect(select, data, textKey, valueKey) {
+        select.innerHTML = '';
+        data.forEach(d => {
+            const option = new Option(d[textKey], d[valueKey]);
+            select.add(option);
         });
     }
 
@@ -288,11 +265,15 @@ function editDataInit() {
             });
 
             const responseData = await response.json();
-
-            refreshContent()
+    
+            if (!response.ok) {
+                throw new Error(responseData.error || 'Unknown error occurred');
+            }
+    
+            refreshContent();
             showNotification(responseData.data, 'success');
         } catch (e) {
-            showNotification(e.error, 'error');
+            showNotification(e.message, 'error');
         }
     }
 }
