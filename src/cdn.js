@@ -66,7 +66,7 @@ module.exports = function (pool) {
 
   router.delete('/library/delete/:filename', validate, (req, res, next) => {
     try {
-      const filename = req.params.filename;
+      const filename = sanitize(req.params.filename);
       const filePath = path.join(__dirname, '../cdn/library', filename);
 
       if (fs.existsSync(filePath)) {
