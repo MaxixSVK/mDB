@@ -1,7 +1,7 @@
 [
     { "path": "/auth", "route": "./routes/auth" },
-    { "path": "/mange-library", "route": "./routes/userData" },
-    { "path": "/", "route": "./routes/publicData" },
+    { "path": "/mange-library", "route": "./routes/library-user" },
+    { "path": "/", "route": "./routes/library-public" },
     { "path": "/account", "route": "./routes/accountManagement" },
     { "path": "/intelligence", "route": "./routes/intelligence" },
     { "path": "/cdn", "route": "./cdn" },
