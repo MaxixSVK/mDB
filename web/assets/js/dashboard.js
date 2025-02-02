@@ -195,16 +195,6 @@ function showNotification(message, type = 'info', progress = null) {
     }, 5000);
 }
 
-function refreshContent() {
-    const addDataTypeSelect = document.getElementById('add-data-type');
-    const editDataTypeSelect = document.getElementById('edit-data-type');
-    const deleteDataTypeSelect = document.getElementById('delete-data-type');
-
-    addDataTypeSelect.dispatchEvent(new Event('change'));
-    editDataTypeSelect.dispatchEvent(new Event('change'));
-    deleteDataTypeSelect.dispatchEvent(new Event('change'));
-}
-
 async function fetchSessions() {
     const sessionToken = getCookie('sessionToken');
 
