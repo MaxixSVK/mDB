@@ -94,7 +94,7 @@ module.exports = function (pool) {
             const user = rows[0];
             if (!await bcrypt.compare(req.body.oldPassword, user.password_hash)) {
                 connection.release();
-                return res.error('Invalid old password', 400);
+                return res.error('Invalid old password', 401);
             }
     
             const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);

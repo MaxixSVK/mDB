@@ -1,5 +1,4 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const OpenAI = require('openai');
 const axios = require('axios');
 const openai = new OpenAI();

@@ -1,5 +1,4 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 
 module.exports = function (pool) {
     const validate = require('../middleware/checkToken')(pool);

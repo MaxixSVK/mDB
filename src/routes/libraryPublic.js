@@ -1,5 +1,4 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 
 module.exports = function (pool) {
     router.get('/series', async (req, res, next) => {

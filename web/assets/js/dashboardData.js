@@ -4,8 +4,8 @@ async function addLibrarySelect(container, books, chapters) {
         const seriesSelect = createSelectElement('series_id');
         container.appendChild(seriesSelect);
 
-        const seriesIds = await fetchData('/series');
-        const seriesPromises = seriesIds.map(id => fetchData(`/series/${id}`));
+        const seriesIds = await fetchData('/library/series');
+        const seriesPromises = seriesIds.map(id => fetchData(`/library/series/${id}`));
         const series = await Promise.all(seriesPromises);
 
         await populateSelect(seriesSelect, series, 'name', 'series_id');
@@ -31,50 +31,55 @@ async function addLibrarySelect(container, books, chapters) {
 }
 
 async function handleSeriesChange(container, seriesSelect, bookSelect, chapterSelect) {
-    const seriesId = seriesSelect.value;
-    const books = await fetchData(`/books/${seriesId}`);
-    const bookPromises = books.map(id => fetchData(`/book/${id}`));
-    const bookDetails = await Promise.all(bookPromises);
+    try {
+        const seriesId = seriesSelect.value;
+        const books = await fetchData(`/library/books/${seriesId}`);
+        const bookPromises = books.map(id => fetchData(`/library/book/${id}`));
+        const bookDetails = await Promise.all(bookPromises);
 
-    if (!bookDetails.length) {
-        showNotification('No books found for this series', 'warning');
-        resetToSeries(container.id);
-    } else {
-        await populateSelect(bookSelect, bookDetails, 'name', 'book_id');
-        if (chapterSelect) {
-            bookSelect.addEventListener('change', async () => await handleBookChange(container, bookSelect, chapterSelect));
-            await handleBookChange(container, bookSelect, chapterSelect);
+        if (!bookDetails.length) {
+            showNotification('No books found for this series', 'warning');
+            resetToSeries(container.id);
+        } else {
+            await populateSelect(bookSelect, bookDetails, 'name', 'book_id');
+            if (chapterSelect) {
+                bookSelect.addEventListener('change', async () => await handleBookChange(container, bookSelect, chapterSelect));
+                await handleBookChange(container, bookSelect, chapterSelect);
+            }
+            bookSelect.dispatchEvent(new Event('change'));
         }
-        bookSelect.dispatchEvent(new Event('change'));
+    } catch (error) {
+        console.error(error);
     }
 }
 
 async function handleBookChange(container, bookSelect, chapterSelect) {
-    const bookId = bookSelect.value;
-    const chapters = await fetchData(`/chapters/${bookId}`);
-    const chapterPromises = chapters.map(id => fetchData(`/chapter/${id}`));
-    const chapterDetails = await Promise.all(chapterPromises);
+    try {
+        const bookId = bookSelect.value;
+        const chapters = await fetchData(`/library/chapters/${bookId}`);
+        const chapterPromises = chapters.map(id => fetchData(`/library/chapter/${id}`));
+        const chapterDetails = await Promise.all(chapterPromises);
 
-    // BUG: If there is valid series and book, but no chapters, the DB data element will be showed more than once
-    if (!chapterDetails.length) {
-        showNotification('No chapters found for this book', 'warning');
-        resetToSeries(container.id);
-        // TEMP: This is a temporary fix to prevent the bug from happening
-        showNotification('Detected bug, refreshing page in 3 seconds', 'error');
-        setTimeout(() => location.reload(), 3000);
-    } else {
-        await populateSelect(chapterSelect, chapterDetails, 'name', 'chapter_id');
-        chapterSelect.dispatchEvent(new Event('change'));
+        if (!chapterDetails.length) {
+            showNotification('No chapters found for this book', 'warning');
+            resetToSeries(container.id);
+            showNotification('Detected bug, refreshing page in 3 seconds', 'error');
+            setTimeout(() => location.reload(), 3000);
+        } else {
+            await populateSelect(chapterSelect, chapterDetails, 'name', 'chapter_id');
+            chapterSelect.dispatchEvent(new Event('change'));
+        }
+    } catch (error) {
+        console.error(error);
     }
 }
 
 async function addFormatSelect(container) {
-    const typeSelect = createSelectElement('format');
-    container.appendChild(typeSelect);
-
     try {
-        const response = await fetch(api + '/series/formats');
-        const allowedFormats = await response.json();
+        const typeSelect = createSelectElement('format');
+        container.appendChild(typeSelect);
+
+        const allowedFormats = await fetchData('/library/series/formats');
 
         allowedFormats.forEach(field => {
             const option = new Option(field.name, field.format);
@@ -164,58 +169,66 @@ function refreshContent() {
 const editDataFields = document.getElementById('edit-data-fields');
 
 async function showDBdata(type, selectName) {
-    const selectDL = editDataFields.querySelector(`select[name="${selectName}"]`);
-    selectDL.addEventListener('change', async function () {
-        const id = this.value;
-        loadOldData(type, id);
-    });
-    selectDL.dispatchEvent(new Event('change'));
+    try {
+        const selectDL = editDataFields.querySelector(`select[name="${selectName}"]`);
+        selectDL.addEventListener('change', async function () {
+            const id = this.value;
+            await loadOldData(type, id);
+        });
+        selectDL.dispatchEvent(new Event('change'));
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 async function loadOldData(type, id) {
-    const typeMapping = {
-        series: {
-            endpoint: `/series/${id}`,
-            fields: {
-                'name': 'name',
-                'img': 'img',
-                'format': 'format',
-                'status': 'status'
-            }
-        },
-        books: {
-            endpoint: `/book/${id}`,
-            fields: {
-                'name': 'name',
-                'img': 'img',
-                'startedReading': 'startedReading',
-                'endedReading': 'endedReading'
-            }
-        },
-        chapters: {
-            endpoint: `/chapter/${id}`,
-            fields: {
-                'name': 'name',
-                'date': 'date'
-            }
-        }
-    };
-
-    if (typeMapping[type]) {
-        const { endpoint, fields } = typeMapping[type];
-        const data = await fetchData(endpoint);
-
-        for (const [field, key] of Object.entries(fields)) {
-            const input = editDataFields.querySelector(`input[name="${field}"], select[name="${field}"]`);
-            if (input) {
-                let value = data[key] || '';
-                if (input.type === 'date' && value) {
-                    const date = new Date(value);
-                    const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-                    value = new Date(date.getTime() - userTimezoneOffset).toISOString().slice(0, 10);
+    try {
+        const typeMapping = {
+            series: {
+                endpoint: `/library/series/${id}`,
+                fields: {
+                    'name': 'name',
+                    'img': 'img',
+                    'format': 'format',
+                    'status': 'status'
                 }
-                input.value = value;
+            },
+            books: {
+                endpoint: `/library/book/${id}`,
+                fields: {
+                    'name': 'name',
+                    'img': 'img',
+                    'startedReading': 'startedReading',
+                    'endedReading': 'endedReading'
+                }
+            },
+            chapters: {
+                endpoint: `/library/chapter/${id}`,
+                fields: {
+                    'name': 'name',
+                    'date': 'date'
+                }
+            }
+        };
+
+        if (typeMapping[type]) {
+            const { endpoint, fields } = typeMapping[type];
+            const data = await fetchData(endpoint);
+
+            for (const [field, key] of Object.entries(fields)) {
+                const input = editDataFields.querySelector(`input[name="${field}"], select[name="${field}"]`);
+                if (input) {
+                    let value = data[key] || '';
+                    if (input.type === 'date' && value) {
+                        const date = new Date(value);
+                        const userTimezoneOffset = date.getTimezoneOffset() * 60000;
+                        value = new Date(date.getTime() - userTimezoneOffset).toISOString().slice(0, 10);
+                    }
+                    input.value = value;
+                }
             }
         }
+    } catch (error) {
+        console.error(error);
     }
 }

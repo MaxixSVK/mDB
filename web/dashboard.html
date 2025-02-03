@@ -41,7 +41,7 @@
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center">
                     <div>
                         <h2 class="text-2xl font-bold">Welcome to the mDB Dashboard</h2>
-                        <p class="text-lg">Here you can add, edit, and delete data from the database.</p>
+                        <p class="text-lg">Here you can add, edit, and delete data from the database</p>
                     </div>
                     <div class="flex items-center space-x-4 p-4 bg-[#2C2C2C] rounded-lg mt-4 sm:mt-0">
                         <div class="text-right">
@@ -157,108 +157,15 @@
                 </div>
                 <div id="cdnList"></div>
             </section>
-            <section id="account" class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6  mb:mb-6 p-4 md:p-6 rounded-md">
-                <h1 class="text-2xl font-bold text-white mb-2">Account</h1>
-                <div id="passwordHeader"
-                    class="flex justify-between items-center cursor-pointer hover:text-[#FFA500] mb-2">
-                    <h2 class="text-xl font-bold text-white hover:text-[#FFA500]">
-                        Change Password</h2>
-                    <i class="fas fa-chevron-right ml-2"></i>
-                </div>
-                <form id="changePassowrd" class="mb-4 hidden">
-                    <div class="mb-3">
-                        <label class="block text-white text-sm font-bold mb-2" for="oldPassword">
-                            Old Password
-                        </label>
-                        <input
-                            class="shadow border rounded w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-none focus:shadow-outline"
-                            id="oldPassword" name="oldPassword" type="password" placeholder="Old Password"
-                            required="true">
-                    </div>
-                    <div class="mb-3">
-                        <label class="block text-white text-sm font-bold mb-2" for="newPassword">
-                            New Password
-                        </label>
-                        <input
-                            class="shadow border rounded w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-none focus:shadow-outline"
-                            id="newPassword" name="newPassword" type="password" placeholder="New Password"
-                            required="true">
-                    </div>
-                    <div class="mb-3">
-                        <label class="block text-white text-sm font-bold mb-2" for="confirmPassword">
-                            Confirm Password
-                        </label>
-                        <input
-                            class="shadow border rounded w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-none focus:shadow-outline"
-                            id="confirmPassword" name="confirmPassword" type="password" placeholder="Confirm Password"
-                            required="true">
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <button type="submit"
-                            class="w-full md:w-auto border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300">
-                            Change Password
-                        </button>
-                    </div>
-                </form>
-                <div id="qrGenHeader"
-                    class="flex justify-between items-center cursor-pointer hover:text-[#FFA500] mb-2">
-                    <h2 class="text-xl font-bold text-white hover:text-[#FFA500]">
-                        Generate Login QR code</h2>
-                    <i class="fas fa-chevron-right ml-2"></i>
-                </div>
-                <div id="qrGen" class="hidden">
-                </div>
-                <div id="sessionHeader" class="flex justify-between items-center cursor-pointer hover:text-[#FFA500]">
-                    <h2 class="text-xl font-bold text-white hover:text-[#FFA500]">
-                        Sessions</h2>
-                    <i class="fas fa-chevron-right ml-2"></i>
-                </div>
-                <div id="sessionList" class="hidden"></div>
-            </section>
         </main>
         <section id="notification-container" class="fixed top-4 right-4 space-y-4 z-50"></section>
-        <section id="renameModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
-            <div class="flex items-center justify-center min-h-screen px-4 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                    <div class="absolute inset-0 bg-gray-900 opacity-75"></div>
-                </div>
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                <div
-                    class="inline-block align-bottom bg-[#191818] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:align-middle sm:max-w-lg sm:w-full w-full mx-4 my-8 sm:my-0">
-                    <div class="bg-[#191818] px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <div class="sm:flex sm:items-start">
-                            <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                                <h3 class="text-xl leading-6 font-medium text-white" id="modal-title">Rename File</h3>
-                                <div class="mt-4">
-                                    <input type="text" id="newFilenameInput"
-                                        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full text-lg border-gray-600 rounded-md bg-[#191818] text-white"
-                                        placeholder="Enter new filename">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-[#191818] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button id="renameConfirmButton" type="button"
-                            class="w-full sm:w-auto border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300 mb-3 md:mb-0">
-                            Rename
-                        </button>
-                        <button id="renameCancelButton" type="button"
-                            class="w-full sm:w-auto border-2 border-dashed border-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-500 hover:text-black transition duration-300 mr-0 md:mr-3">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
+    </div>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/1.0.37/ua-parser.min.js"
-            integrity="sha512-LAchvH0Y4sxYM1ouOaqHQ6WbSXvOgkioPaiyW0oPOFNNMNfpsBEpvzYmsxgDf8pQM/fMaMdxYP/nFenquTAkdw=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-        <script src="assets/js/api.js"></script>
-        <script src="assets/js/dashboard.js"></script>
-        <script src="assets/js/dashboardData.js"></script>
-        <script src="assets/js/dashboardDataHandlers.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/dashboard.js"></script>
+    <script src="assets/js/dashboardData.js"></script>
+    <script src="assets/js/dashboardDataHandlers.js"></script>
 
 </body>
 

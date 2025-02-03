@@ -52,7 +52,7 @@ function fetchStats() {
     document.getElementById('stats').addEventListener('click', function () {
         window.location.href = '/stats';
     });
-    fetch(api + '/stats')
+    fetch(api + '/library/stats')
         .then(response => response.json())
         .then(data => {
             document.getElementById('series-count').textContent = data.seriesCount;
@@ -62,7 +62,7 @@ function fetchStats() {
 }
 
 function createFormatLists() {
-    fetch(api + '/series/formats')
+    fetch(api + '/library/series/formats')
         .then(response => response.json()
             .then(data => {
                 data.forEach(a => {
@@ -106,11 +106,11 @@ function getUniqueFormats(seriesData) {
 }
 
 function fetchSeriesList() {
-    fetch(api + '/series')
+    fetch(api + '/library/series')
         .then(response => response.json())
         .then(seriesIds => {
             const seriesPromises = seriesIds.map(seriesId =>
-                fetch(api + '/series/' + seriesId).then(response => response.json())
+                fetch(api + '/library/series/' + seriesId).then(response => response.json())
             );
             return Promise.all(seriesPromises);
         })
@@ -207,7 +207,7 @@ function renderSeries(series, isSearch = false) {
 }
 
 function fetchBookList(data, isSearch) {
-    const fetchBookData = (bookId) => fetch(api + '/book/' + bookId).then(response => response.json());
+    const fetchBookData = (bookId) => fetch(api + '/library/book/' + bookId).then(response => response.json());
 
     if (isSearch) {
         const bookPromises = data.map(book =>
@@ -223,7 +223,7 @@ function fetchBookList(data, isSearch) {
                 bookData.forEach(book => renderBook(book, true));
             });
     } else {
-        fetch(api + '/books/' + data)
+        fetch(api + '/library/books/' + data)
             .then(response => response.json())
             .then(bookIds => Promise.all(bookIds.map(fetchBookData)))
             .then(bookData => {
@@ -292,17 +292,17 @@ async function fetchBookDetails(book, isSearch) {
     if (isSearch) {
         bookData = book;
         const chapterPromises = book.chapters.map(chapter =>
-            fetch(api + '/chapter/' + chapter.chapter_id).then(response => response.json())
+            fetch(api + '/library/chapter/' + chapter.chapter_id).then(response => response.json())
         );
         chapterData = await Promise.all(chapterPromises);
     } else {
-        const bookPromise = fetch(api + '/book/' + book.book_id).then(response => response.json());
-        const chaptersPromise = fetch(api + '/chapters/' + book.book_id)
+        const bookPromise = fetch(api + '/library/book/' + book.book_id).then(response => response.json());
+        const chaptersPromise = fetch(api + '/library/chapters/' + book.book_id)
             .then(response => response.json())
             .then(chapterIds => {
                 // TODO: if there are no chapters, show a message saying there are no chapters in this book
                 const chapterPromises = chapterIds.map(chapterId =>
-                    fetch(api + '/chapter/' + chapterId).then(response => response.json())
+                    fetch(api + '/library/chapter/' + chapterId).then(response => response.json())
                 );
                 return Promise.all(chapterPromises);
             });
@@ -416,7 +416,7 @@ function setupSearch() {
 }
 
 function performSearch(searchTerm) {
-    fetch(api + '/search/' + searchTerm)
+    fetch(api + '/library/search/' + searchTerm)
         .then(response => response.json())
         .then(data => {
             if (data.length === 0) {
@@ -434,7 +434,7 @@ function renderSearchResults(results) {
     cleanAllFormatLists();
 
     results.forEach(result => {
-        fetch(api + '/series/' + result.series_id)
+        fetch(api + '/library/series/' + result.series_id)
         .then(response => response.json())
         .then(series => {
             series.books = result.books;

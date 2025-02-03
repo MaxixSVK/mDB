@@ -1,6 +1,5 @@
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
-const QRCode = require('qrcode');
 const jwt = require('jsonwebtoken');
 
 const saltRounds = 10;
@@ -110,33 +109,19 @@ module.exports = function (pool) {
             connection.release();
 
             if (rows.length === 0) {
-                return res.error('User not found', 404);
+                return res.error('Invalid username or password', 401);
             }
 
             const user = rows[0];
             const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
             if (!isPasswordValid) {
-                return res.error('Invalid password', 401);
+                return res.error('Invalid username or password', 401);
             }
 
             const sessionToken = await createSessionToken(user.id, userAgent, ipAddress, pool);
 
             res.success({ sessionToken });
-        } catch (error) {
-            next(error);
-        }
-    });
-
-    router.get('/generate-qr-pc-m', validate, async (req, res, next) => {
-        const userId = req.userId;
-        const userAgent = req.headers['user-agent'];
-        const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-
-        try {
-            const sessionToken = await createSessionToken(userId, userAgent, ipAddress, pool);
-            const qrCodeUrl = await QRCode.toDataURL(sessionToken);
-            res.success({ qrCodeUrl });
         } catch (error) {
             next(error);
         }
