@@ -28,7 +28,7 @@ function showNotification(message, type = 'info', progress = null) {
     notification.className = `${baseClasses} ${typeClasses[type]} translate-y-4 opacity-0`;
     notification.innerHTML = `
         <span class="flex-1">${message}</span>
-        <button class="ml-4 text-lg font-bold focus:outline-none" onclick="this.parentElement.remove()">×</button>
+        <button class="ml-4 text-lg font-bold focus:outline-hidden" onclick="this.parentElement.remove()">×</button>
     `;
 
     progressBar.className = 'progress-bar absolute bottom-0 left-0 w-full h-1 bg-opacity-50';

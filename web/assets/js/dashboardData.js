@@ -110,7 +110,7 @@ function addInputField(container, name, placeholder, type = 'text') {
     input.type = type;
     input.name = name;
     input.placeholder = placeholder;
-    input.className = 'shadow border rounded w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-none focus:shadow-outline';
+    input.className = 'shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline';
 
     div.appendChild(input);
     container.appendChild(div);
@@ -127,7 +127,7 @@ function createSelectElement(name) {
     const select = document.createElement('select');
     select.name = name;
     select.required = true;
-    select.classList.add('shadow', 'border', 'rounded', 'w-full', 'py-2', 'px-3', 'text-white', 'bg-[#191818]', 'leading-tight', 'focus:outline-none', 'focus:shadow-outline', 'mb-3');
+    select.classList.add('shadow-sm', 'border', 'rounded-sm', 'w-full', 'py-2', 'px-3', 'text-white', 'bg-[#191818]', 'leading-tight', 'focus:outline-hidden', 'focus:shadow-outline', 'mb-3');
     return select;
 }
 

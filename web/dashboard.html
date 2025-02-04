@@ -27,7 +27,7 @@
 </head>
 
 <body class="bg-[#131313] font-figtree">
-    <div id="app" class="max-w-screen-xl xl:mx-auto mx-4 shadow-lg">
+    <div id="app" class="max-w-(--breakpoint-xl) xl:mx-auto mx-4 shadow-lg">
         <nav class="flex justify-between items-center py-4">
             <a href="/" class="text-3xl text-white font-bold">
                 mDatabase
@@ -67,7 +67,7 @@
                             Type
                         </label>
                         <select id="add-data-type" name="type"
-                            class="shadow border rounded w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-none focus:shadow-outline">
+                            class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline">
                             <option value="series">Series</option>
                             <option value="book">Book</option>
                             <option value="chapter">Chapter</option>
@@ -90,7 +90,7 @@
                             Type
                         </label>
                         <select id="edit-data-type" name="type"
-                            class="shadow border rounded w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-none focus:shadow-outline">
+                            class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline">
                             <option value="series">Series</option>
                             <option value="book">Book</option>
                             <option value="chapter">Chapter</option>
@@ -113,7 +113,7 @@
                             Type
                         </label>
                         <select id="delete-data-type" name="type"
-                            class="shadow border rounded w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-none focus:shadow-outline">
+                            class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline">
                             <option value="series">Series</option>
                             <option value="book">Book</option>
                             <option value="chapter">Chapter</option>
@@ -134,7 +134,7 @@
                     <div class="mb-3 flex flex-col sm:flex-row items-center">
                         <input type="file" id="cdn-upload" name="cdn-upload" accept="image/*" class="hidden">
                         <label for="cdn-upload"
-                            class="cursor-pointer shadow border rounded py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-none focus:shadow-outline mb-2 sm:mb-0 sm:mr-3 w-full sm:w-auto">
+                            class="cursor-pointer shadow-sm border rounded-sm py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline mb-2 sm:mb-0 sm:mr-3 w-full sm:w-auto">
                             Choose File
                         </label>
                         <span id="file-name"

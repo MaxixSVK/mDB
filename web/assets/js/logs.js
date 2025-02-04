@@ -161,7 +161,7 @@ function getChangeTypeColor(changeType) {
 function createDataElement(data) {
     return `
         <div class="text-white mb-2 overflow-x-auto">
-            <pre class="bg-[#2A2A2A] p-2 rounded whitespace-pre-wrap md:whitespace-pre">${JSON.stringify(data, null, 2)}</pre>
+            <pre class="bg-[#2A2A2A] p-2 rounded-sm whitespace-pre-wrap md:whitespace-pre">${JSON.stringify(data, null, 2)}</pre>
         </div>
     `;
 }
