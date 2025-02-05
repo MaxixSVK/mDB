@@ -378,8 +378,6 @@
       --font-mono--font-variation-settings
     );
     --font-figtree: Figtree, sans-serif;
-    --animate-fade-in: fadeIn 0.5s ease-in-out;
-    --animate-fade-out: fadeOut 0.5s ease-in-out;
   }
 }
 @layer base {
@@ -620,9 +618,6 @@
   .mr-4 {
     margin-right: calc(var(--spacing) * 4);
   }
-  .mb-1 {
-    margin-bottom: calc(var(--spacing) * 1);
-  }
   .mb-2 {
     margin-bottom: calc(var(--spacing) * 2);
   }
@@ -665,27 +660,6 @@
       height: var(--scrollbar-height, 16px);
     }
   }
-  .scrollbar-thin {
-    &::-webkit-scrollbar-track {
-      background-color: var(--scrollbar-track);
-      border-radius: var(--scrollbar-track-radius);
-    }
-    &::-webkit-scrollbar-thumb {
-      background-color: var(--scrollbar-thumb);
-      border-radius: var(--scrollbar-thumb-radius);
-    }
-    &::-webkit-scrollbar-corner {
-      background-color: var(--scrollbar-corner);
-      border-radius: var(--scrollbar-corner-radius);
-    }
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb, initial) var(--scrollbar-track, initial);
-    &::-webkit-scrollbar {
-      display: block;
-      width: 8px;
-      height: 8px;
-    }
-  }
   .block {
     display: block;
   }
@@ -719,12 +693,6 @@
   .h-24 {
     height: calc(var(--spacing) * 24);
   }
-  .h-96 {
-    height: calc(var(--spacing) * 96);
-  }
-  .h-auto {
-    height: auto;
-  }
   .h-full {
     height: 100%;
   }
@@ -733,9 +701,6 @@
   }
   .w-10 {
     width: calc(var(--spacing) * 10);
-  }
-  .w-32 {
-    width: calc(var(--spacing) * 32);
   }
   .w-full {
     width: 100%;
@@ -775,12 +740,6 @@
   }
   .resize {
     resize: both;
-  }
-  .list-inside {
-    list-style-position: inside;
-  }
-  .list-disc {
-    list-style-type: disc;
   }
   .grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -850,14 +809,6 @@
   .rounded-sm {
     border-radius: var(--radius-sm);
   }
-  .rounded-l-md {
-    border-top-left-radius: var(--radius-md);
-    border-bottom-left-radius: var(--radius-md);
-  }
-  .rounded-r-md {
-    border-top-right-radius: var(--radius-md);
-    border-bottom-right-radius: var(--radius-md);
-  }
   .border {
     border-style: var(--tw-border-style);
     border-width: 1px;
@@ -865,10 +816,6 @@
   .border-2 {
     border-style: var(--tw-border-style);
     border-width: 2px;
-  }
-  .border-t {
-    border-top-style: var(--tw-border-style);
-    border-top-width: 1px;
   }
   .border-t-4 {
     border-top-style: var(--tw-border-style);
@@ -888,9 +835,6 @@
   .border-\[\#191818\] {
     border-color: #191818;
   }
-  .border-\[\#1F1F1F\] {
-    border-color: #1F1F1F;
-  }
   .border-\[\#FFA500\] {
     border-color: #FFA500;
   }
@@ -902,9 +846,6 @@
   }
   .bg-\[\#2C2C2C\] {
     background-color: #2C2C2C;
-  }
-  .bg-\[\#333\] {
-    background-color: #333;
   }
   .bg-\[\#131313\] {
     background-color: #131313;
@@ -926,9 +867,6 @@
   }
   .bg-red-600 {
     background-color: var(--color-red-600);
-  }
-  .bg-transparent {
-    background-color: transparent;
   }
   .bg-white {
     background-color: var(--color-white);
@@ -1073,11 +1011,6 @@
   .text-yellow-500 {
     color: var(--color-yellow-500);
   }
-  .placeholder-gray-500 {
-    &::placeholder {
-      color: var(--color-gray-500);
-    }
-  }
   .opacity-0 {
     opacity: 0%;
   }
@@ -1143,17 +1076,6 @@
   }
   .scrollbar-track-\[\#191818\] {
     --scrollbar-track: #191818;
-  }
-  .focus-within\:ring-2 {
-    &:focus-within {
-      --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentColor);
-      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-    }
-  }
-  .focus-within\:ring-\[\#FFA500\] {
-    &:focus-within {
-      --tw-ring-color: #FFA500;
-    }
   }
   .hover\:scale-105 {
     &:hover {
@@ -1359,11 +1281,6 @@
   }
 }
 @layer base {
-  *, ::after, ::before, ::backdrop, ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
-  }
-}
-@layer base {
   * {
     scrollbar-color: initial;
     scrollbar-width: initial;
@@ -1393,22 +1310,6 @@
   50% {
     transform: none;
     animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-  }
-}
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
   }
 }
 @property --tw-translate-x {

@@ -132,11 +132,6 @@ function switchSection(hideSectionId, showSectionId) {
     const hideSection = document.getElementById(hideSectionId);
     const showSection = document.getElementById(showSectionId);
 
-    hideSection.classList.add('animate-fadeOut');
-    setTimeout(() => {
-        hideSection.classList.add('hidden');
-        hideSection.classList.remove('animate-fadeOut');
-        showSection.classList.remove('hidden');
-        showSection.classList.add('animate-fadeIn');
-    }, 500);
+    hideSection.classList.add('hidden');
+    showSection.classList.remove('hidden');
 }
