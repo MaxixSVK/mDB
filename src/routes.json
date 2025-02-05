@@ -3,7 +3,6 @@
     { "path": "/library", "route": "./routes/libraryPublic" },
     { "path": "/mange-library", "route": "./routes/libraryUser" },
     { "path": "/account", "route": "./routes/accountManagement" },
-    { "path": "/intelligence", "route": "./routes/intelligence" },
     { "path": "/server", "route": "./routes/server" },
     { "path": "/cdn", "route": "./cdn" }
 ]
