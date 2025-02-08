@@ -1,18 +1,17 @@
-const express = require('express');
-const multer = require('multer');
+const router = require('express').Router();
 const sanitize = require('sanitize-filename');
+const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
 const { createLibraryStorage, createPfpStorage } = require('./cdnStorage')
 const { backupCDN } = require('./backup/cdn');
-const sendImage = require('./middleware/sendImage');
 
-const router = express.Router();
+const sendImage = require('./middleware/sendImage');
 router.use(sendImage);
 
 module.exports = function (pool) {
-  const validate = require('./middleware/checkToken')(pool, admin = true);
+  const validateToken = require('./middleware/checkToken')(pool, admin = true);
 
   const uploadLibraryImage = multer({ storage: createLibraryStorage() });
   const uploadUserPFP = multer({ storage: createPfpStorage() });
@@ -31,8 +30,8 @@ module.exports = function (pool) {
       } else {
         res.success('Requested file does not exist.');
       }
-    } catch (error) {
-      next(error);
+    } catch (err) {
+      next(err);
     }
   });
 
@@ -45,7 +44,6 @@ module.exports = function (pool) {
         if (err) {
           next(err);
         }
-        
         res.send(files.filter(file => file.includes(search)));
       });
     } catch (error) {
@@ -53,18 +51,18 @@ module.exports = function (pool) {
     }
   });
 
-  router.post('/library/upload', validate, uploadLibraryImage.single('image'), (req, res, next) => {
+  router.post('/library/upload', validateToken, uploadLibraryImage.single('image'), (req, res, next) => {
     try {
       if (!req.file) {
         return res.error('Please upload a file.', 400);
       }
       res.success({ msg: 'File uploaded.', filename: req.file.originalname });
-    } catch (error) {
-      next(error);
+    } catch (err) {
+      next(err);
     }
   });
 
-  router.delete('/library/delete/:filename', validate, (req, res, next) => {
+  router.delete('/library/delete/:filename', validateToken, (req, res, next) => {
     try {
       const filename = sanitize(req.params.filename);
       const filePath = path.join(__dirname, '../cdn/library', filename);
@@ -79,8 +77,8 @@ module.exports = function (pool) {
       } else {
         res.success('Requested file does not exist.');
       }
-    } catch (error) {
-      next(error);
+    } catch (err) {
+      next(err);
     }
   });
 
@@ -98,23 +96,23 @@ module.exports = function (pool) {
       } else {
         res.success('Requested file does not exist.');
       }
-    } catch (error) {
-      next(error);
+    } catch (err) {
+      next(err);
     }
   });
 
-  router.post('/users/upload/pfp', validate, uploadUserPFP.single('image'), async (req, res, next) => {
+  router.post('/users/upload/pfp', validateToken, uploadUserPFP.single('image'), async (req, res, next) => {
     try {
       if (!req.file) {
         return res.error('Please upload a file.', 400);
       }
       res.success({ msg: 'File uploaded.', filename: req.file.originalname });
-    } catch (error) {
-      next(error);
+    } catch (err) {
+      next(err);
     }
   });
 
-  router.get('/backup', validate, async (req, res, next) => {
+  router.get('/backup', validateToken, async (req, res, next) => {
     let backupFile;
     try {
       backupFile = await backupCDN();
@@ -126,11 +124,11 @@ module.exports = function (pool) {
           next(err);
         }
       });
-    } catch (error) {
+    } catch (err) {
       if (backupFile) {
         fs.unlinkSync(backupFile);
       }
-      next(error);
+      next(err);
     }
   });
 

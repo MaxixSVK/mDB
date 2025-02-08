@@ -23,7 +23,7 @@ function addEventListeners() {
 }
 
 function fetchStats() {
-    fetch(api + '/stats')
+    fetch(api + '/library/stats')
         .then(response => response.json())
         .then(data => {
             document.getElementById('series-count').textContent = data.seriesCount;
@@ -33,7 +33,7 @@ function fetchStats() {
 }
 
 function fetchStatsByMonth(year) {
-    fetch(api + '/stats/month/' + year)
+    fetch(api + '/library/stats/month/' + year)
         .then(response => response.json())
         .then(data => {
             const canvas = document.getElementById('chart-month');
@@ -52,7 +52,7 @@ function fetchStatsByMonth(year) {
 
             const dataMap = data.reduce((acc, item) => {
                 const date = new Date(item.month);
-                acc[date.getMonth()] = item.chapterCount;
+                acc[date.getMonth()] = item.chapters;
                 return acc;
             }, {});
 

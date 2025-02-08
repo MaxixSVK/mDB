@@ -38,20 +38,20 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
     logger.error(`500 Internal Server Error - ${err}`);
-    res.error('Internal Server Error', 500);
+    res.error('Internal Server Error', 500, true);
 });
 
 const startServer = async () => {
     try {
+        startupCheck();
         await pool.getConnection().then(conn => conn.release());
         logger.info('Database connection established');
         app.listen(config.port, () => {
             logger.info(`Server version ${package.version} started on port ${config.port}`);
-            startupCheck();
             automaticBackup();
         });
     } catch (err) {
-        logger.error(`Database connection error: ${err.message}`);
+        logger.error(`Error starting server: ${err}`);
         process.exit(1);
     }
 };

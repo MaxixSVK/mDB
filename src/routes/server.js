@@ -1,5 +1,4 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const fs = require('fs');
 const path = require('path');
 
@@ -10,54 +9,49 @@ const configFilePath = path.join(__dirname, '../../config.json');
 let configFile = require(configFilePath);
 
 module.exports = function (pool) {
-    const validate = require('../middleware/checkToken')(pool, admin = true);
+    const validateToken = require('../middleware/checkToken')(pool, true);
+    router.use(validateToken);
 
-    router.get('/config', validate, (req, res, next) => {
+    router.get('/', (req, res, next) => {
+        res.success({ userId: req.userId, sessionId: req.sessionId });
+    });
+
+    router.get('/config', (req, res, next) => {
         res.json(configFile);
     });
 
-    router.put('/config', validate, (req, res, next) => {
-        const { body } = req;
-    
+    router.put('/config', (req, res, next) => {
         try {
+            const { body } = req;
             for (let key in body) {
                 configFile[key] = body[key];
             }
-    
+
             fs.writeFile(configFilePath, JSON.stringify(configFile, null, 2), (err) => {
-                if (err) {
-                    logger.error('Failed to update config file by ACP:', err);
-                    return res.error('Failed to update config file', 500);
-                }
                 logger.info('Config file updated by ACP');
                 res.json(configFile);
             });
-        } catch (error) {
-            next(error);
+        } catch (err) {
+            next(err);
         }
     });
 
-    router.get('/backup-db', validate, async (req, res, next) => {
+    router.get('/backup-db', async (req, res, next) => {
         let backupFile;
         try {
             backupFile = await backupDatabase();
             const date = new Date().toISOString().split('T')[0];
             const fileName = `mdb-db-backup-${date}.sql`;
             res.download(backupFile, fileName, (err) => {
-                fs.unlinkSync(backupFile);
-                if (err) {
-                    next(err);
-                }
+                if (backupFile) fs.unlinkSync(backupFile);
             });
-        } catch (error) {
-            if (backupFile) {
-                fs.unlinkSync(backupFile);
-            }
-            next(error);
+        } catch (err) {
+            if (backupFile) fs.unlinkSync(backupFile);
+            next(err);
         }
     });
 
-    router.get('/logs', validate, async (req, res, next) => {
+    router.get('/logs', async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
@@ -80,11 +74,7 @@ module.exports = function (pool) {
                 const filePath = path.join(__dirname, 'logs.json');
                 fs.writeFileSync(filePath, JSON.stringify(logs, null, 2));
                 res.download(filePath, 'logs.json', err => {
-                    if (err) {
-                        next(err);
-                    } else {
-                        fs.unlinkSync(filePath);
-                    }
+                    fs.unlinkSync(filePath);
                 });
             } else {
                 res.success(logs);
@@ -96,7 +86,7 @@ module.exports = function (pool) {
         }
     });
 
-    router.get('/restart', validate, (req, res, next) => {
+    router.get('/restart', (req, res, next) => {
         logger.info('Request to restart server from ACP, restarting...');
         res.json({ message: 'Restarting server...' });
         setTimeout(() => {

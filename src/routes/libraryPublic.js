@@ -5,14 +5,14 @@ module.exports = function (pool) {
         let conn;
         try {
             conn = await pool.getConnection();
-            const query = 'SELECT series_id FROM series';
-            const rows = await conn.query(query);
-            const seriesIds = rows.map(row => row.series_id);
+            const data = await conn.query('SELECT series_id FROM series');
+            const seriesIds = data.map(row => row.series_id);
+
             res.success(seriesIds);
         } catch (err) {
             next(err);
         } finally {
-            if (conn) conn.end();
+            if (conn) conn.release();
         }
     });
 
@@ -29,14 +29,13 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const { series_id } = req.params;
-            const query = 'SELECT * FROM series WHERE series_id = ?';
-            const rows = await conn.query(query, [series_id]);
+            const [data] = await conn.query('SELECT * FROM series WHERE series_id = ?', [series_id]);
 
-            res.success(rows[0]);
+            res.success(data);
         } catch (err) {
             next(err);
         } finally {
-            if (conn) conn.end();
+            if (conn) conn.release();
         }
     });
 
@@ -45,14 +44,14 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const { series_id } = req.params;
-            const query = 'SELECT book_id FROM books WHERE series_id = ?';
-            const rows = await conn.query(query, [series_id]);
+            const data = await conn.query('SELECT book_id FROM books WHERE series_id = ?', [series_id]);
+            const bookIds = data.map(row => row.book_id);
 
-            res.success(rows.map(row => row.book_id));
+            res.success(bookIds);
         } catch (err) {
             next(err);
         } finally {
-            if (conn) conn.end();
+            if (conn) conn.release();
         }
     });
 
@@ -61,14 +60,13 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const { book_id } = req.params;
-            const query = 'SELECT * FROM books WHERE book_id = ?';
-            const rows = await conn.query(query, [book_id]);
+            const [data] = await conn.query('SELECT * FROM books WHERE book_id = ?', [book_id]);
 
-            res.success(rows[0]);
+            res.success(data);
         } catch (err) {
             next(err);
         } finally {
-            if (conn) conn.end();
+            if (conn) conn.release();
         }
     });
 
@@ -77,14 +75,14 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const { book_id } = req.params;
-            const query = 'SELECT chapter_id FROM chapters WHERE book_id = ?';
-            const rows = await conn.query(query, [book_id]);
+            const data = await conn.query('SELECT chapter_id FROM chapters WHERE book_id = ?', [book_id]);
+            const chapterIds = data.map(row => row.chapter_id);
 
-            res.success(rows.map(row => row.chapter_id));
+            res.success(chapterIds);
         } catch (err) {
             next(err);
         } finally {
-            if (conn) conn.end();
+            if (conn) conn.release();
         }
     });
 
@@ -93,14 +91,13 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const { chapter_id } = req.params;
-            const query = 'SELECT * FROM chapters WHERE chapter_id = ?';
-            const rows = await conn.query(query, [chapter_id]);
+            const [data] = await conn.query('SELECT * FROM chapters WHERE chapter_id = ?', [chapter_id]);
 
-            res.success(rows[0]);
+            res.success(data);
         } catch (err) {
             next(err);
         } finally {
-            if (conn) conn.end();
+            if (conn) conn.release();
         }
     });
 
@@ -155,7 +152,7 @@ module.exports = function (pool) {
         } catch (err) {
             next(err);
         } finally {
-            if (conn) conn.end();
+            if (conn) conn.release();
         }
     });
 
@@ -172,16 +169,16 @@ module.exports = function (pool) {
                 (SELECT COUNT(series_id) FROM series WHERE format = 'lightNovel') as lightNovelCount;
             `;
 
-            const rows = await conn.query(query);
+            const [data] = await conn.query(query);
             const stats = {
-                seriesCount: rows[0].seriesCount.toString(),
-                bookCount: rows[0].bookCount.toString(),
-                chapterCount: rows[0].chapterCount.toString(),
-                mangaCount: rows[0].mangaCount.toString(),
-                lightNovelCount: rows[0].lightNovelCount.toString()
+                seriesCount: Number(data.seriesCount),
+                bookCount: Number(data.bookCount),
+                chapterCount: Number(data.chapterCount),
+                mangaCount: Number(data.mangaCount),
+                lightNovelCount: Number(data.lightNovelCount)
             };
-            res.success(stats);
 
+            res.success(stats);
         } catch (err) {
             next(err);
         } finally {
@@ -192,25 +189,25 @@ module.exports = function (pool) {
     router.get('/stats/month/:year?', async (req, res, next) => {
         let conn;
         try {
-            const year = req.params.year || new Date().getFullYear();
             conn = await pool.getConnection();
+            const year = req.params.year || new Date().getFullYear();
             const query = `
                 SELECT 
                     DATE_FORMAT(date, '%Y-%m') as month,
-                    COUNT(chapter_id) as chapterCount
+                    COUNT(chapter_id) as chapters
                 FROM chapters
                 WHERE YEAR(date) = ?
                 GROUP BY month
                 ORDER BY month;
             `;
 
-            const rows = await conn.query(query, [year]);
-            const formattedRows = rows.map(row => ({
-                ...row,
-                chapterCount: row.chapterCount.toString()
+            const data = await conn.query(query, [year]);
+            const stats = data.map(item => ({
+                ...item,
+                chapters: Number(item.chapters)
             }));
-            res.success(formattedRows);
 
+            res.success(stats);
         } catch (err) {
             next(err);
         } finally {

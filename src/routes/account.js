@@ -2,111 +2,122 @@ const router = require('express').Router();
 const bcrypt = require('bcrypt');
 
 module.exports = function (pool) {
-    const validate = require('../middleware/checkToken')(pool);
+    const validateToken = require('../middleware/checkToken')(pool);
+    router.use(validateToken);
 
-    router.get('/', validate, async (req, res, next) => {
+    router.get('/', async (req, res, next) => {
+        let conn;
         try {
-            const connection = await pool.getConnection();
-            const rows = await connection.query(
+            conn = await pool.getConnection();
+            const [user] = await conn.query(
                 'SELECT id, username, email, role FROM users WHERE id = ?',
                 [req.userId]
             );
-            connection.release();
 
-            res.success(rows[0]);
+            res.success(user);
         } catch (error) {
             next(error);
+        } finally {
+            if (conn) conn.release();
         }
     });
 
-    router.get('/validate', validate, (req, res) => {
+    router.get('/validate', (req, res) => {
         res.success({ userId: req.userId, sessionId: req.sessionId });
     });
 
-    router.get('/logout', validate, async (req, res, next) => {
+    router.get('/logout', async (req, res, next) => {
+        let conn;
         try {
-            const connection = await pool.getConnection();
-            await connection.query(
+            conn = await pool.getConnection();
+            await conn.query(
                 'DELETE FROM sessions WHERE user_id = ? AND id = ?',
                 [req.userId, req.sessionId]
             );
-            connection.release();
-    
+
             res.success({ msg: 'Logged out' });
         } catch (error) {
             next(error);
+        } finally {
+            if (conn) conn.release();
         }
     });
 
-    router.get('/logout-all', validate, async (req, res, next) => {
+    router.get('/logout-all', async (req, res, next) => {
+        let conn;
         try {
-            const connection = await pool.getConnection();
-            await connection.query(
+            conn = await pool.getConnection();
+            await conn.query(
                 'DELETE FROM sessions WHERE user_id = ?',
                 [req.userId]
             );
-            connection.release();
-    
+
             res.success({ msg: 'Logged out from all devices' });
         } catch (error) {
             next(error);
+        } finally {
+            if (conn) conn.release();
         }
     });
 
-    router.get('/sessions', validate, async (req, res, next) => {
+    router.get('/sessions', async (req, res, next) => {
+        let conn;
         try {
-            const connection = await pool.getConnection();
-            const rows = await connection.query(
+            conn = await pool.getConnection();
+            const data = await conn.query(
                 'SELECT id, created_at, user_agent, ip_address FROM sessions WHERE user_id = ? AND expires_at > NOW()',
                 [req.userId]
             );
-            connection.release();
-    
-            res.success(rows);
+
+            res.success(data);
         } catch (error) {
             next(error);
+        } finally {
+            if (conn) conn.release();
         }
     });
 
-    router.post('/session-destroy', validate, async (req, res, next) => {
+    router.post('/session-destroy', async (req, res, next) => {
+        let conn;
         try {
-            const connection = await pool.getConnection();
+            conn = await pool.getConnection();
             await connection.query(
                 'DELETE FROM sessions WHERE user_id = ? AND id = ?',
                 [req.userId, req.body.sessionId]
             );
-            connection.release();
-    
+
             res.success({ msg: 'Session destroyed' });
         } catch (error) {
             next(error);
+        } finally {
+            if (conn) conn.release();
         }
     });
 
-    router.put('/change-password', validate, async (req, res, next) => {
+    router.put('/change-password', async (req, res, next) => {
+        let conn;
         try {
-            const connection = await pool.getConnection();
-            const rows = await connection.query(
+            conn = await pool.getConnection();
+            const [user] = await conn.query(
                 'SELECT password_hash FROM users WHERE id = ?',
                 [req.userId]
             );
 
-            const user = rows[0];
             if (!await bcrypt.compare(req.body.oldPassword, user.password_hash)) {
-                connection.release();
                 return res.error('Invalid old password', 401);
             }
-    
+
             const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
-            await connection.query(
+            await conn.query(
                 'UPDATE users SET password_hash = ? WHERE id = ?',
                 [hashedPassword, req.userId]
             );
-            connection.release();
-    
+
             res.success({ msg: 'Password changed' });
         } catch (error) {
             next(error);
+        } finally {
+            if (conn) conn.release();
         }
     });
 
