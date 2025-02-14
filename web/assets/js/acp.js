@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setupButtonEvent('db-backup', 'click', dbBackup);
     setupButtonEvent('cdn-backup', 'click', cdnBackup);
     setupButtonEvent('restart-server', 'click', restartServer);
+    setupButtonEvent('logout', 'click', logout);
 
     document.getElementById('config-form').addEventListener('submit', function (event) {
         event.preventDefault();
@@ -59,26 +60,6 @@ async function checkLogin() {
         }
     } else {
         window.location.href = '/auth';
-    }
-}
-
-async function displayUser() {
-    try {
-        const response = await fetch(api + '/account', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': getCookie('sessionToken')
-            },
-        });
-        const data = await response.json();
-        document.getElementById('username').textContent = data.username
-        document.getElementById('useremail').textContent = data.email
-        document.getElementById('login').classList.add('hidden');
-        document.getElementById('pfp').classList.remove('hidden');
-        document.getElementById('pfp').src = cdn + '/users/pfp/' + data.username + '.png';
-    } catch (error) {
-        console.error('Error fetching user:', error);
     }
 }
 

@@ -3,7 +3,8 @@
   "version": "0.3.1",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "windev": "sudo net start MariaDB && node src/index.js"
   },
   "keywords": [],
   "author": "MaxixSVK",

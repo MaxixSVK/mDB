@@ -1,3 +1,52 @@
+async function displayUser() {
+    try {
+        const user = await fetch(api + '/account', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': getCookie('sessionToken')
+            },
+        });
+        const data = await user.json();
+
+        const userPFP = await fetch(cdn + '/users/pfp/' + data.username + '.png');
+        const contentType = userPFP.headers.get('content-type');
+
+        updateUserInfo(data);
+
+        if (contentType && contentType.indexOf('application/json') === -1) {
+            updateUserProfilePicture(data.username);
+        }
+
+    } catch (error) {
+        console.error('Error fetching user:', error);
+    }
+}
+
+function updateUserInfo(data) {
+    document.getElementById('username').textContent = data.username;
+    document.getElementById('useremail').textContent = data.email;
+}
+
+function updateUserProfilePicture(username) {
+    document.getElementById('login').classList.add('hidden');
+    document.getElementById('pfp').classList.remove('hidden');
+    document.getElementById('pfp').src = cdn + '/users/pfp/' + username + '.png';
+}
+
+function logout() {
+    fetch(api + '/account/logout', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'authorization': getCookie('sessionToken')
+        },
+    }).then(() => {
+        document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        window.location.href = '/auth';
+    });
+}
+
 function showNotification(message, type = 'info', progress = null) {
     const container = document.getElementById('notification-container');
     let notification = Array.from(container.children).find(child => child.dataset.message === message);

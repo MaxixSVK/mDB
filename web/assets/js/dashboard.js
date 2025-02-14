@@ -30,7 +30,7 @@ async function checkLogin() {
                 displayUser();
                 renderCDNList();
             } else {
-                handleLogout();
+                logout();
             }
         } catch (error) {
             console.error('Login failed:', error);
@@ -40,41 +40,9 @@ async function checkLogin() {
     }
 }
 
-function handleLogout() {
-    fetch(api + '/account/logout', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'authorization': getCookie('sessionToken')
-        },
-    }).then(() => {
-        document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        window.location.href = '/auth';
-    });
-}
-
-async function displayUser() {
-    try {
-        const response = await fetch(api + '/account', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': getCookie('sessionToken')
-            },
-        });
-        const data = await response.json();
-        document.getElementById('username').textContent = data.username
-        document.getElementById('useremail').textContent = data.email
-        document.getElementById('login').classList.add('hidden');
-        document.getElementById('pfp').classList.remove('hidden');
-        document.getElementById('pfp').src = cdn + '/users/pfp/' + data.username + '.png';
-    } catch (error) {
-        console.error('Error fetching user:', error);
-    }
-}
 
 function setupEventListeners() {
-    document.getElementById('logout').addEventListener('click', handleLogout);
+    document.getElementById('logout').addEventListener('click', logout);
 
     const cdnUploadForm = document.getElementById('cdn-upload-form');
     cdnUploadForm.addEventListener('submit', function (e) {
