@@ -126,7 +126,7 @@ function fetchSeriesList() {
         });
 }
 
-function renderSeries(series, isSearch = false) {
+function renderSeries(series, isSearch) {
     const formatSection = document.getElementById(series.format);
     
     if (isSearch) {
@@ -234,7 +234,7 @@ function fetchBookList(data, isSearch) {
     }
 }
 
-function renderBook(book, isSearch = false) {
+function renderBook(book, isSearch) {
     const booksList = document.getElementById('books-list-' + book.series_id);
 
     const card = document.createElement('div');
@@ -256,13 +256,13 @@ function renderBook(book, isSearch = false) {
 
     const startedReading = document.createElement('p');
     startedReading.className = 'text-gray-400 text-sm';
-    startedReading.textContent = `Started Reading: ${startedDate}`;
+    startedReading.textContent = `Started on: ${startedDate}`;
 
     const endedReading = document.createElement('p');
     endedReading.className = 'text-gray-400 text-sm';
 
     const endedReadingText = book.endedReading
-        ? `Ended Reading: ${new Date(book.endedReading).toLocaleDateString()}`
+        ? `Ended on: ${new Date(book.endedReading).toLocaleDateString()}`
         : 'Still reading';
 
     endedReading.textContent = endedReadingText;
@@ -333,8 +333,22 @@ function renderBookDetails(bookData, chapterData) {
     textWrapper.className = 'flex-1 flex flex-col h-full';
 
     const title = document.createElement('h2');
-    title.className = 'text-white text-3xl font-bold mb-4';
+    title.className = 'text-white text-3xl font-bold mb-2';
     title.textContent = bookData.name;
+
+    const datesWrapper = document.createElement('div');
+    datesWrapper.className = 'flex flex-col md:flex-row md:items-center mb-4';
+
+    let startedDate = new Date(bookData.startedReading).toLocaleDateString();
+    let endedDate = bookData.endedReading
+        ? new Date(bookData.endedReading).toLocaleDateString()
+        : 'Still reading';
+
+    const readingDates = document.createElement('p');
+    readingDates.className = 'text-gray-400 text-sm';
+    readingDates.textContent = `${startedDate} - ${endedDate}`;
+
+    datesWrapper.appendChild(readingDates);
 
     const chaptersList = document.createElement('ul');
     chaptersList.className = 'text-white space-y-2 overflow-y-auto flex-1 mb-4 md:mb-0 scrollbar scrollbar-thumb-[#2A2A2A] scrollbar-track-[#191818]';
@@ -357,6 +371,7 @@ function renderBookDetails(bookData, chapterData) {
     });
 
     textWrapper.appendChild(title);
+    textWrapper.appendChild(datesWrapper);
     textWrapper.appendChild(chaptersList);
 
     contentWrapper.appendChild(img);
