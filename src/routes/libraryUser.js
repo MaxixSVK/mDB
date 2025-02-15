@@ -140,7 +140,7 @@ module.exports = function (pool) {
             res.success('Deleted successfully');
         } catch (err) {
             if (err.code === 'ER_ROW_IS_REFERENCED_2') {
-                return res.error(`Cannot delete ${type} with ID ${id} because it is used elsewhere`, 409, true);
+                return res.error(`Cannot delete because it is used elsewhere`, 409, true);
             }
             next(err);
         } finally {
