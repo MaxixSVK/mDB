@@ -29,7 +29,10 @@ routes.forEach(({ path, route }) => {
 });
 
 app.get('/', (req, res) => {
-    res.success(package.version);
+    res.success({
+        name: package.name,
+        version: package.version
+    });
 });
 
 app.use((req, res, next) => {
