@@ -27,7 +27,6 @@ async function handleDataTypeChange(selectElement, fieldsDiv, action) {
             if (action !== 'delete') {
                 addFormDescription(fieldsDiv, action === 'add' ? 'New DB Data:' : 'DB Data');
                 addInputField(fieldsDiv, 'name', 'Series Name');
-                addInputField(fieldsDiv, 'img', 'Image URL');
                 addStatusSelect(fieldsDiv);
                 addFormatSelect(fieldsDiv);
             }
@@ -42,7 +41,6 @@ async function handleDataTypeChange(selectElement, fieldsDiv, action) {
             if (action !== 'delete') {
                 addFormDescription(fieldsDiv, action === 'add' ? 'New DB Data' : 'DB Data');
                 addInputField(fieldsDiv, 'name', 'Book Name');
-                addInputField(fieldsDiv, 'img', 'Image URL');
                 addInputField(fieldsDiv, 'startedReading', 'Started Reading', 'date');
                 addInputField(fieldsDiv, 'endedReading', 'Ended Reading', 'date');
             }

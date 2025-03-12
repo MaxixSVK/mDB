@@ -188,7 +188,6 @@ async function loadOldData(type, id) {
                 endpoint: `/library/series/${id}`,
                 fields: {
                     'name': 'name',
-                    'img': 'img',
                     'format': 'format',
                     'status': 'status'
                 }
@@ -197,7 +196,6 @@ async function loadOldData(type, id) {
                 endpoint: `/library/book/${id}`,
                 fields: {
                     'name': 'name',
-                    'img': 'img',
                     'startedReading': 'startedReading',
                     'endedReading': 'endedReading'
                 }

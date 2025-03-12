@@ -1,4 +1,15 @@
-async function displayUser() {
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+async function displayUser(userInfo = true) {
     try {
         const user = await fetch(api + '/account', {
             method: 'GET',
@@ -12,7 +23,7 @@ async function displayUser() {
         const userPFP = await fetch(cdn + '/users/pfp/' + data.username + '.png');
         const contentType = userPFP.headers.get('content-type');
 
-        updateUserInfo(data);
+        if (userInfo) updateUserInfo(data);
 
         if (contentType && contentType.indexOf('application/json') === -1) {
             updateUserProfilePicture(data.username);

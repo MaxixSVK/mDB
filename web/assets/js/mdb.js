@@ -28,10 +28,11 @@ async function checkLogin() {
                         'authorization': session
                     },
                 }).then(response => response.json());
-                document.getElementById('login').classList.add('hidden');
-                document.getElementById('pfp').classList.remove('hidden');
-                document.getElementById('pfp').src = cdn + '/users/pfp/' + userData.username + '.png'; //TODO: Change PFP on frontend to use user ID instead of username
+                displayUser(false);
                 document.getElementById('pfp').addEventListener('click', function () {
+                    window.location.href = '/dashboard';
+                });
+                document.getElementById('login').addEventListener('click', function () {
                     window.location.href = '/dashboard';
                 });
             } else {
@@ -128,7 +129,7 @@ function fetchSeriesList() {
 
 function renderSeries(series, isSearch) {
     const formatSection = document.getElementById(series.format);
-    
+
     if (isSearch) {
         showFormatList(series.format);
     }
@@ -140,7 +141,7 @@ function renderSeries(series, isSearch) {
     header.className = 'flex items-center';
 
     const img = document.createElement('img');
-    img.src = series.img ? cdn + '/library/' + series.img + '?lowres=true' : cdn + '/library/404.png?lowres=true';
+    img.src = series.img ? cdn + '/library/s-' + series.series_id + '.png?lowres=true' : cdn + '/library/404.png?lowres=true'
     img.alt = series.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 
@@ -241,7 +242,7 @@ function renderBook(book, isSearch) {
     card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
 
     const img = document.createElement('img');
-    img.src = book.img ? cdn + '/library/' + book.img + '?lowres=true' : cdn + '/library/404.png?lowres=true';
+    img.src = book.img ? cdn + '/library/b-' + book.book_id + '.png?lowres=true' : cdn + '/library/404.png?lowres=true';
     img.alt = book.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 
@@ -325,7 +326,7 @@ function renderBookDetails(bookData, chapterData) {
     contentWrapper.className = 'flex flex-col md:flex-row h-full';
 
     const img = document.createElement('img');
-    img.src = bookData.img ? cdn + '/library/' + bookData.img : cdn + '/library/404.png';
+    img.src = bookData.img ? cdn + '/library/b-' + bookData.book_id + '.png' : cdn + '/library/404.png';
     img.alt = bookData ? bookData.name : 'No image';
     img.className = 'object-cover rounded-md mb-4 md:mb-0 md:mr-6 w-full md:w-auto md:max-w-md mx-auto';
 
@@ -450,11 +451,11 @@ function renderSearchResults(results) {
 
     results.forEach(result => {
         fetch(api + '/library/series/' + result.series_id)
-        .then(response => response.json())
-        .then(series => {
-            series.books = result.books;
-            renderSeries(series, true);
-        });
+            .then(response => response.json())
+            .then(series => {
+                series.books = result.books;
+                renderSeries(series, true);
+            });
     });
 }
 
