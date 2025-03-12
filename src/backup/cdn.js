@@ -18,7 +18,7 @@ async function backupCDN() {
         archive.on('error', (err) => reject(err));
 
         archive.pipe(output);
-        archive.directory(path.join(__dirname, '../../uploads'), false);
+        archive.directory(path.join(__dirname, '../../cdn'), false);
         archive.finalize();
     });
 }
