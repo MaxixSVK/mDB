@@ -120,28 +120,39 @@ module.exports = function (pool) {
                 chapter: 'chapters'
             };
 
+            const foreignKeyCheckMapping = {
+                series: { table: 'books', column: 'series_id' },
+                book: { table: 'chapters', column: 'book_id' },
+                chapter: null
+            };
+
             const tableName = tableNameMapping[type];
             const primaryKey = `${type}_id`;
 
-            const checkSql = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
-            const [existingRow] = await conn.query(checkSql, [id, req.userId]);
-
-            if (!existingRow) {
+            const dbDataQuery = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
+            const [dbData] = await conn.query(dbDataQuery, [id, req.userId]);
+            if (!dbData) {
                 return res.success('Data does not exist');
             }
 
-            const oldDataSql = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
-            const [oldData] = await conn.query(oldDataSql, [id, req.userId]);
+            const fkCheck = foreignKeyCheckMapping[type];
+            if (fkCheck) {
+                const dependentRowsQuery = `SELECT 1 FROM ${fkCheck.table} WHERE ${fkCheck.column} = ? LIMIT 1`;
+                const [dependentRows] = await conn.query(dependentRowsQuery, [id]);
 
-            await conn.query(`DELETE FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`, [id, req.userId]);
+                if (dependentRows) {
+                    return res.error('Cannot delete because it is used elsewhere', 409, true);
+                }
+            }
 
-            await logChanges(conn, 'DELETE', tableName, id, JSON.stringify(oldData));
+            await conn.query(
+                `DELETE FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`,
+                [id, req.userId]
+            );
 
+            await logChanges(conn, 'DELETE', tableName, id, JSON.stringify(dbData));
             res.success('Deleted successfully');
         } catch (err) {
-            if (err.code === 'ER_ROW_IS_REFERENCED_2') {
-                return res.error(`Cannot delete because it is used elsewhere`, 409, true);
-            }
             next(err);
         } finally {
             if (conn) conn.release();
