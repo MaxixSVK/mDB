@@ -20,6 +20,7 @@ async function checkLogin() {
             });
 
             if (response.ok) {
+                displayUser();
                 fetchLogs();
             } else {
                 document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
@@ -37,29 +38,6 @@ function addEventListeners() {
     document.getElementById('load-more').addEventListener('click', function () {
         offset += limit;
         fetchLogs();
-    });
-
-    document.getElementById('logs-backup').addEventListener('click', async function () {
-        try {
-            const session = getCookie('sessionToken');
-            const response = await fetch(api + '/server/logs?all=true&format=file', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': session
-                },
-            });
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'logs.json';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Error fetching logs:', error);
-        }
     });
 }
 
@@ -87,17 +65,6 @@ async function fetchLogs() {
     } catch (error) {
         console.error('Error fetching logs:', error);
     }
-}
-
-function getCookie(name) {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-    }
-    return null;
 }
 
 function displayLogs(logs) {
@@ -158,7 +125,17 @@ function getChangeTypeColor(changeType) {
     }
 }
 
+function formatDate(dateString) {
+    return new Date(dateString).toLocaleDateString();
+}
+
 function createDataElement(data) {
+    if (data.startedReading) { 
+        data.startedReading = formatDate(data.startedReading);
+    }
+    if (data.endedReading) {
+        data.endedReading = formatDate(data.endedReading);
+    }
     return `
         <div class="text-white mb-2 overflow-x-auto">
             <pre class="bg-[#2A2A2A] p-2 rounded-sm whitespace-pre-wrap md:whitespace-pre">${JSON.stringify(data, null, 2)}</pre>

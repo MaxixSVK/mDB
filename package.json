@@ -4,7 +4,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "windev": "sudo net start MariaDB && node src/index.js"
+    "windev": "sudo net start MariaDB && node src/index.js",
+    "style": "npx @tailwindcss/cli -i ./web/assets/css/tailwind.css -o ./web/assets/css/index.css --watch"
   },
   "keywords": [],
   "author": "MaxixSVK",
