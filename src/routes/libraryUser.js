@@ -69,10 +69,9 @@ module.exports = function (pool) {
             const tableName = tableNameMapping[type];
             const primaryKey = `${type}_id`;
 
-            const checkSql = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
-            const [existingRow] = await conn.query(checkSql, [id, req.userId]);
-
-            if (!existingRow) {
+            const dbDataQuery = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
+            const [dbData] = await conn.query(dbDataQuery, [id, req.userId]);
+            if (!dbData) {
                 return res.success('Data does not exist');
             }
 
@@ -91,12 +90,15 @@ module.exports = function (pool) {
             params.push(id, req.userId);
 
             if (params.length > 2) {
-                const oldDataSql = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
-                const [oldData] = await conn.query(oldDataSql, [id, req.userId]);
+                const oldDbDataQuery = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
+                const [oldDbData] = await conn.query(oldDbDataQuery, [id, req.userId]);
 
                 await conn.query(sql, params);
-                await logChanges(conn, 'UPDATE', tableName, id, JSON.stringify(oldData), JSON.stringify(data));
 
+                const newDbDataQuery = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
+                const [newDbData] = await conn.query(newDbDataQuery, [id, req.userId]);
+
+                await logChanges(conn, 'UPDATE', tableName, id, JSON.stringify(oldDbData), JSON.stringify(newDbData));
                 res.success('Updated successfully');
             } else {
                 res.success('No valid fields provided to update');
