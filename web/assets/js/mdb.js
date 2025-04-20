@@ -141,7 +141,7 @@ function renderSeries(series, isSearch) {
     header.className = 'flex items-center';
 
     const img = document.createElement('img');
-    img.src = series.img ? cdn + '/library/s-' + series.series_id + '.png?lowres=true' : cdn + '/library/404.png?lowres=true'
+    img.src = series.img ? cdn + '/library/s-' + series.series_id + '.png?q=l' : cdn + '/library/404.png?q=l';
     img.alt = series.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 
@@ -242,7 +242,7 @@ function renderBook(book, isSearch) {
     card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
 
     const img = document.createElement('img');
-    img.src = book.img ? cdn + '/library/b-' + book.book_id + '.png?lowres=true' : cdn + '/library/404.png?lowres=true';
+    img.src = book.img ? cdn + '/library/b-' + book.book_id + '.png?q=l' : cdn + '/library/404.png?q=l';
     img.alt = book.name || 'No image';
     img.className = 'h-24 object-cover rounded-md mr-4';
 

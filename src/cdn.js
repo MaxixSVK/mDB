@@ -22,11 +22,10 @@ module.exports = function (pool) {
       const dir = path.join(__dirname, '../cdn/library');
       const filePath = path.join(dir, filename);
       const normalizedPath = path.normalize(filePath);
-      const isLowRes = req.query.lowres === 'true';
-      const isMidRes = req.query.midres === 'true';
+      const quality = req.query.q;
 
       if (normalizedPath.startsWith(dir) && fs.existsSync(normalizedPath)) {
-        res.sendImage(filePath, isLowRes, isMidRes, req, res, next);
+        res.sendImage(filePath, quality, req, res, next);
       } else {
         res.success('Requested file does not exist.');
       }
@@ -88,11 +87,10 @@ module.exports = function (pool) {
       const dir = path.join(__dirname, '../cdn/users/pfp');
       const filePath = path.join(dir, filename);
       const normalizedPath = path.normalize(filePath);
-      const isLowRes = req.query.lowres === 'true';
-      const isMidRes = req.query.midres === 'true';
+      const quality = req.query.q;
 
       if (normalizedPath.startsWith(dir) && fs.existsSync(normalizedPath)) {
-        res.sendImage(filePath, isLowRes, isMidRes, req, res, next);
+        res.sendImage(filePath, quality);
       } else {
         res.success('Requested file does not exist.');
       }
