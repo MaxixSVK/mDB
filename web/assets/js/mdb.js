@@ -301,7 +301,6 @@ async function fetchBookDetails(book, isSearch) {
         const chaptersPromise = fetch(api + '/library/chapters/' + book.book_id)
             .then(response => response.json())
             .then(chapterIds => {
-                // TODO: if there are no chapters, show a message saying there are no chapters in this book
                 const chapterPromises = chapterIds.map(chapterId =>
                     fetch(api + '/library/chapter/' + chapterId).then(response => response.json())
                 );
@@ -354,22 +353,29 @@ function renderBookDetails(bookData, chapterData) {
     const chaptersList = document.createElement('ul');
     chaptersList.className = 'text-white space-y-2 overflow-y-auto flex-1 mb-4 md:mb-0 scrollbar scrollbar-thumb-[#2A2A2A] scrollbar-track-[#191818]';
 
-    chapterData.forEach(chapter => {
-        const chapterItem = document.createElement('li');
-        chapterItem.className = 'p-2 bg-[#2A2A2A] rounded-md max-w-md flex justify-between items-center';
-
-        const chapterName = document.createElement('span');
-        chapterName.className = 'mr-2';
-        chapterName.textContent = chapter.name;
-
-        const chapterDate = document.createElement('span');
-        chapterDate.className = 'text-gray-400 text-sm whitespace-nowrap';
-        chapterDate.textContent = new Date(chapter.date).toLocaleDateString();
-
-        chapterItem.appendChild(chapterName);
-        chapterItem.appendChild(chapterDate);
-        chaptersList.appendChild(chapterItem);
-    });
+    if (chapterData.length === 0) {
+        const noChaptersMessage = document.createElement('p');
+        noChaptersMessage.className = 'text-gray-400 text-center italic';
+        noChaptersMessage.textContent = `This book's journey began on ${new Date(bookData.startedReading).toLocaleDateString()}. The first chapter is still in progress.`;
+        chaptersList.appendChild(noChaptersMessage);
+    } else {
+        chapterData.forEach(chapter => {
+            const chapterItem = document.createElement('li');
+            chapterItem.className = 'p-2 bg-[#2A2A2A] rounded-md max-w-md flex justify-between items-center';
+    
+            const chapterName = document.createElement('span');
+            chapterName.className = 'mr-2';
+            chapterName.textContent = chapter.name;
+    
+            const chapterDate = document.createElement('span');
+            chapterDate.className = 'text-gray-400 text-sm whitespace-nowrap';
+            chapterDate.textContent = new Date(chapter.date).toLocaleDateString();
+    
+            chapterItem.appendChild(chapterName);
+            chapterItem.appendChild(chapterDate);
+            chaptersList.appendChild(chapterItem);
+        });
+    }
 
     textWrapper.appendChild(title);
     textWrapper.appendChild(datesWrapper);
