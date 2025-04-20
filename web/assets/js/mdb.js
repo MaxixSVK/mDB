@@ -363,7 +363,7 @@ function renderBookDetails(bookData, chapterData) {
         chapterName.textContent = chapter.name;
 
         const chapterDate = document.createElement('span');
-        chapterDate.className = 'text-gray-400 text-sm';
+        chapterDate.className = 'text-gray-400 text-sm whitespace-nowrap';
         chapterDate.textContent = new Date(chapter.date).toLocaleDateString();
 
         chapterItem.appendChild(chapterName);
