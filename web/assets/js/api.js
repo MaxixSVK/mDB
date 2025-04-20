@@ -6,10 +6,12 @@ const cdn = api + '/cdn';
 
 const createWarningDiv = (message) => {
   const warningDiv = document.createElement('div');
-  warningDiv.className = 'fixed bottom-0 left-0 right-0 bg-red-500 text-white text-center p-4 z-10';
+  warningDiv.className = 'fixed top-0 left-0 right-0 bg-red-500 text-white text-center p-4 z-10';
   warningDiv.innerText = message;
-  document.body.appendChild(warningDiv);
-  document.body.style.paddingBottom = `${warningDiv.offsetHeight}px`;
+
+  document.body.insertBefore(warningDiv, document.body.firstChild);
+
+  document.body.style.paddingTop = `${warningDiv.offsetHeight}px`;
 };
 
 if (isLocalhost && enableDevApi) {
