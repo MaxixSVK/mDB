@@ -350,6 +350,22 @@ function renderBookDetails(bookData, chapterData) {
 
     datesWrapper.appendChild(readingDates);
 
+    const isbnWrapper = document.createElement('div');
+    isbnWrapper.className = 'mb-4 md:mb-0 mt-0 md:mt-2';
+
+    if (bookData.isbn) {
+        const isbnLabel = document.createElement('p');
+        isbnLabel.className = 'text-gray-400 text-sm font-semibold';
+        isbnLabel.textContent = 'ISBN:';
+
+        const isbnValue = document.createElement('p');
+        isbnValue.className = 'text-white text-sm';
+        isbnValue.textContent = bookData.isbn;
+
+        isbnWrapper.appendChild(isbnLabel);
+        isbnWrapper.appendChild(isbnValue);
+    }
+
     const chaptersList = document.createElement('ul');
     chaptersList.className = 'text-white space-y-2 overflow-y-auto flex-1 mb-4 md:mb-0 scrollbar scrollbar-thumb-[#2A2A2A] scrollbar-track-[#191818]';
 
@@ -362,15 +378,15 @@ function renderBookDetails(bookData, chapterData) {
         chapterData.forEach(chapter => {
             const chapterItem = document.createElement('li');
             chapterItem.className = 'p-2 bg-[#2A2A2A] rounded-md max-w-md flex justify-between items-center';
-    
+
             const chapterName = document.createElement('span');
             chapterName.className = 'mr-2';
             chapterName.textContent = chapter.name;
-    
+
             const chapterDate = document.createElement('span');
             chapterDate.className = 'text-gray-400 text-sm whitespace-nowrap';
             chapterDate.textContent = new Date(chapter.date).toLocaleDateString();
-    
+
             chapterItem.appendChild(chapterName);
             chapterItem.appendChild(chapterDate);
             chaptersList.appendChild(chapterItem);
@@ -380,6 +396,8 @@ function renderBookDetails(bookData, chapterData) {
     textWrapper.appendChild(title);
     textWrapper.appendChild(datesWrapper);
     textWrapper.appendChild(chaptersList);
+
+    if (bookData.isbn) textWrapper.appendChild(isbnWrapper);
 
     contentWrapper.appendChild(img);
     contentWrapper.appendChild(textWrapper);

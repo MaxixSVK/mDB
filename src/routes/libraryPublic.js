@@ -112,10 +112,10 @@ module.exports = function (pool) {
             FROM series
             LEFT JOIN books ON series.series_id = books.series_id
             LEFT JOIN chapters ON books.book_id = chapters.book_id
-            WHERE series.name LIKE ? OR books.name LIKE ? OR chapters.name LIKE ?
+            WHERE series.name LIKE ? OR books.name LIKE ? OR chapters.name LIKE ? OR books.isbn LIKE ?
             ORDER BY series.series_id, books.book_id, chapters.chapter_id;
             `;
-            const rows = await conn.query(query, [`%${search}%`, `%${search}%`, `%${search}%`]);
+            const rows = await conn.query(query, [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`]);
 
             const seriesData = {};
             rows.forEach(row => {

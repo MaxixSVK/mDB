@@ -22,6 +22,7 @@ CREATE TABLE `books` (
   `series_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `isbn` varchar(17) DEFAULT NULL,
   `startedReading` date DEFAULT NULL,
   `endedReading` date DEFAULT NULL,
   `img` BOOLEAN NOT NULL DEFAULT FALSE,

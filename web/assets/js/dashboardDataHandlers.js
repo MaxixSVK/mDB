@@ -41,6 +41,7 @@ async function handleDataTypeChange(selectElement, fieldsDiv, action) {
             if (action !== 'delete') {
                 addFormDescription(fieldsDiv, action === 'add' ? 'New DB Data' : 'DB Data');
                 addInputField(fieldsDiv, 'name', 'Book Name');
+                addInputField(fieldsDiv, 'isbn', 'ISBN');
                 addInputField(fieldsDiv, 'startedReading', 'Started Reading', 'date');
                 addInputField(fieldsDiv, 'endedReading', 'Ended Reading', 'date');
             }

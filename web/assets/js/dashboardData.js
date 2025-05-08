@@ -86,7 +86,7 @@ async function addFormatSelect(container) {
             typeSelect.add(option);
         });
     } catch (error) {
-        console.error('Error fetching formats:', error);
+        console.error(error);
     }
 }
 
@@ -186,26 +186,15 @@ async function loadOldData(type, id) {
         const typeMapping = {
             series: {
                 endpoint: `/library/series/${id}`,
-                fields: {
-                    'name': 'name',
-                    'format': 'format',
-                    'status': 'status'
-                }
+                fields: ['name', 'format', 'status']
             },
             books: {
                 endpoint: `/library/book/${id}`,
-                fields: {
-                    'name': 'name',
-                    'startedReading': 'startedReading',
-                    'endedReading': 'endedReading'
-                }
+                fields: ['name', 'isbn', 'startedReading', 'endedReading']
             },
             chapters: {
                 endpoint: `/library/chapter/${id}`,
-                fields: {
-                    'name': 'name',
-                    'date': 'date'
-                }
+                fields: ['name', 'date']
             }
         };
 
@@ -213,10 +202,10 @@ async function loadOldData(type, id) {
             const { endpoint, fields } = typeMapping[type];
             const data = await fetchData(endpoint);
 
-            for (const [field, key] of Object.entries(fields)) {
+            for (const field of fields) {
                 const input = editDataFields.querySelector(`input[name="${field}"], select[name="${field}"]`);
                 if (input) {
-                    let value = data[key] || '';
+                    let value = data[field] || '';
                     if (input.type === 'date' && value) {
                         const date = new Date(value);
                         const userTimezoneOffset = date.getTimezoneOffset() * 60000;
