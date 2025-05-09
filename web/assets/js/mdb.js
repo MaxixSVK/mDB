@@ -287,15 +287,13 @@ function renderBook(book, isSearch) {
 }
 
 async function fetchBookDetails(book, isSearch) {
-    let bookData;
-    let chapterData;
+    let chapters;
 
     if (isSearch) {
-        bookData = book;
         const chapterPromises = book.chapters.map(chapter =>
             fetch(api + '/library/chapter/' + chapter.chapter_id).then(response => response.json())
         );
-        chapterData = await Promise.all(chapterPromises);
+        chapters = await Promise.all(chapterPromises);
     } else {
         const bookPromise = fetch(api + '/library/book/' + book.book_id).then(response => response.json());
         const chaptersPromise = fetch(api + '/library/chapters/' + book.book_id)
@@ -307,14 +305,14 @@ async function fetchBookDetails(book, isSearch) {
                 return Promise.all(chapterPromises);
             });
 
-        [bookData, chapterData] = await Promise.all([bookPromise, chaptersPromise]);
+        [book, chapters] = await Promise.all([bookPromise, chaptersPromise]);
     }
 
-    chapterData.sort((a, b) => a.date.localeCompare(b.date));
-    renderBookDetails(bookData, chapterData);
+    chapters.sort((a, b) => a.date.localeCompare(b.date));
+    renderBookDetails(book, chapters);
 }
 
-function renderBookDetails(bookData, chapterData) {
+function renderBookDetails(book, chapters) {
     document.body.classList.add('overflow-hidden');
 
     const container = document.createElement('div');
@@ -325,8 +323,8 @@ function renderBookDetails(bookData, chapterData) {
     contentWrapper.className = 'flex flex-col md:flex-row h-full';
 
     const img = document.createElement('img');
-    img.src = bookData.img ? cdn + '/library/b-' + bookData.book_id + '.png' : cdn + '/library/404.png';
-    img.alt = bookData ? bookData.name : 'No image';
+    img.src = book.img ? cdn + '/library/b-' + book.book_id + '.png' : cdn + '/library/404.png';
+    img.alt = book ? book.name : 'No image';
     img.className = 'object-cover rounded-md mb-4 md:mb-0 md:mr-6 w-full md:w-auto md:max-w-md mx-auto';
 
     const textWrapper = document.createElement('div');
@@ -334,14 +332,14 @@ function renderBookDetails(bookData, chapterData) {
 
     const title = document.createElement('h2');
     title.className = 'text-white text-3xl font-bold mb-2';
-    title.textContent = bookData.name;
+    title.textContent = book.name;
 
     const datesWrapper = document.createElement('div');
     datesWrapper.className = 'flex flex-col md:flex-row md:items-center mb-4';
 
-    let startedDate = new Date(bookData.startedReading).toLocaleDateString();
-    let endedDate = bookData.endedReading
-        ? new Date(bookData.endedReading).toLocaleDateString()
+    let startedDate = new Date(book.startedReading).toLocaleDateString();
+    let endedDate = book.endedReading
+        ? new Date(book.endedReading).toLocaleDateString()
         : 'Still reading';
 
     const readingDates = document.createElement('p');
@@ -350,32 +348,49 @@ function renderBookDetails(bookData, chapterData) {
 
     datesWrapper.appendChild(readingDates);
 
+    const infoWrapper = document.createElement('div');
+    infoWrapper.className = 'flex flex-col md:flex-row md:items-center mb-4 md:mb-0 mt-0 md:mt-2 space-y-4 md:space-y-0 md:space-x-4';
+
+    const authorWrapper = document.createElement('div');
+    authorWrapper.className = 'mb-4 md:mb-0 mt-0 md:mt-2';
+
+    const authorLabel = document.createElement('p');
+    authorLabel.className = 'text-gray-400 text-sm font-semibold';
+    authorLabel.textContent = 'Author:';
+
+    const authorValue = document.createElement('p');
+    authorValue.className = 'text-white text-sm';
+    authorValue.textContent = book.author_name || 'Not available';
+
+    authorWrapper.appendChild(authorLabel);
+    authorWrapper.appendChild(authorValue);
+    infoWrapper.appendChild(authorWrapper);
+
     const isbnWrapper = document.createElement('div');
     isbnWrapper.className = 'mb-4 md:mb-0 mt-0 md:mt-2';
 
-    if (bookData.isbn) {
-        const isbnLabel = document.createElement('p');
-        isbnLabel.className = 'text-gray-400 text-sm font-semibold';
-        isbnLabel.textContent = 'ISBN:';
+    const isbnLabel = document.createElement('p');
+    isbnLabel.className = 'text-gray-400 text-sm font-semibold';
+    isbnLabel.textContent = 'ISBN:';
 
-        const isbnValue = document.createElement('p');
-        isbnValue.className = 'text-white text-sm';
-        isbnValue.textContent = bookData.isbn;
+    const isbnValue = document.createElement('p');
+    isbnValue.className = 'text-white text-sm';
+    isbnValue.textContent = book.isbn || 'Not available';
 
-        isbnWrapper.appendChild(isbnLabel);
-        isbnWrapper.appendChild(isbnValue);
-    }
+    isbnWrapper.appendChild(isbnLabel);
+    isbnWrapper.appendChild(isbnValue);
+    infoWrapper.appendChild(isbnWrapper);
 
     const chaptersList = document.createElement('ul');
     chaptersList.className = 'text-white space-y-2 overflow-y-auto flex-1 mb-4 md:mb-0 scrollbar scrollbar-thumb-[#2A2A2A] scrollbar-track-[#191818]';
 
-    if (chapterData.length === 0) {
+    if (chapters.length === 0) {
         const noChaptersMessage = document.createElement('p');
         noChaptersMessage.className = 'text-gray-400 text-center italic';
-        noChaptersMessage.textContent = `This book's journey began on ${new Date(bookData.startedReading).toLocaleDateString()}. The first chapter is still in progress.`;
+        noChaptersMessage.textContent = `This book's journey began on ${new Date(book.startedReading).toLocaleDateString()}. The first chapter is still in progress.`;
         chaptersList.appendChild(noChaptersMessage);
     } else {
-        chapterData.forEach(chapter => {
+        chapters.forEach(chapter => {
             const chapterItem = document.createElement('li');
             chapterItem.className = 'p-2 bg-[#2A2A2A] rounded-md max-w-md flex justify-between items-center';
 
@@ -396,8 +411,7 @@ function renderBookDetails(bookData, chapterData) {
     textWrapper.appendChild(title);
     textWrapper.appendChild(datesWrapper);
     textWrapper.appendChild(chaptersList);
-
-    if (bookData.isbn) textWrapper.appendChild(isbnWrapper);
+    textWrapper.appendChild(infoWrapper);
 
     contentWrapper.appendChild(img);
     contentWrapper.appendChild(textWrapper);

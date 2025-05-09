@@ -30,6 +30,22 @@ async function addLibrarySelect(container, books, chapters) {
     }
 }
 
+async function addAuthorSelect(container) {
+    const session = getCookie('sessionToken');
+    const user = await fetchData('/account', session);
+    const userId = user.id;
+
+    const authorSelect = createSelectElement('author_id');
+    container.appendChild(authorSelect);
+
+    const authors = await fetchData(`/library/authors/${userId}`);
+    const authorPromises = authors.map(id => fetchData(`/library/author/${id}`));
+    const authorDetails = await Promise.all(authorPromises);
+
+    await populateSelect(authorSelect, authorDetails, 'name', 'author_id', true, "author");
+    authorSelect.dispatchEvent(new Event('change'));
+}
+
 async function handleSeriesChange(container, seriesSelect, bookSelect, chapterSelect) {
     try {
         const seriesId = seriesSelect.value;
@@ -131,16 +147,24 @@ function createSelectElement(name) {
     return select;
 }
 
-async function populateSelect(select, data, textKey, valueKey) {
+async function populateSelect(select, data, textKey, valueKey, addDefaultOption, defaultValueName) {
     select.innerHTML = '';
+
+    if (addDefaultOption) {
+        const defaultOption = new Option(`Please select an ${defaultValueName}`, '', true, true);
+        defaultOption.disabled = true;
+        select.add(defaultOption);
+    }
+
     data.forEach(d => {
         const option = new Option(d[textKey], d[valueKey]);
         select.add(option);
     });
 }
 
-async function fetchData(path) {
-    const response = await fetch(api + path);
+async function fetchData(path, sessionToken) {
+    const headers = sessionToken ? { 'authorization': sessionToken } : {};
+    const response = await fetch(api + path, { headers });
     return await response.json();
 }
 
@@ -186,7 +210,7 @@ async function loadOldData(type, id) {
         const typeMapping = {
             series: {
                 endpoint: `/library/series/${id}`,
-                fields: ['name', 'format', 'status']
+                fields: ['name', 'format', 'status', 'author_id']
             },
             books: {
                 endpoint: `/library/book/${id}`,

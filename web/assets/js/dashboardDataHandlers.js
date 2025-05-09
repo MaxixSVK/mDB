@@ -25,6 +25,7 @@ async function handleDataTypeChange(selectElement, fieldsDiv, action) {
                 await addLibrarySelect(fieldsDiv);
             }
             if (action !== 'delete') {
+                addAuthorSelect(fieldsDiv);
                 addFormDescription(fieldsDiv, action === 'add' ? 'New DB Data:' : 'DB Data');
                 addInputField(fieldsDiv, 'name', 'Series Name');
                 addStatusSelect(fieldsDiv);

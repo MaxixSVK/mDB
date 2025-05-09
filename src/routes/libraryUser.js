@@ -161,5 +161,105 @@ module.exports = function (pool) {
         }
     });
 
+    router.post('/author/new', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { name, bio } = req.body;
+
+            if (!name || name.trim() === '') {
+                return res.error('Author name is required', 400, true);
+            }
+
+            const sql = `INSERT INTO authors (user_id, name, bio) VALUES (?, ?, ?)`;
+            const params = [req.userId, name, bio || null];
+
+            const result = await conn.query(sql, params);
+            await logChanges(conn, 'INSERT', 'authors', result.insertId, null, JSON.stringify({ name, bio }));
+
+            res.success('Author added successfully');
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
+    router.put('/author/update/:id', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { id } = req.params;
+            const { name, bio } = req.body;
+
+            const dbDataQuery = `SELECT * FROM authors WHERE author_id = ? AND user_id = ?`;
+            const [dbData] = await conn.query(dbDataQuery, [id, req.userId]);
+            if (!dbData) {
+                return res.success('Author does not exist');
+            }
+
+            let sql = `UPDATE authors SET `;
+            let params = [];
+
+            if (name && name.trim() !== '') {
+                sql += `name = ?, `;
+                params.push(name);
+            }
+            if (bio !== undefined) {
+                sql += `bio = ?, `;
+                params.push(bio || null);
+            }
+
+            sql = sql.slice(0, -2);
+            sql += ` WHERE author_id = ? AND user_id = ?`;
+            params.push(id, req.userId);
+
+            if (params.length > 2) {
+                const oldDbDataQuery = `SELECT * FROM authors WHERE author_id = ? AND user_id = ?`;
+                const [oldDbData] = await conn.query(oldDbDataQuery, [id, req.userId]);
+
+                await conn.query(sql, params);
+
+                const newDbDataQuery = `SELECT * FROM authors WHERE author_id = ? AND user_id = ?`;
+                const [newDbData] = await conn.query(newDbDataQuery, [id, req.userId]);
+
+                await logChanges(conn, 'UPDATE', 'authors', id, JSON.stringify(oldDbData), JSON.stringify(newDbData));
+                res.success('Author updated successfully');
+            } else {
+                res.success('No valid fields provided to update');
+            }
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
+    router.delete('/author/delete/:id', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { id } = req.params;
+
+            const dbDataQuery = `SELECT * FROM authors WHERE author_id = ? AND user_id = ?`;
+            const [dbData] = await conn.query(dbDataQuery, [id, req.userId]);
+            if (!dbData) {
+                return res.success('Author does not exist');
+            }
+
+            await conn.query(
+                `DELETE FROM authors WHERE author_id = ? AND user_id = ?`,
+                [id, req.userId]
+            );
+
+            await logChanges(conn, 'DELETE', 'authors', id, JSON.stringify(dbData));
+            res.success('Author deleted successfully');
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
     return router;
 };

@@ -6,13 +6,16 @@ DROP TABLE IF EXISTS `series`;
 CREATE TABLE `series` (
   `series_id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
+  `author_id` int(11) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `img` BOOLEAN NOT NULL DEFAULT FALSE,
   `format` ENUM('lightNovel', 'manga') NOT NULL,
   `status` ENUM('reading', 'finished', 'stopped', 'paused') NOT NULL DEFAULT 'reading',
   PRIMARY KEY (`series_id`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `series_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+  KEY `author_id` (`author_id`),
+  CONSTRAINT `series_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `series_ibfk_2` FOREIGN KEY (`author_id`) REFERENCES `authors` (`author_id`)
 );
 
 DROP TABLE IF EXISTS `books`;
@@ -46,6 +49,18 @@ CREATE TABLE `chapters` (
   KEY `user_id` (`user_id`),
   CONSTRAINT `chapters_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`),
   CONSTRAINT `chapters_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+);
+
+DROP TABLE IF EXISTS `authors`;
+
+CREATE TABLE `authors` (
+  `author_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `bio` text DEFAULT NULL,
+  PRIMARY KEY (`author_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `authors_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 );
 
 DROP TABLE IF EXISTS `users`;

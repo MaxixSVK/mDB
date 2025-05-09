@@ -60,8 +60,18 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const { book_id } = req.params;
-            const [data] = await conn.query('SELECT * FROM books WHERE book_id = ?', [book_id]);
-
+            const query = `
+                SELECT 
+                    books.*, 
+                    series.author_id, 
+                    authors.name AS author_name
+                FROM books
+                LEFT JOIN series ON books.series_id = series.series_id
+                LEFT JOIN authors ON series.author_id = authors.author_id
+                WHERE books.book_id = ?;
+            `;
+            const [data] = await conn.query(query, [book_id]);
+    
             res.success(data);
         } catch (err) {
             next(err);
@@ -208,6 +218,37 @@ module.exports = function (pool) {
             }));
 
             res.success(stats);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
+    router.get('/author/:author_id', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { author_id } = req.params;
+            const [data] = await conn.query('SELECT * FROM authors WHERE author_id = ?', [author_id]);
+
+            res.success(data);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
+    router.get('/authors/:user_id', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { user_id } = req.params;
+            const data = await conn.query('SELECT author_id FROM authors WHERE user_id = ?', [user_id]);
+            const authorIds = data.map(row => row.author_id);
+
+            res.success(authorIds);
         } catch (err) {
             next(err);
         } finally {
