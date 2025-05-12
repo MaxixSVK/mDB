@@ -1,6 +1,12 @@
 const router = require('express').Router();
+const nodemailer = require("nodemailer");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const path = require('path');
+require("dotenv").config();
+
+const config = require('../../config.json');
 
 const saltRounds = 10;
 const secretKey = process.env.JWT_SECRET_KEY;
@@ -16,35 +22,57 @@ async function createSessionToken(userId, userAgent, ipAddress, pool) {
 
         const tokenPayload = { userId, sessionId: null };
         const token = jwt.sign(tokenPayload, secretKey, { expiresIn: '365d' });
-    
+
         await conn.query(
             'INSERT INTO sessions (user_id, session_token, expires_at, user_agent, ip_address) VALUES (?, ?, ?, ?, ?)',
             [userId, token, expiresAt, userAgent, ipAddress]
         );
-    
+
         const [newDBSession] = await conn.query(
             'SELECT * FROM sessions WHERE user_id = ? ORDER BY id DESC LIMIT 1',
             [userId]
         );
-    
+
         const sessionId = newDBSession.id;
         const updatedTokenPayload = { userId, sessionId };
         const updatedToken = jwt.sign(updatedTokenPayload, secretKey, { expiresIn: '365d' });
         const hashedUpdatedToken = await bcrypt.hash(updatedToken, saltRounds);
-    
+
         await conn.query(
             'UPDATE sessions SET session_token = ? WHERE id = ?',
             [hashedUpdatedToken, sessionId]
         );
-    
+
         await conn.commit();
         return updatedToken;
     } catch (error) {
         await conn.rollback();
-        throw error; 
+        throw error;
     } finally {
         if (conn) conn.release();
     }
+}
+
+async function sendEmail(to, subject, text, html) {
+    const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port: 465,
+        secure: true,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+
+    const mailOptions = {
+        from: "mDB Team <" + process.env.EMAIL_USER + ">",
+        to,
+        subject,
+        text,
+        html,
+    };
+
+    return transporter.sendMail(mailOptions)
 }
 
 module.exports = function (pool) {
@@ -55,7 +83,7 @@ module.exports = function (pool) {
             const passwordHash = await bcrypt.hash(password, 10);
             const userAgent = req.headers['user-agent'];
             const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    
+
             // Temporarily disable registration
             if (forcebetaregistration !== process.env.FORCE_REGISTRATION) {
                 return res.error('Registration is disabled', 403);
@@ -93,6 +121,21 @@ module.exports = function (pool) {
             const sessionToken = await createSessionToken(userId, userAgent, ipAddress, pool);
 
             res.success({ sessionToken });
+
+            // TODO: check if server should send email
+            const emailSubject = `Welcome to mDB, ${username}!`;
+            const year = new Date().getFullYear();
+            const emailText = `Welcome to mDB, ${username}!
+            Thank you for registering with mDB, your personal db for manga and light novels.
+            Happy reading!
+            
+            Start exploring mDB: https://mdb.maxix.sk
+            © ${year} mDatabase
+            `;
+            const emailTemplate = fs.readFileSync(path.join(__dirname, '../emailTemplates/registration.html'), 'utf8');
+            const emailHtml = emailTemplate.replace('{{username}}', username).replace('{{year}}', year);
+
+            await sendEmail(email, emailSubject, emailText, emailHtml);
         } catch (error) {
             await conn.rollback();
             next(error);
@@ -107,10 +150,10 @@ module.exports = function (pool) {
             const { username, password } = req.body;
             const userAgent = req.headers['user-agent'];
             const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-            
+
             conn = await pool.getConnection();
             const [user] = await conn.query(
-                'SELECT id, password_hash FROM users WHERE username = ?',
+                'SELECT id, email, password_hash FROM users WHERE username = ?',
                 [username]
             );
 
@@ -126,6 +169,8 @@ module.exports = function (pool) {
 
             const sessionToken = await createSessionToken(user.id, userAgent, ipAddress, pool);
             res.success({ sessionToken });
+
+            //TODO: Send email on login
         } catch (error) {
             next(error);
         } finally {
