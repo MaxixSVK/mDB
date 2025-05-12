@@ -1,11 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const mariadb = require('mariadb');
-const config = require('../config.json');
 require('dotenv').config();
 
-const { automaticBackup } = require('./backup/automaticBackup');
 const { startupCheck } = require('./startupCheck');
+startupCheck();
+
+const { automaticBackup } = require('./backup/automaticBackup');
+const config = require('../config.json');
 const package = require('../package.json');
 const responseFormatter = require('./middleware/responseFormatter');
 const logger = require('./logger');
@@ -46,7 +48,6 @@ app.use((err, req, res, next) => {
 
 const startServer = async () => {
     try {
-        startupCheck();
         await pool.getConnection().then(conn => conn.release());
         logger.info('Database connection established');
         app.listen(config.port, () => {
