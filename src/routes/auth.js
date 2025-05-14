@@ -2,6 +2,7 @@ const router = require('express').Router();
 const nodemailer = require("nodemailer");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const UAParser = require('ua-parser-js');
 const fs = require('fs');
 const path = require('path');
 require("dotenv").config();
@@ -70,9 +71,12 @@ async function sendEmail(to, subject, text, html) {
         subject,
         text,
         html,
+        headers: {
+            'Auto-Submitted': 'auto-generated',
+        },
     };
 
-    return transporter.sendMail(mailOptions)
+    return transporter.sendMail(mailOptions);
 }
 
 module.exports = function (pool) {
@@ -122,20 +126,30 @@ module.exports = function (pool) {
 
             res.success({ sessionToken });
 
-            // TODO: check if server should send email
-            const emailSubject = `Welcome to mDB, ${username}!`;
-            const year = new Date().getFullYear();
-            const emailText = `Welcome to mDB, ${username}!
-            Thank you for registering with mDB, your personal db for manga and light novels.
-            Happy reading!
-            
-            Start exploring mDB: https://mdb.maxix.sk
-            © ${year} mDatabase
-            `;
-            const emailTemplate = fs.readFileSync(path.join(__dirname, '../emailTemplates/registration.html'), 'utf8');
-            const emailHtml = emailTemplate.replace('{{username}}', username).replace('{{year}}', year);
+            async function sendRegistrationEmail() {
+                const emailSubject = `Welcome to mDB, ${username}!`;
+                const year = new Date().getFullYear();
 
-            await sendEmail(email, emailSubject, emailText, emailHtml);
+                const emailText = `
+                Welcome to mDB, ${username}!
+
+                Thank you for registering with mDB, your personal db for manga and light novels.
+                Happy reading!
+
+                Start exploring mDB: https://mdb.maxix.sk
+
+                ${year} mDatabase
+                `.trim();
+
+                const emailTemplate = fs.readFileSync(path.join(__dirname, '../emailTemplates/registration.html'), 'utf8');
+                const emailHtml = emailTemplate
+                    .replace('{{username}}', username)
+                    .replace('{{year}}', year);
+
+                await sendEmail(email, emailSubject, emailText, emailHtml);
+            }
+
+            if (config.email.enabled) await sendRegistrationEmail();
         } catch (error) {
             await conn.rollback();
             next(error);
@@ -153,7 +167,7 @@ module.exports = function (pool) {
 
             conn = await pool.getConnection();
             const [user] = await conn.query(
-                'SELECT id, email, password_hash FROM users WHERE username = ?',
+                'SELECT id, username, email, password_hash FROM users WHERE username = ?',
                 [username]
             );
 
@@ -170,7 +184,39 @@ module.exports = function (pool) {
             const sessionToken = await createSessionToken(user.id, userAgent, ipAddress, pool);
             res.success({ sessionToken });
 
-            //TODO: Send email on login
+            async function sendLoginEmail() {
+                const emailSubject = `New Login Notification`;
+                const year = new Date().getFullYear();
+                const loginTime = new Date().toISOString().replace('T', ' ').replace('Z', '') + ' UTC';
+
+                const parser = new UAParser(userAgent);
+                const deviceInfo = `${parser.getBrowser().name} on ${parser.getOS().name}`;
+
+                const emailText = `
+                Hello ${user.username},
+    
+                We noticed a login to your mDB account from a new device or location:
+                - IP Address: ${ipAddress}
+                - Device: ${deviceInfo}
+                - Time: ${loginTime}
+    
+                If this was you, no further action is required. If you did not log in, please reset your password immediately to secure your account.
+    
+                ${year} mDatabase
+                `.trim();
+
+                const emailTemplate = fs.readFileSync(path.join(__dirname, '../emailTemplates/login.html'), 'utf8');
+                const emailHtml = emailTemplate
+                    .replace('{{username}}', user.username)
+                    .replace('{{ipAddress}}', ipAddress)
+                    .replace('{{userAgent}}', deviceInfo)
+                    .replace('{{loginTime}}', loginTime)
+                    .replace('{{year}}', year);
+
+                await sendEmail(user.email, emailSubject, emailText, emailHtml);
+            }
+
+            if (config.email.enabled) await sendLoginEmail();
         } catch (error) {
             next(error);
         } finally {
