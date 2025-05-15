@@ -1,27 +1,29 @@
 const router = require('express').Router();
 
 module.exports = function (pool) {
-    router.get('/series', async (req, res, next) => {
-        let conn;
-        try {
-            conn = await pool.getConnection();
-            const data = await conn.query('SELECT series_id FROM series');
-            const seriesIds = data.map(row => row.series_id);
-
-            res.success(seriesIds);
-        } catch (err) {
-            next(err);
-        } finally {
-            if (conn) conn.release();
-        }
-    });
-
     router.get('/series/formats', async (req, res, next) => {
         const allowedFormats = [
             { format: 'lightNovel', name: 'Light Novel', pluralName: 'Light Novels' },
             { format: 'manga', name: 'Manga', pluralName: 'Manga' }
         ];
         res.success(allowedFormats);
+    });
+
+    router.get('/series/u/:user_id', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { user_id } = req.params;
+            const data = await conn.query('SELECT series_id FROM series WHERE user_id = ?', [user_id]);
+            const seriesIds = data.map(row => row.series_id);
+
+            res.success(seriesIds);
+        } catch (err) {
+            next(err);
+        }
+        finally {
+            if (conn) conn.release();
+        }
     });
 
     router.get('/series/:series_id', async (req, res, next) => {
@@ -71,7 +73,7 @@ module.exports = function (pool) {
                 WHERE books.book_id = ?;
             `;
             const [data] = await conn.query(query, [book_id]);
-    
+
             res.success(data);
         } catch (err) {
             next(err);
@@ -112,20 +114,21 @@ module.exports = function (pool) {
     });
 
     //TODO: change reply format
-    router.get('/search/:search', async (req, res, next) => {
+    router.get('/search/:user_id/:search', async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
-            const { search } = req.params;
+            const { user_id ,search } = req.params;
             const query = `
             SELECT series.series_id, books.book_id, chapters.chapter_id
             FROM series
             LEFT JOIN books ON series.series_id = books.series_id
             LEFT JOIN chapters ON books.book_id = chapters.book_id
-            WHERE series.name LIKE ? OR books.name LIKE ? OR chapters.name LIKE ? OR books.isbn LIKE ?
+            WHERE (series.name LIKE ? OR books.name LIKE ? OR chapters.name LIKE ? OR books.isbn LIKE ?)
+              AND series.user_id = ?
             ORDER BY series.series_id, books.book_id, chapters.chapter_id;
             `;
-            const rows = await conn.query(query, [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`]);
+            const rows = await conn.query(query, [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, user_id]);
 
             const seriesData = {};
             rows.forEach(row => {
@@ -166,6 +169,8 @@ module.exports = function (pool) {
         }
     });
 
+    //TODO: support new multi-user version of mDB
+    //TODO: more stats endpoints
     router.get('/stats', async (req, res, next) => {
         let conn;
         try {

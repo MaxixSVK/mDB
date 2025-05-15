@@ -1,5 +1,19 @@
-document.addEventListener("DOMContentLoaded", function () {
-    checkLogin();
+document.addEventListener("DOMContentLoaded", async function () {
+    document.getElementById('login-section').classList.add('hidden');
+    document.getElementById('register-section').classList.add('hidden');
+
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('t');
+
+    if (type === 'reg') {
+        document.getElementById('register-section').classList.remove('hidden');
+    } else {
+        document.getElementById('login-section').classList.remove('hidden');
+    }
+
+    ({ loggedIn } = await checkLogin());
+    if (loggedIn) window.location.href = '/';
+    
     setupEventListeners();
 });
 
@@ -37,31 +51,6 @@ function setupEventListeners() {
     });
 }
 
-async function checkLogin() {
-    const sessionCookieName = 'sessionToken=';
-    const cookies = document.cookie.split(';').map(cookie => cookie.trim());
-    const session = cookies.find(cookie => cookie.startsWith(sessionCookieName))?.substring(sessionCookieName.length) || null;
-
-    if (session) {
-        try {
-            const response = await fetch(api + '/account/validate', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': session
-                },
-            });
-
-            if (response.ok) {
-                window.location.href = '/dashboard';
-            } else {
-                document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-            }
-        } catch (error) {
-            console.error('Login failed:', error);
-        }
-    }
-}
 
 async function handleLogin(loginData) {
     try {
@@ -118,20 +107,15 @@ function showError(section, message) {
     errorDiv.classList.remove('hidden');
 }
 
-function setCookie(name, value, days) {
-    let expires = "";
-    if (days) {
-        const date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        expires = "; expires=" + date.toUTCString();
-    }
-    document.cookie = name + "=" + (value || "") + expires + "; path=/";
-}
-
 function switchSection(hideSectionId, showSectionId) {
     const hideSection = document.getElementById(hideSectionId);
     const showSection = document.getElementById(showSectionId);
 
     hideSection.classList.add('hidden');
     showSection.classList.remove('hidden');
+    
+    if (window.history.replaceState) {
+        const baseUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, baseUrl);
+    }
 }

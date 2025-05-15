@@ -9,6 +9,47 @@ function getCookie(name) {
     return null;
 }
 
+function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+async function checkLogin(admin) {
+    let endpoint = '/account/validate';
+    if (admin) endpoint = '/server';
+
+    const session = getCookie('sessionToken');
+    if (session) {
+        try {
+            const response = await fetch(api + endpoint, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authorization': session
+                },
+            });
+
+            if (response.ok) {
+                const user = await response.json();
+                return { loggedIn: true, userId: user.userId, sessionId: user.sessionId };
+            } else {
+                logout();
+                return { loggedIn: false };
+            }
+        } catch (err) {
+            console.error('Login failed:', err);
+            return { loggedIn: false };
+        }
+    } else {
+        return { loggedIn: false };
+    }
+}
+
 async function displayUser(userInfo = true) {
     try {
         const user = await fetch(api + '/account', {
@@ -40,7 +81,7 @@ function updateUserInfo(data) {
 }
 
 function updateUserProfilePicture(username) {
-    document.getElementById('login').classList.add('hidden');
+    document.getElementById('nopfp').classList.add('hidden');
     document.getElementById('pfp').classList.remove('hidden');
     document.getElementById('pfp').src = cdn + '/users/pfp/' + username + '.png';
 }

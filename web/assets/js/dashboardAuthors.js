@@ -34,7 +34,6 @@ authorForm.addEventListener('submit', async function (event) {
             showNotification('Failed to create author.', 'error');
         }
     } catch (error) {
-        console.error('Error creating author:', error);
         showNotification('An error occurred while creating the author.', 'error');
     }
 });

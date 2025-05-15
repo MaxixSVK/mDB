@@ -33,26 +33,47 @@
                 <a class="text-3xl text-white font-bold">About</a>
             </div>
         </nav>
-        <main class="bg-[#191818] rounded-md pt-4 pb-0.5">
-            <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 p-4 md:p-6 rounded-md">
-                <h2 class="text-2xl font-bold">About mDB</h2>
-                <p class="text-lg">mDB is a website created by <a href="https://github.com/MaxixSVK"
-                        class="text-[#FFA500] hover:underline">Maxix</a> for managing your personal library of books,
-                    originally focused on light novels and manga. It is an open-source project available on <a
-                        href="https://github.com/MaxixSVK/mDB" class="text-[#FFA500] hover:underline">GitHub</a>.</p>
-                <h3 class="text-xl font-bold mt-6">Self-hosting</h3>
-                <p class="text-lg">Check out the <a href="https://github.com/MaxixSVK/mDB/blob/main/README.md"
-                        class="text-[#FFA500] hover:underline">mDB project</a> on GitHub for instructions on how to
-                    self-host mDB.</p>
-                <h3 class="text-xl font-bold mt-6">Security</h3>
-                <p class="text-lg">For information on security practices, see the <a
-                        href="https://github.com/MaxixSVK/mDB/blob/main/SECURITY.md"
-                        class="text-[#FFA500] hover:underline">Security Policy</a>.</p>
-                <h3 class="text-xl font-bold mt-6">License</h3>
-                <p class="text-lg">This project is licensed under the GNU General Public License v3.0. See the <a
-                        href="https://github.com/MaxixSVK/mDB/blob/main/LICENSE"
-                        class="text-[#FFA500] hover:underline">LICENSE</a> file for details.</p>
-            </section>
+        <main class="flex-1 flex flex-col items-center justify-center px-4">
+            <div class="flex flex-col md:flex-row gap-8 w-full max-w-4xl items-stretch mt-8 md:mt-24">
+                <section class="flex-1 bg-[#191818] rounded-xl shadow-lg p-8 flex flex-col justify-center">
+                    <h1 class="text-3xl font-bold text-white mb-2 text-center">Welcome to mDB</h1>
+                    <p class="text-gray-300 text-center mb-6">Your personal manga & light novel library.<br>Free,
+                        open-source, and private.</p>
+                    <div class="flex flex-col gap-4">
+                        <a href="/auth?t=reg"
+                            class="border-2 border-dashed border-[#FFA500] text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#FFA500] transition">Create
+                            Account</a>
+                        <a href="/auth"
+                            class="border-2 border-dashed border-white text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#2d2d2d] transition">Login</a>
+                    </div>
+                    <div class="mt-8 text-center">
+                        <span class="text-gray-400 text-sm">No account needed to browse public libraries.</span>
+                    </div>
+                </section>
+                <section id="about" class="flex-1 bg-[#1F1F1F] rounded-xl p-8 shadow text-white flex flex-col">
+                    <h2 class="text-3xl font-bold text-white mb-2 text-center">About mDB</h2>
+                    <p class="text-gray-300 text-center mb-6">
+                        mDB is a project by
+                        <a href="https://github.com/MaxixSVK" class="text-[#FFA500] hover:underline">Maxix</a>
+                        for managing your personal library of manga and light novels. It’s open-source and
+                        <a href="https://github.com/MaxixSVK/mDB" class="text-[#FFA500] hover:underline">available on
+                            GitHub</a>.
+                    </p>
+                    <ul class="list-disc list-inside text-gray-300 mb-3">
+                        <li>Self-host or use online</li>
+                        <li>Secure, and customizable</li>
+                        <li>Easy to use and mobile-friendly</li>
+                    </ul>
+                    <div class="flex flex-wrap gap-4 mt-auto justify-center text-center">
+                        <a href="https://github.com/MaxixSVK/mDB/blob/main/README.md"
+                            class="text-[#FFA500] hover:underline text-sm">Self-hosting Guide</a>
+                        <a href="https://github.com/MaxixSVK/mDB/blob/main/SECURITY.md"
+                            class="text-[#FFA500] hover:underline text-sm">Security Policy</a>
+                        <a href="https://github.com/MaxixSVK/mDB/blob/main/LICENSE"
+                            class="text-[#FFA500] hover:underline text-sm">License (GPLv3)</a>
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
 </body>

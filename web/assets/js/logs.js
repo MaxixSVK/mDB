@@ -1,38 +1,14 @@
 let limit, offset;
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
     limit = 10;
     offset = 0;
-    checkLogin();
+
+    ({ loggedIn } = await checkLogin());
+    if (!loggedIn) window.location.href = '/about';
+    
     addEventListeners();
 });
-
-async function checkLogin() {
-    const session = getCookie('sessionToken');
-    if (session) {
-        try {
-            const response = await fetch(api + '/account/validate', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': session
-                },
-            });
-
-            if (response.ok) {
-                displayUser();
-                fetchLogs();
-            } else {
-                document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                window.location.href = '/auth';
-            }
-        } catch (error) {
-            console.error('Login failed:', error);
-        }
-    } else {
-        window.location.href = '/auth';
-    }
-}
 
 function addEventListeners() {
     document.getElementById('load-more').addEventListener('click', function () {

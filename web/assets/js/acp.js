@@ -1,5 +1,8 @@
-document.addEventListener("DOMContentLoaded", function () {
-    checkLogin();
+document.addEventListener("DOMContentLoaded", async function () {
+    ({ loggedIn } = await checkLogin(true));
+    if (!loggedIn) window.location.href = '/';
+
+    displayUser();
 
     const configEditor = CodeMirror.fromTextArea(document.getElementById('config-editor'), {
         mode: "application/json",
@@ -27,31 +30,6 @@ function setupButtonEvent(elementId, eventType, handler) {
     element.addEventListener(eventType, handler);
 }
 
-async function checkLogin() {
-    const session = getCookie('sessionToken');
-    if (session) {
-        try {
-            const response = await fetch(api + '/account/validate', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': session
-                },
-            });
-
-            if (response.ok) {
-                displayUser();
-            } else {
-                document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                window.location.href = '/auth';
-            }
-        } catch (error) {
-            console.error('Login failed:', error);
-        }
-    } else {
-        window.location.href = '/auth';
-    }
-}
 
 function dbBackup() {
     try {

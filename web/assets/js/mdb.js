@@ -1,53 +1,21 @@
-document.addEventListener('DOMContentLoaded', function () {
-    checkLogin();
+let userId;
+
+document.addEventListener('DOMContentLoaded', async function () {
+    ({ loggedIn, userId } = await checkLogin());
+    if (!loggedIn) window.location.href = '/about';
+
+    displayUser(false);
     fetchStats();
     createFormatLists();
     setupSearch();
+
+    document.getElementById('pfp').addEventListener('click', function () {
+        window.location.href = '/dashboard';
+    });
+    document.getElementById('nopfp').addEventListener('click', function () {
+        window.location.href = '/dashboard';
+    });
 });
-
-async function checkLogin() {
-    const sessionCookieName = 'sessionToken=';
-    const cookies = document.cookie.split(';').map(cookie => cookie.trim());
-    const session = cookies.find(cookie => cookie.startsWith(sessionCookieName))?.substring(sessionCookieName.length) || null;
-
-    if (session) {
-        try {
-            const response = await fetch(api + '/account/validate', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': session
-                },
-            });
-
-            if (response.ok) {
-                const userData = await fetch(api + '/account', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'authorization': session
-                    },
-                }).then(response => response.json());
-                displayUser(false);
-                document.getElementById('pfp').addEventListener('click', function () {
-                    window.location.href = '/dashboard';
-                });
-                document.getElementById('login').addEventListener('click', function () {
-                    window.location.href = '/dashboard';
-                });
-            } else {
-                document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-            }
-        } catch (error) {
-            console.error('Login failed:', error);
-        }
-    } else {
-        document.getElementById('pfp').classList.add('hidden');
-        document.getElementById('login').addEventListener('click', function () {
-            window.location.href = '/auth';
-        });
-    }
-}
 
 function fetchStats() {
     document.getElementById('stats').addEventListener('click', function () {
@@ -107,7 +75,7 @@ function getUniqueFormats(seriesData) {
 }
 
 function fetchSeriesList() {
-    fetch(api + '/library/series')
+    fetch(api + '/library/series/u/' + userId)
         .then(response => response.json())
         .then(seriesIds => {
             const seriesPromises = seriesIds.map(seriesId =>
@@ -470,7 +438,7 @@ function setupSearch() {
 }
 
 function performSearch(searchTerm) {
-    fetch(api + '/library/search/' + searchTerm)
+    fetch(api + '/library/search/' + userId + '/' + searchTerm)
         .then(response => response.json())
         .then(data => {
             if (data.length === 0) {

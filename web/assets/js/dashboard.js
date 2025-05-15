@@ -1,45 +1,9 @@
-document.addEventListener("DOMContentLoaded", function () {
-    checkLogin();
+document.addEventListener("DOMContentLoaded", async function () {
+    const loggedIn = await checkLogin();
+    if (!loggedIn) window.location.href = '/auth';
     setupEventListeners();
+    displayUser();
 });
-
-function getCookie(name) {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-    }
-    return null;
-}
-
-async function checkLogin() {
-    const session = getCookie('sessionToken');
-    if (session) {
-        try {
-            const response = await fetch(api + '/account/validate', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': session
-                },
-            });
-
-            if (response.ok) {
-                displayUser();
-                renderCDNList();
-            } else {
-                logout();
-            }
-        } catch (error) {
-            console.error('Login failed:', error);
-        }
-    } else {
-        window.location.href = '/auth';
-    }
-}
-
 
 function setupEventListeners() {
     document.getElementById('logout').addEventListener('click', logout);
@@ -74,6 +38,7 @@ function setupEventListeners() {
         const searchQuery = event.target.value;
         renderCDNList(searchQuery);
     }, 250));
+    searchElement.dispatchEvent(new Event('input'));
 }
 
 function handleCDNUpload() {
@@ -170,7 +135,7 @@ async function renderCDNList(searchQuery = '') {
         const listItem = createListItem(item);
         cdnList.appendChild(listItem);
     });
-}   
+}
 
 function createListItem(item) {
     const listItem = document.createElement('li');
