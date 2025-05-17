@@ -1,3 +1,6 @@
+//TODO: Better handle new use
+//Like handing when there are no series, books, chapters and authors
+
 document.addEventListener("DOMContentLoaded", async function () {
     const loggedIn = await checkLogin();
     if (!loggedIn) window.location.href = '/auth';

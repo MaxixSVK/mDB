@@ -6,9 +6,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     displayUser(false);
     fetchStats();
-    createFormatLists();
-    setupSearch();
-
+    
     document.getElementById('pfp').addEventListener('click', function () {
         window.location.href = '/dashboard';
     });
@@ -21,12 +19,19 @@ function fetchStats() {
     document.getElementById('stats').addEventListener('click', function () {
         window.location.href = '/stats';
     });
-    fetch(api + '/library/stats')
+    fetch(api + '/library/stats/' + userId)
         .then(response => response.json())
         .then(data => {
+            if (data.seriesCount === 0) {
+                toggleVisibility(document.getElementsByTagName('main')[0], true);
+                toggleVisibility(document.getElementById('empty-library'));
+                return;
+            }
             document.getElementById('series-count').textContent = data.seriesCount;
             document.getElementById('book-count').textContent = data.bookCount;
             document.getElementById('chapter-count').textContent = data.chapterCount;
+            setupSearch();
+            createFormatLists();
         });
 }
 
@@ -455,11 +460,18 @@ function performSearch(searchTerm) {
 function renderSearchResults(results) {
     cleanAllFormatLists();
 
-    results.forEach(result => {
-        fetch(api + '/library/series/' + result.series_id)
+    results.forEach(seriesArr => {
+        const [series_id, booksArr] = seriesArr;
+        fetch(api + '/library/series/' + series_id)
             .then(response => response.json())
             .then(series => {
-                series.books = result.books;
+                series.books = booksArr.map(bookArr => {
+                    const [book_id, chaptersArr] = bookArr;
+                    return {
+                        book_id,
+                        chapters: chaptersArr.map(chapter_id => ({ chapter_id }))
+                    };
+                });
                 renderSeries(series, true);
             });
     });

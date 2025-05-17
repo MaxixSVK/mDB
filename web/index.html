@@ -26,8 +26,8 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
-<body class="bg-[#131313] font-figtree">
-    <div id="app" class="max-w-(--breakpoint-xl) xl:mx-auto mx-4">
+<body class="bg-[#131313] font-figtree min-h-screen flex">
+    <div id="app" class="flex-1 flex flex-col max-w-(--breakpoint-xl) xl:mx-auto mx-4">
         <nav class="flex justify-between items-center py-4">
             <a href="/" class="text-3xl text-white font-bold hidden md:block">
                 mDatabase
@@ -72,6 +72,33 @@
                 </section>
             </div>
         </main>
+        <div class="flex-1 flex items-center justify-center w-full">
+            <section id="empty-library"
+                class="hidden flex-col items-center justify-center w-full max-w-2xl p-8 bg-[#1F1F1F] rounded-xl shadow-lg">
+                <h1 class="text-3xl font-bold text-white mb-2 text-center">Your Library is Empty</h1>
+                <p class="text-gray-300 text-center mb-6">
+                    Start building your manga & light novel collection.<br>
+                    Add your first series to get started!
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                    <button
+                        class="bg-[#FFA500] hover:bg-[#ffb733] text-white font-semibold py-3 px-8 rounded-lg text-lg transition"
+                        onclick="window.location.href='/dashboard'">
+                        <i class="fas fa-plus mr-2"></i>Add Series
+                    </button>
+                    <button
+                        class="border-2 border-dashed border-[#FFA500] text-white font-semibold py-3 px-8 rounded-lg text-lg hover:bg-[#FFA500] transition"
+                        onclick="window.location.href='/explore'">
+                        <i class="fas fa-compass mr-2"></i>Explore Public Libraries
+                    </button>
+                </div>
+                <div class="mt-8 text-center">
+                    <span class="text-gray-400 text-sm">Need help? <a
+                            href="https://github.com/MaxixSVK/mDB/blob/main/README.md"
+                            class="text-[#FFA500] hover:underline">Read the Guide</a></span>
+                </div>
+            </section>
+        </div>
     </div>
 
     <script src="assets/js/api.js"></script>

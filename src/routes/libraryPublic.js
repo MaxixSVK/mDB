@@ -113,55 +113,46 @@ module.exports = function (pool) {
         }
     });
 
-    //TODO: change reply format
     router.get('/search/:user_id/:search', async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
-            const { user_id ,search } = req.params;
+            const { user_id, search } = req.params;
             const query = `
-            SELECT series.series_id, books.book_id, chapters.chapter_id
-            FROM series
-            LEFT JOIN books ON series.series_id = books.series_id
-            LEFT JOIN chapters ON books.book_id = chapters.book_id
-            WHERE (series.name LIKE ? OR books.name LIKE ? OR chapters.name LIKE ? OR books.isbn LIKE ?)
-              AND series.user_id = ?
-            ORDER BY series.series_id, books.book_id, chapters.chapter_id;
-            `;
+        SELECT series.series_id, books.book_id, chapters.chapter_id
+        FROM series
+        LEFT JOIN books ON series.series_id = books.series_id
+        LEFT JOIN chapters ON books.book_id = chapters.book_id
+        WHERE (series.name LIKE ? OR books.name LIKE ? OR chapters.name LIKE ? OR books.isbn LIKE ?)
+          AND series.user_id = ?
+        ORDER BY series.series_id, books.book_id, chapters.chapter_id;
+        `;
             const rows = await conn.query(query, [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, user_id]);
 
-            const seriesData = {};
-            rows.forEach(row => {
-                if (!seriesData[row.series_id]) {
-                    seriesData[row.series_id] = {
-                        series_id: row.series_id,
-                        books: {}
-                    };
+            const seriesMap = new Map();
+            for (const row of rows) {
+                if (!seriesMap.has(row.series_id)) {
+                    seriesMap.set(row.series_id, new Map());
                 }
-                if (row.book_id && !seriesData[row.series_id].books[row.book_id]) {
-                    seriesData[row.series_id].books[row.book_id] = {
-                        book_id: row.book_id,
-                        chapters: []
-                    };
+                const booksMap = seriesMap.get(row.series_id);
+                if (row.book_id && !booksMap.has(row.book_id)) {
+                    booksMap.set(row.book_id, []);
                 }
-                if (row.chapter_id) {
-                    seriesData[row.series_id].books[row.book_id].chapters.push({
-                        chapter_id: row.chapter_id
-                    });
+                if (row.book_id && row.chapter_id) {
+                    booksMap.get(row.book_id).push(row.chapter_id);
                 }
-            });
+            }
 
-            let seriesArray = Object.values(seriesData).map(series => ({
-                series_id: series.series_id,
-                books: Object.values(series.books).map(book => ({
-                    book_id: book.book_id,
-                    chapters: book.chapters.map(chapter => ({
-                        chapter_id: chapter.chapter_id
-                    }))
-                }))
-            }));
+            const result = [];
+            for (const [series_id, booksMap] of seriesMap.entries()) {
+                const booksArr = [];
+                for (const [book_id, chaptersArr] of booksMap.entries()) {
+                    booksArr.push([book_id, chaptersArr]);
+                }
+                result.push([series_id, booksArr]);
+            }
 
-            res.success(seriesArray);
+            res.success(result);
         } catch (err) {
             next(err);
         } finally {
@@ -169,22 +160,23 @@ module.exports = function (pool) {
         }
     });
 
-    //TODO: support new multi-user version of mDB
-    //TODO: more stats endpoints
-    router.get('/stats', async (req, res, next) => {
+    router.get('/stats/:user_id', async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
+            const { user_id } = req.params;
             const query = `
-                SELECT 
-                (SELECT COUNT(series_id) FROM series) as seriesCount,
-                (SELECT COUNT(book_id) FROM books) as bookCount,
-                (SELECT COUNT(chapter_id) FROM chapters) as chapterCount,
-                (SELECT COUNT(series_id) FROM series WHERE format = 'manga') as mangaCount,
-                (SELECT COUNT(series_id) FROM series WHERE format = 'lightNovel') as lightNovelCount;
-            `;
+            SELECT 
+            (SELECT COUNT(series_id) FROM series WHERE user_id = ?) as seriesCount,
+            (SELECT COUNT(book_id) FROM books WHERE user_id = ?) as bookCount,
+            (SELECT COUNT(chapter_id) FROM chapters WHERE user_id = ?) as chapterCount,
+            (SELECT COUNT(series_id) FROM series WHERE user_id = ? AND format = 'manga') as mangaCount,
+            (SELECT COUNT(series_id) FROM series WHERE user_id = ? AND format = 'lightNovel') as lightNovelCount;
+        `;
 
-            const [data] = await conn.query(query);
+            const [data] = await conn.query(query, [
+                user_id, user_id, user_id, user_id, user_id
+            ]);
             const stats = {
                 seriesCount: Number(data.seriesCount),
                 bookCount: Number(data.bookCount),
@@ -201,22 +193,22 @@ module.exports = function (pool) {
         }
     });
 
-    router.get('/stats/month/:year?', async (req, res, next) => {
+    router.get('/stats/month/:user_id/:year', async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
-            const year = req.params.year || new Date().getFullYear();
+            const { user_id, year } = req.params;
             const query = `
                 SELECT 
                     DATE_FORMAT(date, '%Y-%m') as month,
                     COUNT(chapter_id) as chapters
                 FROM chapters
-                WHERE YEAR(date) = ?
+                WHERE YEAR(date) = ? AND user_id = ?
                 GROUP BY month
                 ORDER BY month;
             `;
 
-            const data = await conn.query(query, [year]);
+            const data = await conn.query(query, [year, user_id]);
             const stats = data.map(item => ({
                 ...item,
                 chapters: Number(item.chapters)
@@ -229,7 +221,6 @@ module.exports = function (pool) {
             if (conn) conn.release();
         }
     });
-
     router.get('/author/:author_id', async (req, res, next) => {
         let conn;
         try {

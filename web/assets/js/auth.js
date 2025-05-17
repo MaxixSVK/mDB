@@ -65,7 +65,7 @@ async function handleLogin(loginData) {
         if (response.ok) {
             const responseData = await response.json();
             setCookie('sessionToken', responseData.sessionToken, 365);
-            window.location.href = '/dashboard';
+            window.location.href = '/';
         } else {
             const responseData = await response.json();
             console.log(responseData);
@@ -90,7 +90,7 @@ async function handleRegister(registerData) {
         if (response.ok) {
             const responseData = await response.json();
             setCookie('sessionToken', responseData.sessionToken, 365);
-            window.location.href = '/dashboard';
+            window.location.href = '/';
         } else {
             const responseData = await response.json();
             showError('register', responseData.msg);

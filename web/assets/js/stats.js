@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+    ({ loggedIn, userId } = await checkLogin());
+    if (!loggedIn) window.location.href = '/about';
     fetchStats();
 
     const currentYear = new Date().getFullYear();
@@ -23,7 +25,7 @@ function addEventListeners() {
 }
 
 function fetchStats() {
-    fetch(api + '/library/stats')
+    fetch(api + '/library/stats/' + userId)
         .then(response => response.json())
         .then(data => {
             document.getElementById('series-count').textContent = data.seriesCount;
@@ -33,7 +35,7 @@ function fetchStats() {
 }
 
 function fetchStatsByMonth(year) {
-    fetch(api + '/library/stats/month/' + year)
+    fetch(api + '/library/stats/month/' + userId + '/' + year)
         .then(response => response.json())
         .then(data => {
             const canvas = document.getElementById('chart-month');
