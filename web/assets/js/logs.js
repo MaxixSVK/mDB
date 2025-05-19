@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     ({ loggedIn } = await checkLogin());
     if (!loggedIn) window.location.href = '/about';
+
+    displayUser();
+    fetchLogs();
     
     addEventListeners();
 });
@@ -20,7 +23,7 @@ function addEventListeners() {
 async function fetchLogs() {
     try {
         const session = getCookie('sessionToken');
-        const response = await fetch(api + '/server/logs?limit=' + limit +'&offset=' + offset, {
+        const response = await fetch(api + '/server/logs?limit=' + limit + '&offset=' + offset, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -106,7 +109,7 @@ function formatDate(dateString) {
 }
 
 function createDataElement(data) {
-    if (data.startedReading) { 
+    if (data.startedReading) {
         data.startedReading = formatDate(data.startedReading);
     }
     if (data.endedReading) {
