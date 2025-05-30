@@ -4,16 +4,20 @@ const logger = require('./logger');
 
 function createDefaultConfig(configPath) {
     const defaultConfig = {
-        port: 3000,
-        backup: {
-            db: false,
-            cdn: false,
-            dbInterval: 86400000,
-            cdnInterval: 86400000,
-            includeSensitiveTables: false
+        api: {
+            port: 3000,
+            backup: {
+                db: false,
+                cdn: false,
+                dbInterval: 86400000,
+                cdnInterval: 86400000
+            },
+            email: {
+                enabled: false
+            }
         },
-        email: {
-            enabled: false
+        web: {
+            port: 3001
         }
     };
 
@@ -44,15 +48,17 @@ function checkConfigFormat() {
     }
 
     const isValid = config &&
-        typeof config.port === 'number' &&
-        config.backup &&
-        typeof config.backup.db === 'boolean' &&
-        typeof config.backup.cdn === 'boolean' &&
-        typeof config.backup.dbInterval === 'number' &&
-        typeof config.backup.cdnInterval === 'number' &&
-        typeof config.backup.includeSensitiveTables === 'boolean' &&
-        config.email &&
-        typeof config.email.enabled === 'boolean';
+        typeof config.api === 'object' &&
+        typeof config.api.port === 'number' &&
+        config.api.backup &&
+        typeof config.api.backup.db === 'boolean' &&
+        typeof config.api.backup.cdn === 'boolean' &&
+        typeof config.api.backup.dbInterval === 'number' &&
+        typeof config.api.backup.cdnInterval === 'number' &&
+        config.api.email &&
+        typeof config.api.email.enabled === 'boolean' &&
+        typeof config.web === 'object' &&
+        typeof config.web.port === 'number';
 
     logger[isValid ? 'info' : 'error'](isValid ? 'Config file format is correct' : 'Invalid config file format');
 

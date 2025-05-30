@@ -1,6 +1,21 @@
 const router = require('express').Router();
 
 module.exports = function (pool) {
+    router.get('/user/:username', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { username } = req.params;
+            const [data] = await conn.query('SELECT id FROM users WHERE username = ?', [username]);
+
+            res.success(data ? [data.id] : []);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
     router.get('/series/formats', async (req, res, next) => {
         const allowedFormats = [
             { format: 'lightNovel', name: 'Light Novel', pluralName: 'Light Novels' },

@@ -29,8 +29,8 @@ async function automaticBackup() {
     try {
         const backupDir = path.join(__dirname, `../../backups`);
         const backups = [
-            { type: 'DB', enabled: config.backup.db, interval: config.backup.dbInterval, action: () => backupDatabase(true) },
-            { type: 'CDN', enabled: config.backup.cdn, interval: config.backup.cdnInterval, action: backupCDN }
+            { type: 'DB', enabled: config.api.backup.db, interval: config.api.backup.dbInterval, action: () => backupDatabase(true) },
+            { type: 'CDN', enabled: config.api.backup.cdn, interval: config.api.backup.cdnInterval, action: backupCDN }
         ];
 
         for (const backup of backups) {

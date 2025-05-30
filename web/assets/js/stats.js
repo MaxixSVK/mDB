@@ -1,6 +1,26 @@
+let userId;
+
 document.addEventListener('DOMContentLoaded', async function () {
+    const profileMatch = window.location.pathname.match(/^\/stats\/([^\/]+)$/);
+
+    let loggedIn = false;
+    let publicProfileUsername;
+
     ({ loggedIn, userId } = await checkLogin());
-    if (!loggedIn) window.location.href = '/about';
+
+    if (profileMatch) {
+        publicProfileUsername = profileMatch[1];
+        window.publicProfileUsername = publicProfileUsername;
+    } else if (!loggedIn) {
+        window.location.href = '/about';
+    }
+
+    if (publicProfileUsername) {
+        const response = await fetch(api + '/library/user/' + publicProfileUsername);
+        const data = await response.json();
+        userId = data[0];
+    }
+
     fetchStats();
 
     const currentYear = new Date().getFullYear();

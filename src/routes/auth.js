@@ -149,7 +149,7 @@ module.exports = function (pool) {
                 await sendEmail(email, emailSubject, emailText, emailHtml);
             }
 
-            if (config.email.enabled) await sendRegistrationEmail();
+            if (config.api.email.enabled) await sendRegistrationEmail();
         } catch (error) {
             await conn.rollback();
             next(error);
@@ -216,7 +216,7 @@ module.exports = function (pool) {
                 await sendEmail(user.email, emailSubject, emailText, emailHtml);
             }
 
-            if (config.email.enabled) await sendLoginEmail();
+            if (config.api.email.enabled) await sendLoginEmail();
         } catch (error) {
             next(error);
         } finally {

@@ -2,7 +2,7 @@ const os = require('os');
 const path = require('path');
 const { exec } = require('child_process');
 
-async function backupDatabase(includeSensitiveTables = false) {
+async function backupDatabase(includeSensitiveTables) {
     return new Promise((resolve, reject) => {
         const date = new Date().toISOString();
         const tempDir = os.tmpdir();
