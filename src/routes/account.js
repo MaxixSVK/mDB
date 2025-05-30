@@ -103,7 +103,7 @@ module.exports = function (pool) {
                 [req.userId]
             );
 
-            if (!await bcrypt.compare(req.body.oldPassword, user.password_hash)) {
+            if (!(await bcrypt.compare(req.body.oldPassword, user.password_hash))) {
                 return res.error('Invalid old password', 401);
             }
 
