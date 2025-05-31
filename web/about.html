@@ -39,15 +39,27 @@
                     <h1 class="text-3xl font-bold text-white mb-2 text-center">Welcome to mDB</h1>
                     <p class="text-gray-300 text-center mb-6">Your personal manga & light novel library.<br>Free,
                         open-source, and private.</p>
-                    <div class="flex flex-col gap-4">
-                        <a href="/auth?t=reg"
-                            class="border-2 border-dashed border-[#FFA500] text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#FFA500] transition">Create
-                            Account</a>
-                        <a href="/auth"
-                            class="border-2 border-dashed border-white text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#2d2d2d] transition">Login</a>
+                    <div id="auth-actions">
+                        <div class="flex flex-col gap-4">
+                            <a href="/auth?t=reg"
+                                class="border-2 border-dashed border-[#FFA500] text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#FFA500] transition">Create
+                                Account</a>
+                            <a href="/auth"
+                                class="border-2 border-dashed border-white text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#2d2d2d] transition">Login</a>
+                        </div>
                     </div>
-                    <div class="mt-8 text-center">
-                        <span class="text-gray-400 text-sm">No account needed to browse public libraries.</span>
+                    <div id="user-actions" class="hidden">
+                        <div class="flex flex-col gap-4">
+                            <a href="/"
+                                class="border-2 border-dashed border-[#FFA500] text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#FFA500] transition">Go
+                                to my library</a>
+                            <a href="/explore"
+                                class="border-2 border-dashed border-white text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#2d2d2d] transition">Explore
+                                Public Libraries</a>
+                        </div>
+                        <div class="mt-8 text-center">
+                            <span class="text-gray-400 text-sm">No account needed to browse public libraries.</span>
+                        </div>
                     </div>
                 </section>
                 <section id="about" class="flex-1 bg-[#1F1F1F] rounded-xl p-8 shadow text-white flex flex-col">
@@ -78,6 +90,8 @@
     </div>
 
     <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/utils.js"></script>
+    <script src="/assets/js/about.js"></script>
 </body>
 
 </html>

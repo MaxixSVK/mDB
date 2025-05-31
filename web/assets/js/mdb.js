@@ -9,8 +9,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     ({ loggedIn, userId } = await checkLogin());
 
     if (profileMatch) {
+        console.log(profileMatch)
         publicProfileUsername = profileMatch[1];
         window.publicProfileUsername = publicProfileUsername;
+
+        if (!loggedIn || publicProfileUsername !== userId) {
+            showProfileBanner(publicProfileUsername);
+        }
     } else if (!loggedIn) {
         window.location.href = '/about';
     }
@@ -29,14 +34,57 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (publicProfileUsername) {
         const response = await fetch(api + '/library/user/' + publicProfileUsername);
         const data = await response.json();
+
+        if (data[0] === userId) {
+            window.location.href = '/';
+            return;
+        }
+
         userId = data[0];
     }
-    fetchStats();
+    fetchStats(profileMatch);
 });
 
-function fetchStats() {
+function showProfileBanner(username) {
+    const banner = document.getElementById('profile-banner');
+    while (banner.firstChild) {
+        banner.removeChild(banner.firstChild);
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex items-center justify-center bg-blue-900/80 border border-blue-700 rounded-lg px-4 py-3 shadow text-white';
+
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-user-friends mr-3 text-xl';
+
+    const text = document.createElement('span');
+    text.className = 'text-lg font-semibold';
+
+    const usernameSpan = document.createElement('span');
+    usernameSpan.className = 'text-blue-300';
+    usernameSpan.textContent = `@${username}`;
+
+    text.append(
+        'You are viewing ',
+        usernameSpan,
+        "'s public library"
+    );
+
+    wrapper.appendChild(icon);
+    wrapper.appendChild(text);
+
+    banner.appendChild(wrapper);
+    banner.classList.remove('hidden');
+}
+
+function fetchStats(publicProfile) {
+    let statstUrl = '/stats'
+    if (publicProfile) {
+        statstUrl += '/' + publicProfile[1];
+    }
+
     document.getElementById('stats').addEventListener('click', function () {
-        window.location.href = '/stats';
+        window.location.href = statstUrl;
     });
     fetch(api + '/library/stats/' + userId)
         .then(response => response.json())
@@ -52,7 +100,40 @@ function fetchStats() {
             toggleVisibility(document.getElementById('stats'));
             setupSearch();
             createFormatLists();
+        })
+        .catch(() => {
+            toggleVisibility(document.getElementById('empty-library'));
         });
+
+    if (window.publicProfileUsername && window.publicProfileUsername !== userId) {
+        updateEmptyLibraryMessage(window.publicProfileUsername);
+    } else {
+        updateEmptyLibraryMessage(null);
+    }
+}
+
+function updateEmptyLibraryMessage(username) {
+    const emptyLibrary = document.getElementById('empty-library');
+    if (!emptyLibrary) return;
+
+    const title = emptyLibrary.querySelector('h1');
+    if (title) {
+        title.textContent = `${username ? `@${username}'s Library is Empty` : 'Your Library is Empty'}`;
+    }
+
+    const desc = emptyLibrary.querySelector('p');
+    if (desc) {
+        if (username) {
+            desc.innerHTML = `This user hasn't added any manga or light novels yet.<br>Check back later or explore other libraries!`;
+        } else {
+            desc.innerHTML = `Start building your manga & light novel collection.<br>Add your first series to get started!`;
+        }
+    }
+
+    const addBtn = emptyLibrary.querySelector('button[onclick*="/dashboard"]');
+    if (addBtn) {
+        addBtn.style.display = username ? 'none' : '';
+    }
 }
 
 function createFormatLists() {
@@ -221,7 +302,28 @@ function fetchBookList(data, isSearch) {
             .then(response => response.json())
             .then(bookIds => Promise.all(bookIds.map(fetchBookData)))
             .then(bookData => {
-                // TODO: if there are no books, show a message saying there are no books in this series
+                const booksList = document.getElementById('books-list-' + data);
+                if (bookData.length === 0 && booksList) {
+                    const noBooksMsg = document.createElement('div');
+                    noBooksMsg.className = 'bg-[#232323] text-gray-300 rounded-md p-6 mt-4 text-center w-full flex flex-col items-center';
+
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-book text-3xl text-gray-500 mb-2';
+                    noBooksMsg.appendChild(icon);
+
+                    const title = document.createElement('h3');
+                    title.className = 'text-xl font-bold mb-1 mt-2';
+                    title.textContent = 'No Books in This Series';
+                    noBooksMsg.appendChild(title);
+
+                    const desc = document.createElement('p');
+                    desc.className = 'text-md';
+                    desc.innerHTML = `This series doesn't have any books yet.<br>Check back later or add a book to get started!`;
+                    noBooksMsg.appendChild(desc);
+
+                    booksList.appendChild(noBooksMsg);
+                    return;
+                }
                 bookData.sort((a, b) => a.startedReading.localeCompare(b.startedReading));
                 bookData.forEach(book => renderBook(book));
             });

@@ -79,6 +79,14 @@ async function sendEmail(to, subject, text, html) {
     return transporter.sendMail(mailOptions);
 }
 
+function getClientIp(req) {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (forwarded) {
+        return forwarded.split(',')[0].trim();
+    }
+    return req.socket.remoteAddress;
+}
+
 module.exports = function (pool) {
     router.post('/register', async (req, res, next) => {
         let conn;
@@ -86,7 +94,7 @@ module.exports = function (pool) {
             const { username, email, password, forcebetaregistration } = req.body;
             const passwordHash = await bcrypt.hash(password, 10);
             const userAgent = req.headers['user-agent'];
-            const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+            const ipAddress = getClientIp(req);
 
             // Temporarily disable registration
             if (forcebetaregistration !== process.env.FORCE_REGISTRATION) {
@@ -163,7 +171,7 @@ module.exports = function (pool) {
         try {
             const { username, password } = req.body;
             const userAgent = req.headers['user-agent'];
-            const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+            const ipAddress = getClientIp(req);
 
             conn = await pool.getConnection();
             const [user] = await conn.query(

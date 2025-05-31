@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     limit = 10;
     offset = 0;
 
-    ({ loggedIn } = await checkLogin());
+    ({ loggedIn } = await checkLogin(true));
     if (!loggedIn) window.location.href = '/about';
 
     displayUser();

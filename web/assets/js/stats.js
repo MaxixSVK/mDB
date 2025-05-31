@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (profileMatch) {
         publicProfileUsername = profileMatch[1];
         window.publicProfileUsername = publicProfileUsername;
+
+        if (!loggedIn || publicProfileUsername !== userId) {
+            showProfileBanner(publicProfileUsername);
+        }
     } else if (!loggedIn) {
         window.location.href = '/about';
     }
@@ -18,6 +22,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (publicProfileUsername) {
         const response = await fetch(api + '/library/user/' + publicProfileUsername);
         const data = await response.json();
+
+        if (data[0] === userId) {
+            window.location.href = '/stats';
+            return;
+        }
+
         userId = data[0];
     }
 
@@ -29,6 +39,38 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     addEventListeners();
 });
+
+function showProfileBanner(username) {
+    const banner = document.getElementById('profile-banner');
+    while (banner.firstChild) {
+        banner.removeChild(banner.firstChild);
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex items-center justify-center bg-blue-900/80 border border-blue-700 rounded-lg px-4 py-3 shadow text-white';
+
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-user-friends mr-3 text-xl';
+
+    const text = document.createElement('span');
+    text.className = 'text-lg font-semibold';
+
+    const usernameSpan = document.createElement('span');
+    usernameSpan.className = 'text-blue-300';
+    usernameSpan.textContent = `@${username}`;
+
+    text.append(
+        'You are viewing ',
+        usernameSpan,
+        "'s public library"
+    );
+
+    wrapper.appendChild(icon);
+    wrapper.appendChild(text);
+
+    banner.appendChild(wrapper);
+    banner.classList.remove('hidden');
+}
 
 function addEventListeners() {
     document.getElementById('prev-year').addEventListener('click', function () {
