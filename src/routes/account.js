@@ -81,10 +81,14 @@ module.exports = function (pool) {
         let conn;
         try {
             conn = await pool.getConnection();
-            await connection.query(
+            const [result] = await conn.query(
                 'DELETE FROM sessions WHERE user_id = ? AND id = ?',
                 [req.userId, req.body.sessionId]
             );
+
+            if (result.affectedRows === 0) {
+                return res.error('Session not found', 404);
+            }
 
             res.success({ msg: 'Session destroyed' });
         } catch (error) {
