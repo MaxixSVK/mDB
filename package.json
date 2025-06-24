@@ -3,8 +3,8 @@
   "version": "0.4.1",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "startweb": "node src/webServer.js",
+    "api": "node src/index.js",
+    "web": "node src/webServer.js",
     "windev": "sudo net start MariaDB && node src/index.js",
     "style": "npx @tailwindcss/cli -i ./web/assets/css/tailwind.css -o ./web/assets/css/index.css --watch"
   },

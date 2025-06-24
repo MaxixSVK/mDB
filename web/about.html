@@ -35,7 +35,7 @@
         </nav>
         <main class="flex-1 flex flex-col items-center justify-center px-4">
             <div class="flex flex-col md:flex-row gap-8 w-full max-w-4xl items-stretch mt-8 md:mt-24">
-                <section class="flex-1 bg-[#191818] rounded-xl shadow-lg p-8 flex flex-col justify-center">
+                <section class="flex-1 bg-[#1F1F1F] rounded-xl shadow-lg p-8 flex flex-col justify-center">
                     <h1 class="text-3xl font-bold text-white mb-2 text-center">Welcome to mDB</h1>
                     <p class="text-gray-300 text-center mb-6">Your personal manga & light novel library.<br>Free,
                         open-source, and private.</p>
@@ -53,19 +53,15 @@
                             <a href="/"
                                 class="border-2 border-dashed border-[#FFA500] text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#FFA500] transition">Go
                                 to my library</a>
-                            <a href="/explore"
-                                class="border-2 border-dashed border-white text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#2d2d2d] transition">Explore
-                                Public Libraries</a>
-                        </div>
-                        <div class="mt-8 text-center">
-                            <span class="text-gray-400 text-sm">No account needed to browse public libraries.</span>
+                            <a href="/account"
+                                class="border-2 border-dashed border-white text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#2d2d2d] transition">Account Settings</a>
                         </div>
                     </div>
                 </section>
                 <section id="about" class="flex-1 bg-[#1F1F1F] rounded-xl p-8 shadow text-white flex flex-col">
                     <h2 class="text-3xl font-bold text-white mb-2 text-center">About mDB</h2>
                     <p class="text-gray-300 text-center mb-6">
-                        mDB is a project by
+                        mDB is a project created by
                         <a href="https://github.com/MaxixSVK" class="text-[#FFA500] hover:underline">Maxix</a>
                         for managing your personal library of manga and light novels. It’s open-source and
                         <a href="https://github.com/MaxixSVK/mDB" class="text-[#FFA500] hover:underline">available on
@@ -85,6 +81,15 @@
                             class="text-[#FFA500] hover:underline text-sm">License (GPLv3)</a>
                     </div>
                 </section>
+            </div>
+            <div class="flex flex-col items-center w-full max-w-2xl mt-8 mb-4">
+                <div class="w-full bg-[#1F1F1F] rounded-xl shadow-lg px-6 py-4 flex flex-col md:flex-row items-center md:justify-between gap-4">
+                    <div class="flex-1 w-full md:text-left text-center">
+                        <h3 class="text-xl font-bold text-white mb-1">Explore Public Profiles</h3>
+                        <p class="text-gray-300 text-sm">Discover public profiles and see what others are reading or collecting.</p>
+                    </div>
+                    <a href="/explore" class="border-2 border-dashed border-[#FFA500] px-5 py-2 rounded-lg text-white font-semibold text-base shadow hover:bg-[#FFA500] transition whitespace-nowrap w-full md:w-auto text-center">Explore</a>
+                </div>
             </div>
         </main>
     </div>

@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         mode: "application/json",
         lineNumbers: true,
         theme: "material-darker",
-        lineWrapping: true
+        lineWrapping: true,
     });
 
     setupButtonEvent('db-backup', 'click', dbBackup);

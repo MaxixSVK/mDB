@@ -3,30 +3,40 @@
 Ever wondered when you read *that* book?
 
 ## Features
-- Custom Backend with SQL database
-- Custom Frontend (Vanilla JS and Tailwind CSS)
-- Custom CDN for images
+- **Track Your Reading**: Keep a record of books you've read, are currently reading, or plan to read.
+- **Organize Your Library**: Add books to your personal library with details like title, author, and genre.
+- **User-Friendly Interface**: A simple and intuitive web interface to manage your library.
 
 ## Requirements
-- Node.js
-- MariaDB server (other SQL servers like MySQL can be used with minor modifications)
-- A computer to host the application
+- A computer capable of running the application
+- [Node.js](https://nodejs.org/) (latest LTS recommended)
+- [MariaDB](https://mariadb.org/) server (MySQL or compatible SQL servers may work with minor adjustments)
+- Git (for cloning the repository)
+- A modern web browser
 
 ## Installation
-1. Clone this repository:
+
+1. **Clone the repository:**
     ```sh
     git clone https://github.com/MaxixSVK/mDB
     ```
-2. Install npm packages:
+2. **Install dependencies:**
     ```sh
     npm install
     ```
-3. Setup Database with `setup.sql`
-4. Set `.env` and `config.json` files (remove `.example` from the filename and fill them out).
-5. Change `web/assets/js/api.js` to your prod url
-6. Start the API and CDN:
+3. **Set up the database:**
+    - Import the `setup.sql` file into your MariaDB server.
+4. **Configure environment variables:**
+    - Copy `.env.example` to `.env` and update the values as needed.
+5. **Update API endpoint:**
+    - Edit `web/assets/js/api.js` to set your production API URL.
+6. **Start the backend services:**
     ```sh
-    npm start
+    npm run api
+    ```
+7. **Start the web server:**
+    ```sh
+    npm run web
     ```
 
 ## Security

@@ -4,9 +4,9 @@ module.exports = function (pool) {
     const validateToken = require('../middleware/checkToken')(pool);
     router.use(validateToken);
 
-    async function logChanges(conn, changeType, tableName, recordId, oldData = null, newData = null) {
-        const logQuery = `INSERT INTO logs (change_type, table_name, record_id, old_data, new_data) VALUES (?, ?, ?, ?, ?)`;
-        await conn.query(logQuery, [changeType, tableName, recordId, oldData, newData]);
+    async function logChanges(conn, userId, changeType, tableName, recordId, oldData = null, newData = null) {
+        const logQuery = `INSERT INTO logs (user_id, change_type, table_name, record_id, old_data, new_data) VALUES (?, ?, ?, ?, ?, ?)`;
+        await conn.query(logQuery, [userId, changeType, tableName, recordId, oldData, newData]);
     }
 
     //TODO: Input validation for all routes
@@ -40,7 +40,7 @@ module.exports = function (pool) {
 
             if (params.length > 1) {
                 const result = await conn.query(sql, params);
-                await logChanges(conn, 'INSERT', tableName, result.insertId, null, JSON.stringify(data));
+                await logChanges(conn, req.userId, 'INSERT', tableName, result.insertId, null, JSON.stringify(data));
 
                 res.success('Added successfully');
             } else {
@@ -98,7 +98,8 @@ module.exports = function (pool) {
                 const newDbDataQuery = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
                 const [newDbData] = await conn.query(newDbDataQuery, [id, req.userId]);
 
-                await logChanges(conn, 'UPDATE', tableName, id, JSON.stringify(oldDbData), JSON.stringify(newDbData));
+                await logChanges(conn, req.userId, 'UPDATE', tableName, id, JSON.stringify(oldDbData), JSON.stringify(newDbData));
+
                 res.success('Updated successfully');
             } else {
                 res.success('No valid fields provided to update');
@@ -152,7 +153,7 @@ module.exports = function (pool) {
                 [id, req.userId]
             );
 
-            await logChanges(conn, 'DELETE', tableName, id, JSON.stringify(dbData));
+            await logChanges(conn, req.userId, 'DELETE', tableName, id, JSON.stringify(dbData));
             res.success('Deleted successfully');
         } catch (err) {
             next(err);
@@ -175,7 +176,7 @@ module.exports = function (pool) {
             const params = [req.userId, name, bio || null];
 
             const result = await conn.query(sql, params);
-            await logChanges(conn, 'INSERT', 'authors', result.insertId, null, JSON.stringify({ name, bio }));
+            await logChanges(conn, req.userId, 'INSERT', 'authors', result.insertId, null, JSON.stringify({ name, bio }));
 
             res.success('Author added successfully');
         } catch (err) {
@@ -223,7 +224,7 @@ module.exports = function (pool) {
                 const newDbDataQuery = `SELECT * FROM authors WHERE author_id = ? AND user_id = ?`;
                 const [newDbData] = await conn.query(newDbDataQuery, [id, req.userId]);
 
-                await logChanges(conn, 'UPDATE', 'authors', id, JSON.stringify(oldDbData), JSON.stringify(newDbData));
+                await logChanges(conn, req.userId, 'UPDATE', 'authors', id, JSON.stringify(oldDbData), JSON.stringify(newDbData));
                 res.success('Author updated successfully');
             } else {
                 res.success('No valid fields provided to update');
@@ -252,7 +253,7 @@ module.exports = function (pool) {
                 [id, req.userId]
             );
 
-            await logChanges(conn, 'DELETE', 'authors', id, JSON.stringify(dbData));
+            await logChanges(conn, req.userId, 'DELETE', 'authors', id, JSON.stringify(dbData));
             res.success('Author deleted successfully');
         } catch (err) {
             next(err);

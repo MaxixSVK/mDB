@@ -274,14 +274,36 @@ function renderSeries(series, isSearch) {
                 }, 250);
             });
         } else {
-            fetchBookList(series.books || series.series_id, isSearch);
+            fetchBookList(series.books || series.series_id, isSearch, series.series_id);
         }
     });
 
     formatSection.appendChild(card);
 }
 
-function fetchBookList(data, isSearch) {
+function renderNoBook(booksList) {
+    const noBooksMsg = document.createElement('div');
+    noBooksMsg.className = 'bg-[#232323] text-gray-300 rounded-md p-6 mt-4 text-center w-full flex flex-col items-center';
+
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-book text-3xl text-gray-500 mb-2';
+    noBooksMsg.appendChild(icon);
+
+    const title = document.createElement('h3');
+    title.className = 'text-xl font-bold mb-1 mt-2';
+    title.textContent = 'No Books in This Series';
+    noBooksMsg.appendChild(title);
+
+    //TODO: Change the text based on whether the user is viewing someone else's PP
+    const desc = document.createElement('p');
+    desc.className = 'text-md';
+    desc.innerHTML = `This series doesn't have any books yet.<br>Check back later or add a book to get started!`;
+    noBooksMsg.appendChild(desc);
+
+    booksList.appendChild(noBooksMsg);
+}
+
+function fetchBookList(data, isSearch, seriesId) {
     const fetchBookData = (bookId) => fetch(api + '/library/book/' + bookId).then(response => response.json());
 
     if (isSearch) {
@@ -294,6 +316,11 @@ function fetchBookList(data, isSearch) {
 
         Promise.all(bookPromises)
             .then(bookData => {
+                const booksList = document.getElementById('books-list-' + seriesId);
+                if (bookData.length === 0) {
+                    renderNoBook(booksList);
+                    return;
+                }
                 bookData.sort((a, b) => a.startedReading.localeCompare(b.startedReading));
                 bookData.forEach(book => renderBook(book, true));
             });
@@ -302,26 +329,9 @@ function fetchBookList(data, isSearch) {
             .then(response => response.json())
             .then(bookIds => Promise.all(bookIds.map(fetchBookData)))
             .then(bookData => {
-                const booksList = document.getElementById('books-list-' + data);
-                if (bookData.length === 0 && booksList) {
-                    const noBooksMsg = document.createElement('div');
-                    noBooksMsg.className = 'bg-[#232323] text-gray-300 rounded-md p-6 mt-4 text-center w-full flex flex-col items-center';
-
-                    const icon = document.createElement('i');
-                    icon.className = 'fas fa-book text-3xl text-gray-500 mb-2';
-                    noBooksMsg.appendChild(icon);
-
-                    const title = document.createElement('h3');
-                    title.className = 'text-xl font-bold mb-1 mt-2';
-                    title.textContent = 'No Books in This Series';
-                    noBooksMsg.appendChild(title);
-
-                    const desc = document.createElement('p');
-                    desc.className = 'text-md';
-                    desc.innerHTML = `This series doesn't have any books yet.<br>Check back later or add a book to get started!`;
-                    noBooksMsg.appendChild(desc);
-
-                    booksList.appendChild(noBooksMsg);
+                const booksList = document.getElementById('books-list-' + seriesId);
+                if (bookData.length === 0) {
+                    renderNoBook(booksList);
                     return;
                 }
                 bookData.sort((a, b) => a.startedReading.localeCompare(b.startedReading));
@@ -541,7 +551,7 @@ function renderBookDetails(book, chapters) {
 }
 
 function setupSearch() {
-    const seriesList = document.getElementById('series-list');
+    const seriesListElement = document.getElementById('series-list');
     const searchInput = document.getElementById('search-input');
     const statsElement = document.getElementById('stats');
     const noResultsElement = document.getElementById('no-results');
@@ -553,11 +563,11 @@ function setupSearch() {
         if (searchTerm.length > 0) {
             toggleVisibility(statsElement, true);
             toggleVisibility(noResultsElement, true);
-            toggleVisibility(seriesList);
+            toggleVisibility(seriesListElement);
             performSearch(searchTerm);
         } else {
             toggleVisibility(statsElement);
-            toggleVisibility(seriesList);
+            toggleVisibility(seriesListElement);
             toggleVisibility(noResultsElement, true);
             createFormatLists();
         }

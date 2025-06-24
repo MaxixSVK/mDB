@@ -38,6 +38,9 @@ async function checkLogin(admin) {
                 const user = await response.json();
                 return { loggedIn: true, userId: user.userId, sessionId: user.sessionId };
             } else {
+                if (admin && response.status === 403) {
+                    return window.location.href = '/';
+                }
                 logout();
                 return { loggedIn: false };
             }

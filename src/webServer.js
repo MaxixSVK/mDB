@@ -18,15 +18,16 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, '../web')));
 
-app.get('/user/:username', (_req, res) => {
-    const filePath = path.join(__dirname, '../web/index.html');
-    res.sendFile(filePath);
-});
+function customRoute(route, htmlFile) {
+    app.get(route, (_req, res) => {
+        const filePath = path.join(__dirname, '../web', htmlFile);
+        res.sendFile(filePath);
+    });
+}
 
-app.get('/stats/:username', (_req, res) => {
-    const filePath = path.join(__dirname, '../web/stats.html');
-    res.sendFile(filePath);
-});
+customRoute('/user/:username', 'index.html');
+customRoute('/stats/:username', 'stats.html');
+customRoute('/activity/:username', 'activity.html');
 
 app.use((_req, res) => {
     res.status(404).sendFile(path.join(__dirname, '../web/404.html'));
