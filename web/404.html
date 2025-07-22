@@ -23,15 +23,17 @@
         rel="stylesheet">
 </head>
 
-<body class="bg-[#131313] font-figtree flex items-center justify-center h-screen">
-    <div class="text-center">
-        <h1 class="text-9xl font-bold text-white">404</h1>
-        <p class="text-2xl text-gray-400 mb-4">Page Not Found</p>
-        <p class="text-lg text-gray-500 mb-8">Sorry, the page you are looking for does not exist. It might have been
-            moved or deleted.</p>
-        <a href="/"
-            class="w-full md:w-auto border-2 border-dashed border-[#FFA500] text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:bg-[#FFA500] hover:text-black transition duration-300 ease-in-out transform hover:scale-105">Go
-            Home</a>
+<body class="bg-[#131313] font-figtree min-h-screen items-center flex justify-center">
+    <div id="app" class="flex-1 flex flex-col max-w-screen-xl mx-4">
+        <main class="rounded-md pb-0.5 flex flex-col grow items-center">
+            <h1 class="text-9xl font-bold text-white">404</h1>
+            <p class="text-2xl text-gray-400 mb-4">Page Not Found</p>
+            <p class="text-lg text-gray-500 mb-8">Sorry, the page you are looking for does not exist. It might have been
+                moved or deleted.</p>
+            <a href="/"
+                class="border-2 border-dashed border-[#FFA500] px-5 py-2 rounded-lg text-white font-semibold text-base shadow hover:bg-[#FFA500] transition whitespace-nowrap w-full md:w-auto text-center">Go
+                Home</a>
+        </main>
     </div>
 
     <script src="/assets/js/api.js"></script>

@@ -51,7 +51,7 @@ const startServer = async () => {
         await pool.getConnection().then(conn => conn.release());
         logger.info('Database connection established');
         app.listen(config.api.port, () => {
-            logger.info(`Server version ${package.version} started on port ${config.port}`);
+            logger.info(`Server version ${package.version} started on port ${config.api.port}`);
             automaticBackup();
         });
     } catch (err) {

@@ -23,17 +23,9 @@
         rel="stylesheet">
 </head>
 
-<body class="bg-[#131313] font-figtree flex justify-center">
+<body class="bg-[#131313] font-figtree min-h-screen items-center flex justify-center">
     <div id="app" class="flex-1 flex flex-col max-w-screen-xl mx-4">
-        <nav class="flex justify-between items-center py-4">
-            <a href="/" class="text-3xl text-white font-bold">
-                mDatabase
-            </a>
-            <div>
-                <a class="text-3xl text-white font-bold">About</a>
-            </div>
-        </nav>
-        <main class="flex-1 flex flex-col items-center justify-center px-4">
+        <main class="rounded-md pb-0.5 flex flex-col grow items-center">
             <div class="flex flex-col md:flex-row gap-8 w-full max-w-4xl items-stretch mt-8 md:mt-24">
                 <section class="flex-1 bg-[#1F1F1F] rounded-xl shadow-lg p-8 flex flex-col justify-center">
                     <h1 class="text-3xl font-bold text-white mb-2 text-center">Welcome to mDB</h1>
@@ -54,7 +46,8 @@
                                 class="border-2 border-dashed border-[#FFA500] text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#FFA500] transition">Go
                                 to my library</a>
                             <a href="/account"
-                                class="border-2 border-dashed border-white text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#2d2d2d] transition">Account Settings</a>
+                                class="border-2 border-dashed border-white text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#2d2d2d] transition">Account
+                                Settings</a>
                         </div>
                     </div>
                 </section>
@@ -83,12 +76,15 @@
                 </section>
             </div>
             <div class="flex flex-col items-center w-full max-w-2xl mt-8 mb-4">
-                <div class="w-full bg-[#1F1F1F] rounded-xl shadow-lg px-6 py-4 flex flex-col md:flex-row items-center md:justify-between gap-4">
+                <div
+                    class="w-full bg-[#1F1F1F] rounded-xl shadow-lg px-6 py-4 flex flex-col md:flex-row items-center md:justify-between gap-4">
                     <div class="flex-1 w-full md:text-left text-center">
                         <h3 class="text-xl font-bold text-white mb-1">Explore Public Profiles</h3>
-                        <p class="text-gray-300 text-sm">Discover public profiles and see what others are reading or collecting.</p>
+                        <p class="text-gray-300 text-sm">Discover public profiles and see what others are reading or
+                            collecting.</p>
                     </div>
-                    <a href="/explore" class="border-2 border-dashed border-[#FFA500] px-5 py-2 rounded-lg text-white font-semibold text-base shadow hover:bg-[#FFA500] transition whitespace-nowrap w-full md:w-auto text-center">Explore</a>
+                    <a href="/explore"
+                        class="border-2 border-dashed border-[#FFA500] px-5 py-2 rounded-lg text-white font-semibold text-base shadow hover:bg-[#FFA500] transition whitespace-nowrap w-full md:w-auto text-center">Explore</a>
                 </div>
             </div>
         </main>

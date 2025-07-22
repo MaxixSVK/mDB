@@ -9,7 +9,6 @@ module.exports = function (pool) {
         await conn.query(logQuery, [userId, changeType, tableName, recordId, oldData, newData]);
     }
 
-    //TODO: Input validation for all routes
     router.post('/new', async (req, res, next) => {
         let conn;
         try {

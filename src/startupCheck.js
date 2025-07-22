@@ -1,9 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 const logger = require('./logger');
+const readline = require('readline-sync');
 
 function createDefaultConfig(configPath) {
     const defaultConfig = {
+        logs: {
+            saveToFile: true,
+            name: "server.log"
+        },
         api: {
             port: 3000,
             backup: {
@@ -48,6 +53,9 @@ function checkConfigFormat() {
     }
 
     const isValid = config &&
+        typeof config.logs === 'object' &&
+        typeof config.logs.saveToFile === 'boolean' &&
+        typeof config.logs.name === 'string' &&
         typeof config.api === 'object' &&
         typeof config.api.port === 'number' &&
         config.api.backup &&
@@ -60,7 +68,17 @@ function checkConfigFormat() {
         typeof config.web === 'object' &&
         typeof config.web.port === 'number';
 
-    logger[isValid ? 'info' : 'error'](isValid ? 'Config file format is correct' : 'Invalid config file format');
+    if (!isValid) {
+        logger.error('Invalid config file format');
+        const answer = readline.question('Config file format is invalid. Do you want to restore the default config? (y/N): ');
+        if (answer.trim().toLowerCase() === 'y') {
+            createDefaultConfig(configPath);
+            logger.info('Default config restored. Please review and restart the server.');
+            process.exit(0);
+        }
+    } else {
+        logger.info('Config file format is correct');
+    }
 
     return isValid;
 }

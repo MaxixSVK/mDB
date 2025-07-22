@@ -10,7 +10,7 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const [user] = await conn.query(
-                'SELECT id, username, email, role FROM users WHERE id = ?',
+                'SELECT id, username, email, role, public FROM users WHERE id = ?',
                 [req.userId]
             );
 
@@ -118,6 +118,23 @@ module.exports = function (pool) {
             );
 
             res.success({ msg: 'Password changed' });
+        } catch (error) {
+            next(error);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
+    router.put('/public-status', async (req, res, next) => {
+        let conn;
+        try {
+            const publicValue = req.body.public ? 1 : 0;
+            conn = await pool.getConnection();
+            await conn.query(
+                'UPDATE users SET public = ? WHERE id = ?',
+                [publicValue, req.userId]
+            );
+            res.success({ msg: 'Profile public status updated', public: publicValue });
         } catch (error) {
             next(error);
         } finally {

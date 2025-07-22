@@ -158,6 +158,38 @@ function showNotification(message, type = 'info', progress = null) {
     }, 5000);
 }
 
+function showProfileBanner(username) {
+    const banner = document.getElementById('profile-banner');
+    while (banner.firstChild) {
+        banner.removeChild(banner.firstChild);
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex items-center justify-center bg-blue-900/80 border border-blue-700 rounded-lg px-4 py-3 shadow text-white';
+
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-user-friends mr-3 text-xl';
+
+    const text = document.createElement('span');
+    text.className = 'text-lg font-semibold';
+
+    const usernameSpan = document.createElement('span');
+    usernameSpan.className = 'text-blue-300';
+    usernameSpan.textContent = `@${username}`;
+
+    text.append(
+        'You are viewing ',
+        usernameSpan,
+        "'s public library"
+    );
+
+    wrapper.appendChild(icon);
+    wrapper.appendChild(text);
+
+    banner.appendChild(wrapper);
+    banner.classList.remove('hidden');
+}
+
 function errorScreen() {
     const app = document.getElementById('app');
     app.innerHTML = `

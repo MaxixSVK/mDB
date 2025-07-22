@@ -6,7 +6,7 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const { username } = req.params;
-            const [data] = await conn.query('SELECT id FROM users WHERE username = ?', [username]);
+            const [data] = await conn.query('SELECT id, public FROM users WHERE username = ?', [username]);
 
             res.success(data ? [data.id] : []);
         } catch (err) {
@@ -260,6 +260,25 @@ module.exports = function (pool) {
             const authorIds = data.map(row => row.author_id);
 
             res.success(authorIds);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+ 
+    //TODO: We need to implement a way to return users with best profiles
+    //Maybe some rating system or most active users
+    //For now, we will just return all public users? 
+    
+    router.get('/explore/users', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const data = await conn.query('SELECT id, public FROM users WHERE public = 1');
+            const users = data.map(row => ({ id: row.id, username: row.username, public: row.public }));
+
+            res.success(users);
         } catch (err) {
             next(err);
         } finally {

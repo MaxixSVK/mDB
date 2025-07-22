@@ -71,6 +71,7 @@ CREATE TABLE `users` (
   `email` varchar(100) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `role` enum('user','admin') NOT NULL DEFAULT 'user',
+  `public` TINYINT(1) NOT NULL DEFAULT 1,
   `created_at` timestamp DEFAULT current_timestamp(),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `username` (`username`) USING BTREE,
