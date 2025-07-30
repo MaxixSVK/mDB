@@ -23,7 +23,7 @@ function setupEventListeners() {
         e.preventDefault();
         const loginForm = document.getElementById('login');
         handleLogin({
-            username: loginForm.elements['username'].value,
+            account: loginForm.elements['account'].value,
             password: loginForm.elements['password'].value
         });
     });

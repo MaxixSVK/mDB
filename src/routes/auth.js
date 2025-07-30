@@ -169,14 +169,14 @@ module.exports = function (pool) {
     router.post('/login', async (req, res, next) => {
         let conn;
         try {
-            const { username, password } = req.body;
+            const { account, password } = req.body;
             const userAgent = req.headers['user-agent'];
             const ipAddress = getClientIp(req);
 
             conn = await pool.getConnection();
             const [user] = await conn.query(
-                'SELECT id, username, email, password_hash FROM users WHERE username = ?',
-                [username]
+                'SELECT id, username, email, password_hash FROM users WHERE username = ? OR email = ?',
+                [account, account]
             );
 
             if (!user) {
