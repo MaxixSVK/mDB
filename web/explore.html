@@ -37,7 +37,23 @@
             </div>
         </nav>
         <main class="bg-[#191818] rounded-md pt-4 pb-0.5">
+            <section class="bg-[#1F1F1F] rounded-md p-4 md:p-6 mb-2 md:mb-4 mx-2 md:mx-4 text-white">
+                <h1 class="text-2xl md:text-3xl font-bold mb-4">Explore Public Libraries</h1>
+                <p class="text-gray-300 mb-6">Discover manga and light novel collections from other users in the community.</p>
 
+                <div id="no-public-users" class="hidden">
+                    <div class="flex flex-col items-center justify-center py-12 text-center">
+                        <i class="fas fa-users text-5xl text-gray-400 mb-4"></i>
+                        <h2 class="text-xl font-bold mb-2">No Public Libraries Found</h2>
+                        <p class="text-gray-300">There are currently no public libraries to explore.</p>
+                    </div>
+                </div>
+
+                <div id="users-grid" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
