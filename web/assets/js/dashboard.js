@@ -32,7 +32,6 @@ function setupEventListeners() {
         const urlRegex = /https?:\/\/[^\s]+/;
 
         if (urlRegex.test(textToCopy)) {
-            console.log(textToCopy);
             navigator.clipboard.writeText(textToCopy);
             showNotification('Link copied to clipboard', 'success');
         }

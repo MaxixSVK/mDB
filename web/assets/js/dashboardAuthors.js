@@ -11,7 +11,6 @@ authorFormType.addEventListener('change', function () {
 authorForm.addEventListener('submit', async function (event) {
     event.preventDefault();
     const formData = new FormData(this);
-    console.log(formData);
     const authorName = formData.get('author-name');
     const authorBio = formData.get('author-bio');
 
