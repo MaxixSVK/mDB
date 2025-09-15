@@ -33,6 +33,7 @@ async function handleDataTypeChange(selectElement, fieldsDiv, action) {
                 addInputField(fieldsDiv, 'name', 'Series Name');
                 addStatusSelect(fieldsDiv);
                 addFormatSelect(fieldsDiv);
+                addImgSelect(fieldsDiv);
             }
             if (action === 'edit') showDBdata('series', 'series_id');
             break;
@@ -48,6 +49,7 @@ async function handleDataTypeChange(selectElement, fieldsDiv, action) {
                 addInputField(fieldsDiv, 'isbn', 'ISBN');
                 addInputField(fieldsDiv, 'startedReading', 'Started Reading', 'date');
                 addInputField(fieldsDiv, 'endedReading', 'Ended Reading', 'date');
+                addImgSelect(fieldsDiv);
             }
             if (action === 'edit') showDBdata('books', 'book_id');
             break;
@@ -124,6 +126,11 @@ async function addLibrarySelect(container, books, chapters) {
 
         await populateSelect(seriesSelect, series, 'name', 'series_id');
 
+        if (container.id !== 'add-data-fields' && series.length === 0) {
+            container.parentElement.parentElement.classList.add('hidden');
+            return;
+        }
+
         if (books) {
             const bookSelect = createSelectElement('book_id');
             container.appendChild(bookSelect);
@@ -153,6 +160,12 @@ async function addAuthorSelect(container) {
 
     await populateSelect(authorSelect, authorDetails, 'name', 'author_id', true, "author");
     authorSelect.dispatchEvent(new Event('change'));
+
+    if (authorDetails.length === 0) {
+        document.getElementById('add-data-form').parentElement.classList.add('hidden');
+        document.getElementById('edit-data-form').parentElement.classList.add('hidden');
+        document.getElementById('delete-data-form').parentElement.classList.add('hidden');
+    }
 }
 
 async function handleSeriesChange(container, seriesSelect, bookSelect, chapterSelect) {
@@ -165,6 +178,8 @@ async function handleSeriesChange(container, seriesSelect, bookSelect, chapterSe
         if (!bookDetails.length) {
             showNotification('No books found for this series', 'warning');
             resetToSeries(container.id);
+            showNotification('Detected bug, refreshing page in 3 seconds', 'error'); //TODO: remove after fix
+            setTimeout(() => location.reload(), 3000);
         } else {
             await populateSelect(bookSelect, bookDetails, 'name', 'book_id');
             if (chapterSelect) {
@@ -188,7 +203,7 @@ async function handleBookChange(container, bookSelect, chapterSelect) {
         if (!chapterDetails.length) {
             showNotification('No chapters found for this book', 'warning');
             resetToSeries(container.id);
-            showNotification('Detected bug, refreshing page in 3 seconds', 'error');
+            showNotification('Detected bug, refreshing page in 3 seconds', 'error'); //TODO: remove after fix
             setTimeout(() => location.reload(), 3000);
         } else {
             await populateSelect(chapterSelect, chapterDetails, 'name', 'chapter_id');
@@ -213,6 +228,20 @@ async function addFormatSelect(container) {
     } catch (error) {
         console.error(error);
     }
+}
+
+function addImgSelect(container) {
+    const imgSelect = createSelectElement('img');
+    container.appendChild(imgSelect);
+    const imgOptions = [
+        { name: 'No Image', value: '0' },
+        { name: 'Use mDB CDN', value: '1' }
+    ];
+    imgOptions.forEach(optionData => {
+        const option = new Option(optionData.name, optionData.value);
+        option.disabled = optionData.disabled || false;
+        imgSelect.add(option);
+    });
 }
 
 function addStatusSelect(container) {
@@ -289,13 +318,14 @@ function resetToSeries(id) {
 }
 
 function refreshContent() {
-    const addDataTypeSelect = document.getElementById('add-data-type');
-    const editDataTypeSelect = document.getElementById('edit-data-type');
-    const deleteDataTypeSelect = document.getElementById('delete-data-type');
-
-    addDataTypeSelect.dispatchEvent(new Event('change'));
-    editDataTypeSelect.dispatchEvent(new Event('change'));
-    deleteDataTypeSelect.dispatchEvent(new Event('change'));
+    ['add', 'edit', 'delete'].forEach(action => {
+        const typeSelect = document.getElementById(`${action}-data-type`);
+        if (typeSelect) typeSelect.dispatchEvent(new Event('change'));
+        const formParent = document.getElementById(`${action}-data-form`).parentElement;
+        if (formParent.classList.contains('hidden')) {
+            formParent.classList.remove('hidden');
+        }
+    });
 }
 
 const editDataFields = document.getElementById('edit-data-fields');
@@ -318,11 +348,11 @@ async function loadOldData(type, id) {
         const typeMapping = {
             series: {
                 endpoint: `/library/series/${id}`,
-                fields: ['name', 'format', 'status', 'author_id']
+                fields: ['name', 'format', 'status', 'author_id', 'img']
             },
             books: {
                 endpoint: `/library/book/${id}`,
-                fields: ['name', 'isbn', 'startedReading', 'endedReading']
+                fields: ['name', 'isbn', 'startedReading', 'endedReading', 'img']
             },
             chapters: {
                 endpoint: `/library/chapter/${id}`,
@@ -337,7 +367,7 @@ async function loadOldData(type, id) {
             for (const field of fields) {
                 const input = editDataFields.querySelector(`input[name="${field}"], select[name="${field}"]`);
                 if (input) {
-                    let value = data[field] || '';
+                    let value = data[field] !== undefined && data[field] !== null ? data[field] : '';
                     if (input.type === 'date' && value) {
                         const date = new Date(value);
                         const userTimezoneOffset = date.getTimezoneOffset() * 60000;

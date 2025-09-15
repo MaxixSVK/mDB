@@ -171,6 +171,18 @@
             <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6  mb:mb-6 p-4 md:p-6 rounded-md">
                 <form id="cdn-upload-form">
                     <h1 class="text-2xl font-bold text-white mb-2">Upload images to CDN</h1>
+                    <label class="block text-white text-sm font-bold mb-2">
+                        Select reference
+                    </label>
+                    <select id="cdn-data-type" name="type"
+                        class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline mb-3">
+                        <option value="series">Series</option>
+                        <option value="book">Book</option>
+                    </select>
+                    <div id="cdn-data-fields"></div>
+                    <label class="block text-white text-sm font-bold mb-2">
+                        Select file
+                    </label>
                     <div class="mb-3 flex flex-col sm:flex-row items-center">
                         <input type="file" id="cdn-upload" name="cdn-upload" accept="image/*" class="hidden">
                         <label for="cdn-upload"

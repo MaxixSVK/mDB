@@ -11,7 +11,8 @@ const sendImage = require('./middleware/sendImage');
 router.use(sendImage);
 
 module.exports = function (pool) {
-  const validateToken = require('./middleware/checkToken')(pool, admin = true);
+  const validateToken = require('./middleware/checkToken')(pool);
+  const validateTokenAdmin = require('./middleware/checkToken')(pool, admin = true);
 
   const uploadLibraryImage = multer({ storage: createLibraryStorage() });
   const uploadUserPFP = multer({ storage: createPfpStorage() });
@@ -55,7 +56,23 @@ module.exports = function (pool) {
       if (!req.file) {
         return res.error('Please upload a file.', 400);
       }
-      res.success({ msg: 'File uploaded.', filename: req.file.originalname });
+
+      const refFilename = req.body.refFilename;
+      let finalFilename = req.file.filename;
+
+      if (refFilename) {
+        const oldPath = req.file.path;
+        const newPath = path.join(path.dirname(oldPath), refFilename);
+        
+        try {
+          fs.renameSync(oldPath, newPath);
+          finalFilename = refFilename;
+        } catch (renameErr) {
+          console.error('Error renaming file:', renameErr);
+        }
+      }
+
+      res.success({ msg: 'File uploaded.', filename: finalFilename });
     } catch (err) {
       next(err);
     }
@@ -110,7 +127,7 @@ module.exports = function (pool) {
     }
   });
 
-  router.get('/backup', validateToken, async (req, res, next) => {
+  router.get('/backup', validateTokenAdmin, async (req, res, next) => {
     let backupFile;
     try {
       backupFile = await backupCDN();

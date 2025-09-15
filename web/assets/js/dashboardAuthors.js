@@ -30,6 +30,7 @@ authorForm.addEventListener('submit', async function (event) {
 
         if (response.ok) {
             showNotification('Author created successfully!', 'success');
+            refreshContent();
         } else {
             showNotification('Failed to create author.', 'error');
         }
