@@ -142,5 +142,17 @@ module.exports = function (pool) {
         }
     });
 
+    router.delete('/delete', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+
+        } catch (error) {
+            next(error);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
     return router;
 };
