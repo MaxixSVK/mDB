@@ -11,7 +11,10 @@ async function performBackup(backupFunction, backupDir, backupType) {
         logger.info(`Automatic ${backupType} backup started`);
         const tempFile = await backupFunction();
         const backupFile = path.join(backupDir, path.basename(tempFile));
-        fs.renameSync(tempFile, backupFile);
+        
+        fs.copyFileSync(tempFile, backupFile);
+        fs.unlinkSync(tempFile);
+        
         logger.info(`Automatic ${backupType} backup completed`);
     } catch (error) {
         logger.error(`Error during automatic ${backupType} backup:`, error);

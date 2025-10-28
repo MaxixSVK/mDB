@@ -89,17 +89,19 @@ function updateUserProfilePicture(username) {
     document.getElementById('pfp').src = cdn + '/users/pfp/' + username + '.png';
 }
 
-function logout() {
-    fetch(api + '/account/logout', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'authorization': getCookie('sessionToken')
-        },
-    }).then(() => {
-        document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        window.location.href = '/auth';
-    });
+function logout(deletedAccount) {
+    if (!deletedAccount) {
+        fetch(api + '/account/logout', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': getCookie('sessionToken')
+            },
+        });
+    }
+    
+    document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    window.location.href = deletedAccount ? '/' : '/auth';
 }
 
 function showNotification(message, type = 'info', progress = null) {

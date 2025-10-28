@@ -9,6 +9,8 @@ require("dotenv").config();
 
 const config = require('../../config.json');
 
+const sendEmail = require('../utils/sendEmail');
+
 const saltRounds = 10;
 const secretKey = process.env.JWT_SECRET_KEY;
 
@@ -47,36 +49,11 @@ async function createSessionToken(userId, userAgent, ipAddress, pool) {
         await conn.commit();
         return updatedToken;
     } catch (error) {
-        await conn.rollback();
+        if (conn) await conn.rollback();
         throw error;
     } finally {
         if (conn) conn.release();
     }
-}
-
-async function sendEmail(to, subject, text, html) {
-    const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: 465,
-        secure: true,
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-        },
-    });
-
-    const mailOptions = {
-        from: "mDB Team <" + process.env.EMAIL_USER + ">",
-        to,
-        subject,
-        text,
-        html,
-        headers: {
-            'Auto-Submitted': 'auto-generated',
-        },
-    };
-
-    return transporter.sendMail(mailOptions);
 }
 
 function getClientIp(req) {
@@ -159,7 +136,7 @@ module.exports = function (pool) {
 
             if (config.api.email.enabled) await sendRegistrationEmail();
         } catch (error) {
-            await conn.rollback();
+            if (conn) await conn.rollback();
             next(error);
         } finally {
             if (conn) conn.release();

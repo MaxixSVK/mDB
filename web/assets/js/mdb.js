@@ -262,10 +262,15 @@ function renderNoBook(booksList) {
     title.textContent = 'No Books in This Series';
     noBooksMsg.appendChild(title);
 
-    //TODO: Change the text based on whether the user is viewing someone else's PP
     const desc = document.createElement('p');
     desc.className = 'text-md';
-    desc.innerHTML = `This series doesn't have any books yet.<br>Check back later or add a book to get started!`;
+    
+    if (window.publicProfileUsername && window.publicProfileUsername !== userId) {
+        desc.innerHTML = `This user hasn't added any books to this series yet.<br>Check back later to see updates!`;
+    } else {
+        desc.innerHTML = `This series doesn't have any books yet.<br>Add your first book to get started!`;
+    }
+    
     noBooksMsg.appendChild(desc);
 
     booksList.appendChild(noBooksMsg);

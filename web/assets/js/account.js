@@ -12,12 +12,17 @@ function setupEventListeners() {
         changePassword();
     });
 
+    document.getElementById('deleteAccount').addEventListener('submit', function (event) {
+        event.preventDefault();
+        deleteAccount();
+    });
+
     document.getElementById('logout').addEventListener('click', logout);
-    
-    document.getElementById('changePasswordToggle').addEventListener('click', function() {
+
+    document.getElementById('changePasswordToggle').addEventListener('click', function () {
         const content = document.getElementById('changePasswordContent');
         const icon = document.getElementById('changePasswordIcon');
-        
+
         if (content.classList.contains('hidden')) {
             content.classList.remove('hidden');
             icon.classList.add('rotate-180');
@@ -26,11 +31,11 @@ function setupEventListeners() {
             icon.classList.remove('rotate-180');
         }
     });
-    
-    document.getElementById('changeEmailToggle').addEventListener('click', function() {
+
+    document.getElementById('changeEmailToggle').addEventListener('click', function () {
         const content = document.getElementById('changeEmailContent');
         const icon = document.getElementById('changeEmailIcon');
-        
+
         if (content.classList.contains('hidden')) {
             content.classList.remove('hidden');
             icon.classList.add('rotate-180');
@@ -39,11 +44,11 @@ function setupEventListeners() {
             icon.classList.remove('rotate-180');
         }
     });
-    
-    document.getElementById('deleteAccountToggle').addEventListener('click', function() {
+
+    document.getElementById('deleteAccountToggle').addEventListener('click', function () {
         const content = document.getElementById('deleteAccountContent');
         const icon = document.getElementById('deleteAccountIcon');
-        
+
         if (content.classList.contains('hidden')) {
             content.classList.remove('hidden');
             icon.classList.add('rotate-180');
@@ -52,12 +57,11 @@ function setupEventListeners() {
             icon.classList.remove('rotate-180');
         }
     });
-    
-    // Add toggle functionality for sessions section
-    document.getElementById('sessionsToggle').addEventListener('click', function() {
+
+    document.getElementById('sessionsToggle').addEventListener('click', function () {
         const content = document.getElementById('sessionsContent');
         const icon = document.getElementById('sessionsIcon');
-        
+
         if (content.classList.contains('hidden')) {
             content.classList.remove('hidden');
             icon.classList.add('rotate-180');
@@ -198,5 +202,30 @@ async function destroySession(sessionId) {
         }
     } catch (error) {
         console.error('Error destroying session:', error);
+    }
+}
+
+async function deleteAccount() {
+    const password = document.getElementById('deletePassword').value;
+
+    try {
+        const response = await fetch(api + '/account/delete', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getCookie('sessionToken')
+            },
+            body: JSON.stringify({ password })
+        });
+
+        const responseData = await response.json();
+        if (!response.ok) {
+            throw new Error(responseData.msg);
+        }
+
+        showNotification(responseData.msg, 'success');
+        logout(true);
+    } catch (error) {
+        showNotification(error.message || 'Failed to delete account', 'error');
     }
 }

@@ -60,7 +60,7 @@ function setupCDNUploadReference() {
     referenceSelect.dispatchEvent(new Event('change'));
 }
 
-async function addCDNLibrarySelect(container, books, chapters) {
+async function addCDNLibrarySelect(container, books) {
     try {
         addFormDescription(container, 'Select reference');
         const seriesSelect = createSelectElement('cdn_series_id');

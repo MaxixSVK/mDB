@@ -1,9 +1,14 @@
+const fs = require('fs');
+const path = require('path');
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
 
 module.exports = function (pool) {
     const validateToken = require('../middleware/checkToken')(pool);
+    const requireAdditionalSecurity = require('../middleware/requireAdditionalSecurity')(pool);
     router.use(validateToken);
+
+    const sendEmail = require('../utils/sendEmail');
 
     router.get('/', async (req, res, next) => {
         let conn;
@@ -98,19 +103,10 @@ module.exports = function (pool) {
         }
     });
 
-    router.put('/change-password', async (req, res, next) => {
+    router.put('/change-password', requireAdditionalSecurity, async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
-            const [user] = await conn.query(
-                'SELECT password_hash FROM users WHERE id = ?',
-                [req.userId]
-            );
-
-            if (!(await bcrypt.compare(req.body.oldPassword, user.password_hash))) {
-                return res.error('Invalid old password', 401);
-            }
-
             const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
             await conn.query(
                 'UPDATE users SET password_hash = ? WHERE id = ?',
@@ -142,12 +138,62 @@ module.exports = function (pool) {
         }
     });
 
-    router.delete('/delete', async (req, res, next) => {
+    router.delete('/delete', requireAdditionalSecurity, async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
+            await conn.beginTransaction();
 
+            [user] = await conn.query(
+                'SELECT username, email FROM users WHERE id = ?',
+                [req.userId]
+            );
+
+            const deleteQueries = [
+                'DELETE FROM logs WHERE user_id = ?',
+                'DELETE FROM chapters WHERE user_id = ?',
+                'DELETE FROM books WHERE user_id = ?',
+                'DELETE FROM series WHERE user_id = ?',
+                'DELETE FROM authors WHERE user_id = ?',
+                'DELETE FROM sessions WHERE user_id = ?',
+                'DELETE FROM users WHERE id = ?'
+            ];
+
+            for (const query of deleteQueries) {
+                await conn.query(query, [req.userId]);
+            }
+
+            await conn.commit();
+            res.success({ msg: 'Account deleted successfully' });
+
+            async function sendDeletionEmail() {
+                const year = new Date().getFullYear();
+
+                const emailTemplate = fs.readFileSync(path.join(__dirname, '../emailTemplates/delete.html'), 'utf8');
+                const emailHtml = emailTemplate
+                    .replace('{{username}}', user.username)
+                    .replace('{{year}}', year);
+
+                const emailText = `
+                Hello ${user.username},
+
+                We're sorry to see you go. Your account has been successfully deleted.
+
+                If you have any questions or need further assistance, feel free to contact our support team.
+
+                ${year} mDatabase`.trim();
+
+                await sendEmail(
+                    user.email,
+                    'Account Deleted',
+                    emailText,
+                    emailHtml
+                );
+            }
+
+            sendDeletionEmail();
         } catch (error) {
+            if (conn) await conn.rollback();
             next(error);
         } finally {
             if (conn) conn.release();

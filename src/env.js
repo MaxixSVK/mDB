@@ -67,7 +67,6 @@ async function ensureMariaDB() {
     await ensureMariaDB();
     runScript('node', ['src/index.js'], 'API');
     runScript('node', ['src/webServer.js'], 'Web');
-    runScript('npx', ['@tailwindcss/cli', '-i', './web/assets/css/tailwind.css', '-o', './web/assets/css/index.css', '--watch'], 'Style');
   } catch (err) {
     logger.error(err.message);
     process.exit(1);

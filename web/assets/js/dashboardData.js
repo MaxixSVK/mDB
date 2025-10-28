@@ -139,11 +139,11 @@ async function addLibrarySelect(container, books, chapters) {
                 const chapterSelect = createSelectElement('chapter_id');
                 container.appendChild(chapterSelect);
 
-                seriesSelect.addEventListener('change', async () => await handleSeriesChange(container, seriesSelect, bookSelect, chapterSelect));
-                await handleSeriesChange(container, seriesSelect, bookSelect, chapterSelect);
+                seriesSelect.addEventListener('change', async () => await handleSelectionChange(container, seriesSelect, bookSelect, chapterSelect));
+                await handleSelectionChange(container, seriesSelect, bookSelect, chapterSelect);
             } else {
-                seriesSelect.addEventListener('change', async () => await handleSeriesChange(container, seriesSelect, bookSelect));
-                await handleSeriesChange(container, seriesSelect, bookSelect);
+                seriesSelect.addEventListener('change', async () => await handleSelectionChange(container, seriesSelect, bookSelect));
+                await handleSelectionChange(container, seriesSelect, bookSelect);
             }
         }
     } catch (error) {
@@ -168,7 +168,7 @@ async function addAuthorSelect(container) {
     }
 }
 
-async function handleSeriesChange(container, seriesSelect, bookSelect, chapterSelect) {
+async function handleSelectionChange(container, seriesSelect, bookSelect, chapterSelect) {
     try {
         const seriesId = seriesSelect.value;
         const books = await fetchData(`/library/books/${seriesId}`);
