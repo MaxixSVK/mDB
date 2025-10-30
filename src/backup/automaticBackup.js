@@ -6,6 +6,81 @@ const { backupDatabase } = require('./db');
 const { backupCDN } = require('./cdn');
 const logger = require('../logger');
 
+async function tieredBackupCleanup(backupDir, backupType) {
+    try {
+        const files = fs.readdirSync(backupDir);
+        const backupFiles = files
+            .filter(file => 
+                file.startsWith(`${backupType.toLowerCase()}_backup_`) && 
+                (file.endsWith('.sql') || file.endsWith('.zip'))
+            )
+            .map(file => ({
+                name: file,
+                path: path.join(backupDir, file),
+                mtime: fs.statSync(path.join(backupDir, file)).mtime
+            }))
+            .sort((a, b) => b.mtime - a.mtime); 
+        if (backupFiles.length === 0) return;
+
+        const now = Date.now();
+        const oneDay = 24 * 60 * 60 * 1000;
+        const oneWeek = 7 * oneDay;
+        const oneMonth = 30 * oneDay;
+
+        const toKeep = new Set();
+        const toDelete = [];
+
+        const dailyBackups = backupFiles.filter(file => 
+            now - file.mtime.getTime() <= 3 * oneDay
+        );
+        dailyBackups.forEach(file => toKeep.add(file.name));
+
+        const weeklyBackups = backupFiles.filter(file => {
+            const age = now - file.mtime.getTime();
+            return age > 3 * oneDay && age <= 7 * oneWeek;
+        });
+        
+        const weeklyGroups = new Map();
+        weeklyBackups.forEach(file => {
+            const weekNumber = Math.floor((now - file.mtime.getTime()) / oneWeek);
+            if (!weeklyGroups.has(weekNumber)) {
+                weeklyGroups.set(weekNumber, file);
+                toKeep.add(file.name);
+            }
+        });
+
+        const monthlyBackups = backupFiles.filter(file => {
+            const age = now - file.mtime.getTime();
+            return age > 7 * oneWeek;
+        });
+
+        const monthlyGroups = new Map();
+        monthlyBackups.forEach(file => {
+            const monthNumber = Math.floor((now - file.mtime.getTime()) / oneMonth);
+            if (!monthlyGroups.has(monthNumber)) {
+                monthlyGroups.set(monthNumber, file);
+                toKeep.add(file.name);
+            }
+        });
+
+        backupFiles.forEach(file => {
+            if (!toKeep.has(file.name)) {
+                toDelete.push(file);
+            }
+        });
+
+        for (const file of toDelete) {
+            fs.unlinkSync(file.path);
+            logger.info(`Deleted old ${backupType} backup: ${file.name} (tiered cleanup)`);
+        }
+
+        logger.info(`${backupType} backup cleanup: kept ${toKeep.size} backups, deleted ${toDelete.length} backups`);
+
+    } catch (error) {
+        logger.error(`Error during tiered cleanup of ${backupType} backups:`, error);
+    }
+}
+
 async function performBackup(backupFunction, backupDir, backupType) {
     try {
         logger.info(`Automatic ${backupType} backup started`);
@@ -16,6 +91,10 @@ async function performBackup(backupFunction, backupDir, backupType) {
         fs.unlinkSync(tempFile);
         
         logger.info(`Automatic ${backupType} backup completed`);
+        
+        // Perform tiered cleanup after successful backup
+        await tieredBackupCleanup(backupDir, backupType);
+        
     } catch (error) {
         logger.error(`Error during automatic ${backupType} backup:`, error);
     }
