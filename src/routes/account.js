@@ -4,6 +4,8 @@ const router = require('express').Router();
 const bcrypt = require('bcrypt');
 
 module.exports = function (pool) {
+    const config = require('../../config.json');
+
     const validateToken = require('../middleware/checkToken')(pool);
     const requireAdditionalSecurity = require('../middleware/requireAdditionalSecurity')(pool);
     router.use(validateToken);
@@ -144,7 +146,7 @@ module.exports = function (pool) {
             conn = await pool.getConnection();
             await conn.beginTransaction();
 
-            [user] = await conn.query(
+            const [user] = await conn.query(
                 'SELECT username, email FROM users WHERE id = ?',
                 [req.userId]
             );
@@ -167,12 +169,9 @@ module.exports = function (pool) {
             res.success({ msg: 'Account deleted successfully' });
 
             async function sendDeletionEmail() {
+                const email = user.email;
+                const emailSubject = 'Your Account Has Been Deleted';
                 const year = new Date().getFullYear();
-
-                const emailTemplate = fs.readFileSync(path.join(__dirname, '../emailTemplates/delete.html'), 'utf8');
-                const emailHtml = emailTemplate
-                    .replace('{{username}}', user.username)
-                    .replace('{{year}}', year);
 
                 const emailText = `
                 Hello ${user.username},
@@ -183,15 +182,20 @@ module.exports = function (pool) {
 
                 ${year} mDatabase`.trim();
 
+                const emailTemplate = fs.readFileSync(path.join(__dirname, '../emailTemplates/delete.html'), 'utf8');
+                const emailHtml = emailTemplate
+                    .replace('{{username}}', user.username)
+                    .replace('{{year}}', year);
+
                 await sendEmail(
-                    user.email,
-                    'Account Deleted',
+                    email,
+                    emailSubject,
                     emailText,
                     emailHtml
                 );
             }
 
-            sendDeletionEmail();
+            if (config.api.email.enabled) await sendDeletionEmail();
         } catch (error) {
             if (conn) await conn.rollback();
             next(error);
