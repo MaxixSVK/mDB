@@ -8,10 +8,14 @@ const logger = require('../logger');
 
 async function tieredBackupCleanup(backupDir, backupType) {
     try {
+        if (!fs.existsSync(backupDir)) {
+            return;
+        }
+
         const files = fs.readdirSync(backupDir);
         const backupFiles = files
             .filter(file => 
-                file.startsWith(`${backupType.toLowerCase()}_backup_`) && 
+                file.startsWith(`mdb-${backupType.toLowerCase()}-backup-`) && 
                 (file.endsWith('.sql') || file.endsWith('.zip'))
             )
             .map(file => ({
@@ -19,8 +23,11 @@ async function tieredBackupCleanup(backupDir, backupType) {
                 path: path.join(backupDir, file),
                 mtime: fs.statSync(path.join(backupDir, file)).mtime
             }))
-            .sort((a, b) => b.mtime - a.mtime); 
-        if (backupFiles.length === 0) return;
+            .sort((a, b) => b.mtime - a.mtime);
+            
+        if (backupFiles.length === 0) {
+            return;
+        }
 
         const now = Date.now();
         const oneDay = 24 * 60 * 60 * 1000;
@@ -74,11 +81,31 @@ async function tieredBackupCleanup(backupDir, backupType) {
             logger.info(`Deleted old ${backupType} backup: ${file.name} (tiered cleanup)`);
         }
 
-        logger.info(`${backupType} backup cleanup: kept ${toKeep.size} backups, deleted ${toDelete.length} backups`);
+        if (toDelete.length > 0) {
+            logger.info(`${backupType} backup cleanup: kept ${toKeep.size} backups, deleted ${toDelete.length} backups`);
+        }
 
     } catch (error) {
         logger.error(`Error during tiered cleanup of ${backupType} backups:`, error);
     }
+}
+
+async function performCleanup(backupDir) {
+    try {
+        logger.info('Scheduled backup cleanup started');
+        await tieredBackupCleanup(backupDir, 'DB');
+        await tieredBackupCleanup(backupDir, 'CDN');
+        logger.info('Scheduled backup cleanup completed');
+    } catch (error) {
+        logger.error('Error during scheduled backup cleanup:', error);
+    }
+}
+
+async function scheduleCleanup(backupDir, interval) {
+    await performCleanup(backupDir);
+    setInterval(async () => {
+        await performCleanup(backupDir);
+    }, interval);
 }
 
 async function performBackup(backupFunction, backupDir, backupType) {
@@ -91,9 +118,6 @@ async function performBackup(backupFunction, backupDir, backupType) {
         fs.unlinkSync(tempFile);
         
         logger.info(`Automatic ${backupType} backup completed`);
-        
-        // Perform tiered cleanup after successful backup
-        await tieredBackupCleanup(backupDir, backupType);
         
     } catch (error) {
         logger.error(`Error during automatic ${backupType} backup:`, error);
@@ -110,6 +134,7 @@ async function scheduleBackup(backupFunction, backupDir, backupType, interval) {
 async function automaticBackup() {
     try {
         const backupDir = path.join(__dirname, `../../backups`);
+        
         const backups = [
             { type: 'DB', enabled: config.api.backup.db, interval: config.api.backup.dbInterval, action: () => backupDatabase(true) },
             { type: 'CDN', enabled: config.api.backup.cdn, interval: config.api.backup.cdnInterval, action: backupCDN }
@@ -122,6 +147,13 @@ async function automaticBackup() {
             } else {
                 logger.info(`Automatic ${backup.type} backup disabled`);
             }
+        }
+
+        if (config.api.backup.cleanup) {
+            logger.info('Automatic backup cleanup enabled');
+            await scheduleCleanup(backupDir, config.api.backup.cleanupInterval);
+        } else {
+            logger.info('Automatic backup cleanup disabled');
         }
     } catch (error) {
         logger.error('Error during initial automatic backup:', error);
