@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     ({ loggedIn, userId } = await checkLogin());
 
     if (profileMatch) {
-        console.log(profileMatch)
         publicProfileUsername = profileMatch[1];
         window.publicProfileUsername = publicProfileUsername;
 
@@ -182,10 +181,20 @@ function renderSeries(series, isSearch) {
     const header = document.createElement('div');
     header.className = 'flex items-center';
 
+    const imgContainer = document.createElement('div');
+    imgContainer.className = 'relative mr-4';
+
     const img = document.createElement('img');
     img.src = series.img ? cdn + '/library/s-' + series.series_id + '.png?q=l' : cdn + '/library/404.png?q=l';
     img.alt = series.name || 'No image';
-    img.className = 'h-24 object-cover rounded-md mr-4';
+    img.className = 'h-24 object-cover rounded-md';
+
+    const bookCountBadge = document.createElement('div');
+    bookCountBadge.className = 'absolute -top-2 -right-2 bg-[#2A2A2A]  text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center';
+    bookCountBadge.textContent = '...';
+
+    imgContainer.appendChild(img);
+    imgContainer.appendChild(bookCountBadge);
 
     const content = document.createElement('div');
     content.className = 'flex-1';
@@ -212,13 +221,31 @@ function renderSeries(series, isSearch) {
     const statusClass = statusClasses[series.status];
     const statusText = statusTexts[series.status];
 
-    status.className = statusClass;
+    status.className = statusClass + ' text-sm mt-1';
     status.textContent = statusText;
 
     content.appendChild(title);
     content.appendChild(status);
 
-    header.appendChild(img);
+    if (isSearch && series.books) {
+        const count = series.books.length;
+        bookCountBadge.textContent = count.toString();
+        if (count > 99) bookCountBadge.textContent = '99+';
+    } else {
+        fetch(api + '/library/books/' + series.series_id)
+            .then(response => response.json())
+            .then(bookIds => {
+                const count = bookIds.length;
+                series.books = bookIds;
+                bookCountBadge.textContent = count.toString();
+                if (count > 99) bookCountBadge.textContent = '99+';
+            })
+            .catch(() => {
+                bookCountBadge.textContent = '0';
+            });
+    }
+
+    header.appendChild(imgContainer);
     header.appendChild(content);
 
     card.appendChild(header);
@@ -242,7 +269,7 @@ function renderSeries(series, isSearch) {
                 }, 250);
             });
         } else {
-            fetchBookList(series.books || series.series_id, isSearch, series.series_id);
+            getBookList(series.books || series.books, isSearch, series.series_id);
         }
     });
 
@@ -264,53 +291,37 @@ function renderNoBook(booksList) {
 
     const desc = document.createElement('p');
     desc.className = 'text-md';
-    
+
     if (window.publicProfileUsername && window.publicProfileUsername !== userId) {
         desc.innerHTML = `This user hasn't added any books to this series yet.<br>Check back later to see updates!`;
     } else {
         desc.innerHTML = `This series doesn't have any books yet.<br>Add your first book to get started!`;
     }
-    
+
     noBooksMsg.appendChild(desc);
 
     booksList.appendChild(noBooksMsg);
 }
 
-function fetchBookList(data, isSearch, seriesId) {
-    const fetchBookData = (bookId) => fetch(api + '/library/book/' + bookId).then(response => response.json());
+function getBookList(data, isSearch, seriesId) {
+    const bookPromises = data.map(async bookOrId => {
+        const bookId = isSearch ? bookOrId.book_id : bookOrId;
+        const bookData = await fetch(api + '/library/book/' + bookId).then(res => res.json());
+        const chapters = await fetch(api + '/library/chapters/' + bookId).then(res => res.json());
+        bookData.chapters = chapters;
+        if (isSearch) bookData.chapters = bookOrId.chapters;
+        return bookData;
+    });
 
-    if (isSearch) {
-        const bookPromises = data.map(book =>
-            fetchBookData(book.book_id).then(bookData => {
-                bookData.chapters = book.chapters;
-                return bookData;
-            })
-        );
-
-        Promise.all(bookPromises)
-            .then(bookData => {
-                const booksList = document.getElementById('books-list-' + seriesId);
-                if (bookData.length === 0) {
-                    renderNoBook(booksList);
-                    return;
-                }
-                bookData.sort((a, b) => a.startedReading.localeCompare(b.startedReading));
-                bookData.forEach(book => renderBook(book, true));
-            });
-    } else {
-        fetch(api + '/library/books/' + data)
-            .then(response => response.json())
-            .then(bookIds => Promise.all(bookIds.map(fetchBookData)))
-            .then(bookData => {
-                const booksList = document.getElementById('books-list-' + seriesId);
-                if (bookData.length === 0) {
-                    renderNoBook(booksList);
-                    return;
-                }
-                bookData.sort((a, b) => a.startedReading.localeCompare(b.startedReading));
-                bookData.forEach(book => renderBook(book));
-            });
-    }
+    Promise.all(bookPromises).then(bookData => {
+        const booksList = document.getElementById('books-list-' + seriesId);
+        if (bookData.length === 0) {
+            renderNoBook(booksList);
+            return;
+        }
+        bookData.sort((a, b) => a.startedReading.localeCompare(b.startedReading));
+        bookData.forEach(book => renderBook(book, isSearch));
+    });
 }
 
 function renderBook(book, isSearch) {
@@ -365,26 +376,9 @@ function renderBook(book, isSearch) {
 }
 
 async function fetchBookDetails(book, isSearch) {
-    let chapters;
-
-    if (isSearch) {
-        const chapterPromises = book.chapters.map(chapter =>
-            fetch(api + '/library/chapter/' + chapter.chapter_id).then(response => response.json())
-        );
-        chapters = await Promise.all(chapterPromises);
-    } else {
-        const bookPromise = fetch(api + '/library/book/' + book.book_id).then(response => response.json());
-        const chaptersPromise = fetch(api + '/library/chapters/' + book.book_id)
-            .then(response => response.json())
-            .then(chapterIds => {
-                const chapterPromises = chapterIds.map(chapterId =>
-                    fetch(api + '/library/chapter/' + chapterId).then(response => response.json())
-                );
-                return Promise.all(chapterPromises);
-            });
-
-        [book, chapters] = await Promise.all([bookPromise, chaptersPromise]);
-    }
+    let chapters = await Promise.all(
+        book.chapters.map(chapterId => fetch(api + '/library/chapter/' + chapterId).then(response => response.json()))
+    );
 
     chapters.sort((a, b) => a.date.localeCompare(b.date));
     renderBookDetails(book, chapters);
@@ -424,7 +418,13 @@ function renderBookDetails(book, chapters) {
     readingDates.className = 'text-gray-400 text-sm';
     readingDates.textContent = `${startedDate} - ${endedDate}`;
 
+    const chapterCount = document.createElement('p');
+    chapterCount.className = 'text-gray-400 text-sm mt-1 md:mt-0 md:ml-4';
+    const chapterText = chapters.length === 1 ? 'chapter' : 'chapters';
+    chapterCount.textContent = `${chapters.length} ${chapterText}`;
+
     datesWrapper.appendChild(readingDates);
+    datesWrapper.appendChild(chapterCount);
 
     const infoWrapper = document.createElement('div');
     infoWrapper.className = 'flex flex-col md:flex-row md:items-center mb-4 md:mb-0 mt-0 md:mt-2 space-y-4 md:space-y-0 md:space-x-4';
@@ -558,8 +558,7 @@ function performSearch(searchTerm) {
             if (data) {
                 renderSearchResults(data);
             }
-        })
-        .catch(error => console.error(error));
+        });
 }
 
 function renderSearchResults(results) {
@@ -574,7 +573,7 @@ function renderSearchResults(results) {
                     const [book_id, chaptersArr] = bookArr;
                     return {
                         book_id,
-                        chapters: chaptersArr.map(chapter_id => ({ chapter_id }))
+                        chapters: chaptersArr
                     };
                 });
                 renderSeries(series, true);

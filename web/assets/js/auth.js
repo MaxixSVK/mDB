@@ -68,7 +68,6 @@ async function handleLogin(loginData) {
             window.location.href = '/';
         } else {
             const responseData = await response.json();
-            console.log(responseData);
             showError('login', responseData.msg);
         }
     } catch (error) {

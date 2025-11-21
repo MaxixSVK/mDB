@@ -196,7 +196,6 @@ async function destroySession(sessionId) {
         if (String(sessionId) === currentSessionID) {
             localStorage.removeItem('sessionToken');
             window.location.href = '/auth';
-            console.log('Redirecting to login page');
         } else {
             fetchSessions();
         }
