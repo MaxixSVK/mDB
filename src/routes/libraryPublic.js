@@ -1,6 +1,14 @@
 const router = require('express').Router();
 
 module.exports = function (pool) {
+    router.get('/series/formats', async (req, res, next) => {
+        const allowedFormats = [
+            { format: 'lightNovel', name: 'Light Novel', pluralName: 'Light Novels' },
+            { format: 'manga', name: 'Manga', pluralName: 'Manga' }
+        ];
+        res.success(allowedFormats);
+    });
+
     router.get('/user/:username', async (req, res, next) => {
         let conn;
         try {
@@ -14,14 +22,6 @@ module.exports = function (pool) {
         } finally {
             if (conn) conn.release();
         }
-    });
-
-    router.get('/series/formats', async (req, res, next) => {
-        const allowedFormats = [
-            { format: 'lightNovel', name: 'Light Novel', pluralName: 'Light Novels' },
-            { format: 'manga', name: 'Manga', pluralName: 'Manga' }
-        ];
-        res.success(allowedFormats);
     });
 
     router.get('/series/u/:user_id', async (req, res, next) => {
@@ -266,17 +266,17 @@ module.exports = function (pool) {
             if (conn) conn.release();
         }
     });
- 
+
     //TODO: We need to implement a way to return users with best profiles
     //Maybe some rating system or most active users
     //For now, we will just return all public users? 
-    
+
     router.get('/explore/users', async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
             const data = await conn.query('SELECT id, username, public FROM users WHERE public = 1');
-            const users = data.map(row => ({ id: row.id, username: row.username}));
+            const users = data.map(row => ({ id: row.id, username: row.username }));
 
             res.success(users);
         } catch (err) {

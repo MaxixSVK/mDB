@@ -105,17 +105,15 @@ function getChangeTypeColor(changeType) {
 function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString();
 }
-
+    
 function createDataElement(data) {
-    if (data.startedReading) {
-        data.startedReading = formatDate(data.startedReading);
-    }
-    if (data.endedReading) {
-        data.endedReading = formatDate(data.endedReading);
-    }
+    const formattedData = { ...data };
+    if (formattedData.started_reading) formattedData.started_reading = formatDate(formattedData.started_reading);
+    if (formattedData.ended_reading) formattedData.ended_reading = formatDate(formattedData.ended_reading);
+    
     return `
         <div class="text-white mb-2 overflow-x-auto">
-            <pre class="bg-[#2A2A2A] p-2 rounded-sm whitespace-pre-wrap md:whitespace-pre">${JSON.stringify(data, null, 2)}</pre>
+            <pre class="bg-[#2A2A2A] p-2 rounded-sm whitespace-pre-wrap md:whitespace-pre">${JSON.stringify(formattedData, null, 2)}</pre>
         </div>
     `;
 }

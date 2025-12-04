@@ -47,9 +47,11 @@ async function handleDataTypeChange(selectElement, fieldsDiv, action) {
                 addFormDescription(fieldsDiv, action === 'add' ? 'New DB Data' : 'DB Data');
                 addInputField(fieldsDiv, 'name', 'Book Name');
                 addInputField(fieldsDiv, 'isbn', 'ISBN');
-                addInputField(fieldsDiv, 'startedReading', 'Started Reading', 'date');
-                addInputField(fieldsDiv, 'endedReading', 'Ended Reading', 'date');
+                addInputField(fieldsDiv, 'started_reading', 'Started Reading', 'date');
+                addInputField(fieldsDiv, 'ended_reading', 'Ended Reading', 'date');
                 addImgSelect(fieldsDiv);
+                addInputField(fieldsDiv, 'current_page', 'Pages Read', 'number');
+                addInputField(fieldsDiv, 'total_pages', 'Total Pages', 'number');
             }
             if (action === 'edit') showDBdata('books', 'book_id');
             break;
@@ -352,7 +354,7 @@ async function loadOldData(type, id) {
             },
             books: {
                 endpoint: `/library/book/${id}`,
-                fields: ['name', 'isbn', 'startedReading', 'endedReading', 'img']
+                fields: ['name', 'isbn', 'started_reading', 'ended_reading', 'img', 'current_page', 'total_pages']
             },
             chapters: {
                 endpoint: `/library/chapter/${id}`,

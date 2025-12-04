@@ -319,7 +319,7 @@ function getBookList(data, isSearch, seriesId) {
             renderNoBook(booksList);
             return;
         }
-        bookData.sort((a, b) => a.startedReading.localeCompare(b.startedReading));
+        bookData.sort((a, b) => a.started_reading.localeCompare(b.started_reading));
         bookData.forEach(book => renderBook(book, isSearch));
     });
 }
@@ -342,7 +342,7 @@ function renderBook(book, isSearch) {
     title.className = 'text-white text-lg font-bold';
     title.textContent = book.name;
 
-    let startedDate = new Date(book.startedReading).toLocaleDateString();
+    let startedDate = new Date(book.started_reading).toLocaleDateString();
 
     const startedReading = document.createElement('p');
     startedReading.className = 'text-gray-400 text-sm';
@@ -351,8 +351,8 @@ function renderBook(book, isSearch) {
     const endedReading = document.createElement('p');
     endedReading.className = 'text-gray-400 text-sm';
 
-    const endedReadingText = book.endedReading
-        ? `Ended on: ${new Date(book.endedReading).toLocaleDateString()}`
+    const endedReadingText = book.ended_reading
+        ? `Ended on: ${new Date(book.ended_reading).toLocaleDateString()}`
         : 'Still reading';
 
     endedReading.textContent = endedReadingText;
@@ -407,11 +407,11 @@ function renderBookDetails(book, chapters) {
     title.textContent = book.name;
 
     const datesWrapper = document.createElement('div');
-    datesWrapper.className = 'flex flex-col md:flex-row md:items-center mb-4';
+    datesWrapper.className = 'flex flex-col md:flex-row md:items-center mb-2';
 
-    let startedDate = new Date(book.startedReading).toLocaleDateString();
-    let endedDate = book.endedReading
-        ? new Date(book.endedReading).toLocaleDateString()
+    let startedDate = new Date(book.started_reading).toLocaleDateString();
+    let endedDate = book.ended_reading
+        ? new Date(book.ended_reading).toLocaleDateString()
         : 'Still reading';
 
     const readingDates = document.createElement('p');
@@ -426,8 +426,57 @@ function renderBookDetails(book, chapters) {
     datesWrapper.appendChild(readingDates);
     datesWrapper.appendChild(chapterCount);
 
+    const pageStatusWrapper = document.createElement('div');
+    pageStatusWrapper.className = 'mb-2 w-full';
+
+    const pageStatusContainer = document.createElement('div');
+    pageStatusContainer.className = 'bg-[#2A2A2A] rounded-lg p-2 max-w-md md:max-w-full';
+
+    const currentPage = book.current_page || 0;
+    const totalPages = book.total_pages;
+
+    const hasValidPageData = totalPages && totalPages > 0;
+    const percentage = hasValidPageData ? Math.round((currentPage / totalPages) * 100) : 0;
+
+    const topSection = document.createElement('div');
+    topSection.className = 'flex items-center justify-between';
+
+    const pageStatusTitle = document.createElement('span');
+    pageStatusTitle.className = 'text-white';
+    pageStatusTitle.textContent = 'Reading Progress';
+
+    const percentageText = document.createElement('span');
+    percentageText.className = 'text-white';
+    percentageText.textContent = hasValidPageData ? `${percentage}%` : 'No page data';
+
+    topSection.appendChild(pageStatusTitle);
+    topSection.appendChild(percentageText);
+
+    const progressBarContainer = document.createElement('div');
+    progressBarContainer.className = 'w-full h-1 bg-[#191818] rounded-full overflow-hidden';
+
+    const progressBar = document.createElement('div');
+    progressBar.className = 'h-full rounded-full transition-all duration-300 ease-in-out';
+    progressBar.style.backgroundColor = '#FFA500';
+    progressBar.style.width = `${percentage}%`;
+
+    progressBarContainer.appendChild(progressBar);
+
+    const pageCountText = document.createElement('span');
+    pageCountText.className = 'text-gray-400 text-sm whitespace-nowrap';
+    pageCountText.textContent = hasValidPageData 
+      ? `Page ${currentPage} of ${totalPages}` 
+      : currentPage > 0 
+        ? `${currentPage} page${currentPage !== 1 ? 's' : ''} read`
+        : 'Not tracking pages';
+
+    pageStatusContainer.appendChild(topSection);
+    pageStatusContainer.appendChild(progressBarContainer);
+    pageStatusContainer.appendChild(pageCountText);
+    pageStatusWrapper.appendChild(pageStatusContainer);
+
     const infoWrapper = document.createElement('div');
-    infoWrapper.className = 'flex flex-col md:flex-row md:items-center mb-4 md:mb-0 mt-0 md:mt-2 space-y-4 md:space-y-0 md:space-x-4';
+    infoWrapper.className = 'flex flex-col md:flex-row md:items-center mb-2 md:mb-0 mt-0 md:mt-2 space-y-4 md:space-y-0 md:space-x-4';
 
     const authorWrapper = document.createElement('div');
     authorWrapper.className = 'mb-4 md:mb-0 mt-0 md:mt-2';
@@ -465,7 +514,7 @@ function renderBookDetails(book, chapters) {
     if (chapters.length === 0) {
         const noChaptersMessage = document.createElement('p');
         noChaptersMessage.className = 'text-gray-400 text-center italic';
-        noChaptersMessage.textContent = `This book's journey began on ${new Date(book.startedReading).toLocaleDateString()}. The first chapter is still in progress.`;
+        noChaptersMessage.textContent = `This book's journey began on ${new Date(book.started_reading).toLocaleDateString()}. The first chapter is still in progress.`;
         chaptersList.appendChild(noChaptersMessage);
     } else {
         chapters.forEach(chapter => {
@@ -488,6 +537,7 @@ function renderBookDetails(book, chapters) {
 
     textWrapper.appendChild(title);
     textWrapper.appendChild(datesWrapper);
+    textWrapper.appendChild(pageStatusWrapper);
     textWrapper.appendChild(chaptersList);
     textWrapper.appendChild(infoWrapper);
 
