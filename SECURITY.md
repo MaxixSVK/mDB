@@ -1,12 +1,12 @@
 # Security Policy
 
 ## Supported Versions
-We currently support only the latest version of our software. This policy may change in the future.
+Only the most recent release of our software is actively supported. Users are encouraged to keep their installations up to date to benefit from the latest security enhancements and features.
 
 ## Reporting a Vulnerability
 
-If you discover a vulnerability, please report it through one of the following methods:
-- **GitHub**: Use the private vulnerability reporting feature (preferred).
-- **Email**: Send an email to `dev@maxix.sk`.
+If you identify a security vulnerability, please report it promptly using one of the following methods:
+- **GitHub**: [Submit a confidential security advisory](https://github.com/MaxixSVK/mDB/security/advisories)
+- **Email**: `dev@maxix.sk`
 
-We appreciate your help in keeping our software secure.
+We value your contribution to the security and integrity of our software. Thank you for helping us maintain a safe environment for all users.
