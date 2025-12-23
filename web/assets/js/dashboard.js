@@ -76,8 +76,8 @@ async function addCDNLibrarySelect(container, books) {
             const bookSelect = createSelectElement('cdn_book_id');
             container.appendChild(bookSelect);
 
-            seriesSelect.addEventListener('change', async () => await handleSeriesChange(container, seriesSelect, bookSelect));
-            await handleSeriesChange(container, seriesSelect, bookSelect);
+            seriesSelect.addEventListener('change', async () => await handleSelectionChange(container, seriesSelect, bookSelect));
+            await handleSelectionChange(container, seriesSelect, bookSelect);
         }
     } catch (error) {
         console.error(error);
