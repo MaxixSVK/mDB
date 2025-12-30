@@ -89,9 +89,9 @@ function updateUserProfilePicture(username) {
     document.getElementById('pfp').src = cdn + '/users/pfp/' + username + '.png';
 }
 
-function logout(deletedAccount) {
+async function logout(deletedAccount) {
     if (!deletedAccount) {
-        fetch(api + '/account/logout', {
+        await fetch(api + '/account/logout', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

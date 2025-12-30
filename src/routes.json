@@ -3,6 +3,5 @@
     { "path": "/library", "route": "./routes/libraryPublic" },
     { "path": "/mange-library", "route": "./routes/libraryUser" },
     { "path": "/account", "route": "./routes/account" },
-    { "path": "/server", "route": "./routes/server" },
     { "path": "/cdn", "route": "./cdn" }
 ]

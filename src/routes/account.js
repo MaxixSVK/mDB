@@ -50,23 +50,6 @@ module.exports = function (pool) {
         }
     });
 
-    router.get('/logout-all', async (req, res, next) => {
-        let conn;
-        try {
-            conn = await pool.getConnection();
-            await conn.query(
-                'DELETE FROM sessions WHERE user_id = ?',
-                [req.userId]
-            );
-
-            res.success({ msg: 'Logged out from all devices' });
-        } catch (error) {
-            next(error);
-        } finally {
-            if (conn) conn.release();
-        }
-    });
-
     router.get('/sessions', async (req, res, next) => {
         let conn;
         try {
@@ -137,6 +120,41 @@ module.exports = function (pool) {
             next(error);
         } finally {
             if (conn) conn.release();
+        }
+    });
+
+    router.get('/logs', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { limit = 10, offset = 0, all = 'false', format = 'file' } = req.query;
+
+            let sql;
+            let params;
+
+            if (all === 'true') {
+                sql = `SELECT * FROM logs WHERE user_id = ? ORDER BY change_date DESC`;
+                params = [req.userId];
+            } else {
+                sql = `SELECT * FROM logs WHERE user_id = ? ORDER BY change_date DESC LIMIT ? OFFSET ?`;
+                params = [req.userId, parseInt(limit), parseInt(offset)];
+            }
+
+            const logs = await conn.query(sql, params);
+
+            if (format === 'file') {
+                const filePath = path.join(__dirname, 'logs.json');
+                fs.writeFileSync(filePath, JSON.stringify(logs, null, 2));
+                res.download(filePath, 'logs.json', err => {
+                    fs.unlinkSync(filePath);
+                });
+            } else {
+                res.success(logs);
+            }
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.end();
         }
     });
 

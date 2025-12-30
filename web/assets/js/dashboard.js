@@ -3,7 +3,11 @@
 
 document.addEventListener("DOMContentLoaded", async function () {
     ({ loggedIn, userId } = await checkLogin());
-    if (!loggedIn) window.location.href = '/about';
+
+    if (!loggedIn) {
+        window.location.href = '/about';
+    }
+    
     setupEventListeners();
     displayUser();
 

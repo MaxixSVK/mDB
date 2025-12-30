@@ -1,27 +1,37 @@
-let limit, offset;
+let userId, logsLimit, logsOffset;
 
 document.addEventListener('DOMContentLoaded', async function () {
-    limit = 10;
-    offset = 0;
+    logsLimit = 10;
+    logsOffset = 0;
 
-    ({ loggedIn } = await checkLogin(true));
-    if (!loggedIn) window.location.href = '/';
+    ({ loggedIn, userId } = await checkLogin());
 
-    fetchLogs();
+    if (!loggedIn) {
+        window.location.href = '/about';
+    }
+
     addEventListeners();
+    displayUser();
+    fetchLogs();
 });
 
 function addEventListeners() {
+    document.getElementById('logout').addEventListener('click', logout);
+
     document.getElementById('load-more').addEventListener('click', function () {
-        offset += limit;
+        logsOffset += logsLimit;
         fetchLogs();
+    });
+
+    document.getElementById('downloadLogsButton').addEventListener('click', function () {
+        downloadLogs();
     });
 }
 
 async function fetchLogs() {
     try {
         const session = getCookie('sessionToken');
-        const response = await fetch(api + '/server/logs?limit=' + limit + '&offset=' + offset, {
+        const response = await fetch(api + '/account/logs?limit=' + logsLimit + '&offset=' + logsOffset, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -35,7 +45,7 @@ async function fetchLogs() {
             displayNoResults();
         } else {
             displayLogs(logs);
-            if (logs.length < limit) {
+            if (logs.length < logsLimit) {
                 displayNoResults();
             }
         }
@@ -105,15 +115,38 @@ function getChangeTypeColor(changeType) {
 function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString();
 }
-    
+
 function createDataElement(data) {
     const formattedData = { ...data };
     if (formattedData.started_reading) formattedData.started_reading = formatDate(formattedData.started_reading);
     if (formattedData.ended_reading) formattedData.ended_reading = formatDate(formattedData.ended_reading);
-    
+
     return `
         <div class="text-white mb-2 overflow-x-auto">
             <pre class="bg-[#2A2A2A] p-2 rounded-sm whitespace-pre-wrap md:whitespace-pre">${JSON.stringify(formattedData, null, 2)}</pre>
         </div>
     `;
+}
+
+async function downloadLogs() {
+    try {
+        const session = getCookie('sessionToken');
+        const response = await fetch(api + '/account/logs?all=true&format=file', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': session
+            },
+        });
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'logs.json';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Error fetching logs:', error);
+    }
 }

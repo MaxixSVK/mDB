@@ -1,12 +1,18 @@
-document.addEventListener("DOMContentLoaded", async function () {
-    ({ loggedIn } = await checkLogin());
-    if (!loggedIn) window.location.href = '/about';
+let userId
+
+document.addEventListener('DOMContentLoaded', async function () {
+    ({ loggedIn, userId } = await checkLogin());
+
+    if (!loggedIn) {
+        window.location.href = '/about';
+    }
+
+    addEventListeners();
     displayUser();
     fetchSessions();
-    setupEventListeners();
 });
 
-function setupEventListeners() {
+function addEventListeners() {
     document.getElementById('changePassword').addEventListener('submit', function (event) {
         event.preventDefault();
         changePassword();
@@ -110,13 +116,12 @@ async function changePassword() {
 async function fetchSessions() {
     const sessionToken = getCookie('sessionToken');
 
-    try {
-        const response = await fetch(api + '/account/sessions', { headers: { 'Authorization': sessionToken } });
-        const sessions = await response.json();
-        renderSessions(sessions);
-    } catch (error) {
-        console.error('Error fetching sessions:', error);
-    }
+    const response = await fetch(api + '/account/sessions', {
+        headers: { 'Authorization': sessionToken }
+    });
+
+    const sessions = await response.json();
+    renderSessions(sessions);
 }
 
 async function renderSessions(sessions) {
