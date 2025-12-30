@@ -51,30 +51,33 @@ module.exports = function (pool) {
     }
   });
 
-  router.post('/library/upload', validateToken, uploadLibraryImage.single('image'), (req, res, next) => {
+  router.post('/library/upload', validateToken, uploadLibraryImage.single('image'), async (req, res, next) => {
+    let conn;
     try {
-      if (!req.file) {
-        return res.error('Please upload a file.', 400);
-      }
-
       const refFilename = req.body.refFilename;
-      let finalFilename = req.file.filename;
 
-      if (refFilename) {
-        const oldPath = req.file.path;
-        const newPath = path.join(path.dirname(oldPath), refFilename);
-        
-        try {
-          fs.renameSync(oldPath, newPath);
-          finalFilename = refFilename;
-        } catch (renameErr) {
-          console.error('Error renaming file:', renameErr);
-        }
-      }
+      const oldPath = req.file.path;
+      const newPath = path.join(path.dirname(oldPath), refFilename);
 
-      res.success({ msg: 'File uploaded.', filename: finalFilename });
+      fs.renameSync(oldPath, newPath);
+
+      const [type, idWithExt] = refFilename.split('-');
+      const id = idWithExt.split('.')[0];
+
+      const table = type === 's' ? 'series' : 'books';
+      const idColumn = type === 's' ? 'series_id' : 'book_id';
+
+      conn = await pool.getConnection();
+      await conn.query(
+        `UPDATE ${table} SET img = ? WHERE ${idColumn} = ?`,
+        [true, id]
+      );
+
+      res.success({ msg: 'File uploaded.', filename: refFilename });
     } catch (err) {
       next(err);
+    } finally {
+      if (conn) conn.release();
     }
   });
 
