@@ -63,7 +63,8 @@
             <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 mb:mb-6 p-4 md:p-6 rounded-md">
                 <div class="flex items-center justify-between cursor-pointer" id="changePasswordToggle">
                     <h1 class="text-2xl font-bold text-white">Change Password</h1>
-                    <i class="fas fa-chevron-down text-white transition-transform duration-300" id="changePasswordIcon"></i>
+                    <i class="fas fa-chevron-down text-white transition-transform duration-300"
+                        id="changePasswordIcon"></i>
                 </div>
                 <div id="changePasswordContent" class="hidden">
                     <form id="changePassword">
@@ -88,8 +89,8 @@
                         <div class="mb-3">
                             <input
                                 class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline"
-                                id="confirmPassword" name="confirmPassword" type="password" placeholder="Confirm Password"
-                                required="true">
+                                id="confirmPassword" name="confirmPassword" type="password"
+                                placeholder="Confirm Password" required="true">
                         </div>
                         <div class="flex items-center justify-between">
                             <button type="submit"
@@ -103,7 +104,8 @@
             <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 mb:mb-6 p-4 md:p-6 rounded-md">
                 <div class="flex items-center justify-between cursor-pointer" id="changeEmailToggle">
                     <h1 class="text-2xl font-bold text-white">Change Email</h1>
-                    <i class="fas fa-chevron-down text-white transition-transform duration-300" id="changeEmailIcon"></i>
+                    <i class="fas fa-chevron-down text-white transition-transform duration-300"
+                        id="changeEmailIcon"></i>
                 </div>
                 <div id="changeEmailContent" class="hidden">
                     <form id="changeEmail">
@@ -113,8 +115,7 @@
                             </label>
                             <input
                                 class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline"
-                                id="newEmail" name="newEmail" type="email" placeholder="New Email"
-                                required="true">
+                                id="newEmail" name="newEmail" type="email" placeholder="New Email" required="true">
                         </div>
                         <div class="mb-3">
                             <label class="block text-white text-sm font-bold mb-2" for="emailPassword">
@@ -122,8 +123,8 @@
                             </label>
                             <input
                                 class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline"
-                                id="emailPassword" name="emailPassword" type="password" placeholder="Enter your password"
-                                required="true">
+                                id="emailPassword" name="emailPassword" type="password"
+                                placeholder="Enter your password" required="true">
                         </div>
                         <div class="flex items-center justify-between">
                             <button type="submit"
@@ -143,41 +144,26 @@
                     <div id="sessionList"></div>
                 </div>
             </section>
-            <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 mb:mb-6 p-4 md:p-6 rounded-md border border-red-500/20">
+            <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 mb:mb-6 p-4 md:p-6 rounded-md">
                 <div class="flex items-center justify-between cursor-pointer" id="deleteAccountToggle">
-                    <h1 class="text-2xl font-bold text-red-400">Delete Account</h1>
-                    <i class="fas fa-chevron-down text-red-400 transition-transform duration-300" id="deleteAccountIcon"></i>
+                    <h1 class="text-2xl font-bold text-white">Delete Account</h1>
+                    <i class="fas fa-chevron-down text-white transition-transform duration-300"
+                        id="deleteAccountIcon"></i>
                 </div>
                 <div id="deleteAccountContent" class="hidden">
-                    <div class="bg-red-900/20 border border-red-500/30 rounded-md p-4 mb-4">
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-exclamation-triangle text-red-400 text-xl mt-1"></i>
-                            <div>
-                                <h3 class="text-red-400 font-bold mb-2">Warning: This action is irreversible</h3>
-                                <p class="text-red-300 text-sm mb-2">Deleting your account will:</p>
-                                <ul class="text-red-300 text-sm space-y-1 ml-4">
-                                    <li>• Permanently delete all your data</li>
-                                    <li>• Remove all your library entries</li>
-                                    <li>• Delete your profile and settings</li>
-                                    <li>• Cannot be undone</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
                     <form id="deleteAccount">
                         <div class="mb-3">
-                            <label class="block text-red-400 text-sm font-bold mb-2" for="deletePassword">
-                                Enter your password to confirm
+                            <label class="block text-white text-sm font-bold mb-2" for="deletePassword">
+                                Password
                             </label>
                             <input
-                                class="shadow-sm border border-red-500/50 rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline focus:border-red-500"
-                                id="deletePassword" name="deletePassword" type="password" placeholder="Enter your password"
-                                required="true">
+                                class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline"
+                                id="deletePassword" name="deletePassword" type="password"
+                                placeholder="Enter your password" required="true">
                         </div>
                         <div class="flex items-center justify-between">
                             <button type="submit"
-                                class="w-full md:w-auto border-2 border-dashed border-red-500 bg-red-600/20 text-red-400 font-semibold py-2 px-4 rounded-lg hover:bg-red-600 hover:text-white transition duration-300">
-                                <i class="fas fa-trash-alt mr-2"></i>
+                                class="w-full md:w-auto border-2 border-dashed border-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-500 hover:text-black transition duration-300"></i>
                                 Delete Account Permanently
                             </button>
                         </div>

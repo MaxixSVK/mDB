@@ -1,7 +1,7 @@
-let userId
+let userId, sessionId
 
 document.addEventListener('DOMContentLoaded', async function () {
-    ({ loggedIn, userId } = await checkLogin());
+    ({ loggedIn, userId, sessionId } = await checkLogin());
 
     if (!loggedIn) {
         window.location.href = '/about';
@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     addEventListeners();
     displayUser();
-    fetchSessions();
 });
 
 function addEventListeners() {
@@ -25,57 +24,35 @@ function addEventListeners() {
 
     document.getElementById('logout').addEventListener('click', logout);
 
-    document.getElementById('changePasswordToggle').addEventListener('click', function () {
-        const content = document.getElementById('changePasswordContent');
-        const icon = document.getElementById('changePasswordIcon');
+    document.getElementById('changePasswordToggle').addEventListener('click', () =>
+        toggleUIVisibility('changePasswordContent', 'changePasswordIcon')
+    );
 
-        if (content.classList.contains('hidden')) {
-            content.classList.remove('hidden');
-            icon.classList.add('rotate-180');
-        } else {
-            content.classList.add('hidden');
-            icon.classList.remove('rotate-180');
-        }
+    document.getElementById('changeEmailToggle').addEventListener('click', () =>
+        toggleUIVisibility('changeEmailContent', 'changeEmailIcon')
+    );
+
+    document.getElementById('deleteAccountToggle').addEventListener('click', () =>
+        toggleUIVisibility('deleteAccountContent', 'deleteAccountIcon')
+    );
+
+    document.getElementById('sessionsToggle').addEventListener('click', () => {
+        toggleUIVisibility('sessionsContent', 'sessionsIcon');
+        fetchSessions();
     });
+}
 
-    document.getElementById('changeEmailToggle').addEventListener('click', function () {
-        const content = document.getElementById('changeEmailContent');
-        const icon = document.getElementById('changeEmailIcon');
+function toggleUIVisibility(contentId, iconId) {
+    const content = document.getElementById(contentId);
+    const icon = document.getElementById(iconId);
 
-        if (content.classList.contains('hidden')) {
-            content.classList.remove('hidden');
-            icon.classList.add('rotate-180');
-        } else {
-            content.classList.add('hidden');
-            icon.classList.remove('rotate-180');
-        }
-    });
-
-    document.getElementById('deleteAccountToggle').addEventListener('click', function () {
-        const content = document.getElementById('deleteAccountContent');
-        const icon = document.getElementById('deleteAccountIcon');
-
-        if (content.classList.contains('hidden')) {
-            content.classList.remove('hidden');
-            icon.classList.add('rotate-180');
-        } else {
-            content.classList.add('hidden');
-            icon.classList.remove('rotate-180');
-        }
-    });
-
-    document.getElementById('sessionsToggle').addEventListener('click', function () {
-        const content = document.getElementById('sessionsContent');
-        const icon = document.getElementById('sessionsIcon');
-
-        if (content.classList.contains('hidden')) {
-            content.classList.remove('hidden');
-            icon.classList.add('rotate-180');
-        } else {
-            content.classList.add('hidden');
-            icon.classList.remove('rotate-180');
-        }
-    });
+    if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        icon.classList.add('rotate-180');
+    } else {
+        content.classList.add('hidden');
+        icon.classList.remove('rotate-180');
+    }
 }
 
 async function changePassword() {
@@ -109,103 +86,7 @@ async function changePassword() {
         document.getElementById('newPassword').value = '';
         document.getElementById('confirmPassword').value = '';
     } catch (error) {
-        showNotification(error.message || 'Failed to change password', 'error');
-    }
-}
-
-async function fetchSessions() {
-    const sessionToken = getCookie('sessionToken');
-
-    const response = await fetch(api + '/account/sessions', {
-        headers: { 'Authorization': sessionToken }
-    });
-
-    const sessions = await response.json();
-    renderSessions(sessions);
-}
-
-async function renderSessions(sessions) {
-    const sessionToken = getCookie('sessionToken');
-    try {
-        const currentSessionID = await fetch(api + '/account/validate', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': sessionToken
-            }
-        }).then(response => response.json()).then(data => String(data.sessionId)).catch(error => {
-            console.error('Error fetching current session ID:', error);
-            return null;
-        });
-
-        const sessionList = document.getElementById('sessionList');
-        sessionList.innerHTML = '';
-
-        for (const session of sessions) {
-            const listItem = document.createElement('li');
-            listItem.className = 'bg-[#2A2A2A] p-4 md:p-6 mt-4 rounded-md shadow-lg flex justify-between items-center';
-
-            const parser = new UAParser();
-            parser.setUA(session.user_agent);
-            const uaResult = parser.getResult();
-            const userAgentInfo = `${uaResult.browser.name}, ${uaResult.os.name}`;
-
-            const ipList = session.ip_address.split(',').map(ip => ip.trim());
-            const location = ipList[0];
-            const id = String(session.id);
-
-            const isCurrentSession = id === currentSessionID;
-
-            listItem.innerHTML = `
-                <div>
-                    <span class="font-bold text-white">${userAgentInfo} ${isCurrentSession ? '<span class="text-green-600 font-bold">This device</span>' : ''}</span><br>
-                    <span class="text-sm md:text-md font-medium text-gray-400">${location}</span><br>
-                    <span class="text-sm md:text-md font-medium text-gray-400">${new Date(session.created_at).toLocaleString()}</span><br>
-                </div>
-                <button class="destroySessionButton bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            `;
-            listItem.querySelector('.destroySessionButton').addEventListener('click', () => destroySession(session.id));
-            sessionList.appendChild(listItem);
-        }
-    } catch (error) {
-        console.error('Error rendering sessions:', error);
-    }
-}
-
-async function destroySession(sessionId) {
-    const sessionToken = getCookie('sessionToken');
-
-    try {
-        const currentSessionID = await fetch(api + '/account/validate', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': sessionToken
-            }
-        }).then(response => response.json()).then(data => String(data.sessionId)).catch(error => {
-            console.error('Error fetching current session ID:', error);
-            return null;
-        });
-
-        await fetch(api + '/account/session-destroy', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': sessionToken
-            },
-            body: JSON.stringify({ sessionId })
-        });
-
-        if (String(sessionId) === currentSessionID) {
-            localStorage.removeItem('sessionToken');
-            window.location.href = '/auth';
-        } else {
-            fetchSessions();
-        }
-    } catch (error) {
-        console.error('Error destroying session:', error);
+        showNotification('Failed to change password', 'error');
     }
 }
 
@@ -230,6 +111,82 @@ async function deleteAccount() {
         showNotification(responseData.msg, 'success');
         logout(true);
     } catch (error) {
-        showNotification(error.message || 'Failed to delete account', 'error');
+        showNotification('Failed to delete account', 'error');
+    }
+}
+
+async function fetchSessions() {
+    const sessionToken = getCookie('sessionToken');
+
+    const response = await fetch(api + '/account/sessions', {
+        headers: { 'Authorization': sessionToken }
+    });
+
+    const sessions = await response.json();
+    renderSessions(sessions);
+}
+
+async function renderSessions(sessions) {
+    const sessionList = document.getElementById('sessionList');
+    sessionList.innerHTML = '';
+
+    for (const session of sessions) {
+        const listItem = document.createElement('li');
+        listItem.className = 'bg-[#2A2A2A] p-3 md:p-4 mt-3 rounded-md transition duration-300 ease-in-out flex justify-between items-center gap-4';
+
+        const parser = new UAParser();
+        parser.setUA(session.user_agent);
+        const uaResult = parser.getResult();
+        const userAgentInfo = `${uaResult.browser.name}, ${uaResult.os.name}`;
+
+        const isCurrentSession = session.id === sessionId;
+
+        listItem.innerHTML = `
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-semibold text-white text-sm">${userAgentInfo}</span>
+                        ${isCurrentSession ? '<span class="text-[#FFA500] text-sm font-bold">Current</span>' : ''}
+                    </div>
+                    <div class="flex flex-col md:flex-row md:items-center md:gap-3 mt-1">
+                        <span class="text-gray-400 text-xs flex items-center gap-1">
+                            <i class="fas fa-network-wired text-[10px]"></i>
+                            ${session.ip_address}
+                        </span>
+                        <span class="text-gray-400 text-xs flex items-center gap-1">
+                            <i class="fas fa-clock text-[10px]"></i>
+                            ${new Date(session.created_at).toLocaleString()}
+                        </span>
+                    </div>
+                </div>
+                <button class="destroySessionButton border-2 border-dashed border-red-500 hover:bg-red-500 text-white hover:text-black font-semibold py-2 px-4 rounded-lg transmition duration-300">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            `;
+        listItem.querySelector('.destroySessionButton').addEventListener('click', () => destroySession(session.id));
+        sessionList.appendChild(listItem);
+    }
+}
+
+async function destroySession(targetSessionId) {
+    const sessionToken = getCookie('sessionToken');
+
+    try {
+        if (targetSessionId == sessionId) {
+            logout();
+            return;
+        }
+
+        await fetch(api + '/account/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': sessionToken
+            },
+            body: JSON.stringify({ sessionId: targetSessionId })
+        });
+
+        fetchSessions();
+    } catch (error) {
+        showNotification('Failed to destroy session', 'error');
     }
 }

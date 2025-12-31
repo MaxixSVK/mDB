@@ -90,9 +90,9 @@ function updateUserProfilePicture(username) {
 }
 
 async function logout(deletedAccount) {
-    if (!deletedAccount) {
+    if (deletedAccount !== true) {
         await fetch(api + '/account/logout', {
-            method: 'GET',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': getCookie('sessionToken')

@@ -33,16 +33,22 @@ module.exports = function (pool) {
         res.success({ userId: req.userId, sessionId: req.sessionId });
     });
 
-    router.get('/logout', async (req, res, next) => {
+    router.post('/logout', async (req, res, next) => {
         let conn;
         try {
+            const session = req.body.sessionId || req.sessionId;
+
             conn = await pool.getConnection();
-            await conn.query(
+            const result = await conn.query(
                 'DELETE FROM sessions WHERE user_id = ? AND id = ?',
-                [req.userId, req.sessionId]
+                [req.userId, session]
             );
 
-            res.success({ msg: 'Logged out' });
+            if (result.affectedRows === 0) {
+                return res.error('Session not found', 404);
+            }
+
+            res.success({ msg: 'Session destroyed' });
         } catch (error) {
             next(error);
         } finally {
@@ -60,27 +66,6 @@ module.exports = function (pool) {
             );
 
             res.success(data);
-        } catch (error) {
-            next(error);
-        } finally {
-            if (conn) conn.release();
-        }
-    });
-
-    router.post('/session-destroy', async (req, res, next) => {
-        let conn;
-        try {
-            conn = await pool.getConnection();
-            const [result] = await conn.query(
-                'DELETE FROM sessions WHERE user_id = ? AND id = ?',
-                [req.userId, req.body.sessionId]
-            );
-
-            if (result.affectedRows === 0) {
-                return res.error('Session not found', 404);
-            }
-
-            res.success({ msg: 'Session destroyed' });
         } catch (error) {
             next(error);
         } finally {
