@@ -28,14 +28,16 @@ async function handleDataTypeChange(selectElement, fieldsDiv, action) {
                 await addLibrarySelect(fieldsDiv);
             }
             if (action !== 'delete') {
-                addAuthorSelect(fieldsDiv);
+                await addAuthorSelect(fieldsDiv);
                 addFormDescription(fieldsDiv, action === 'add' ? 'New DB Data:' : 'DB Data');
                 addInputField(fieldsDiv, 'name', 'Series Name');
                 addStatusSelect(fieldsDiv);
                 addFormatSelect(fieldsDiv);
-                addImgSelect(fieldsDiv);
             }
-            if (action === 'edit') showDBdata('series', 'series_id');
+            if (action === 'edit') {
+                addImgSelect(fieldsDiv);
+                showDBdata('series', 'series_id');
+            }
             break;
         case 'book':
             if (action === 'add') {
@@ -49,11 +51,13 @@ async function handleDataTypeChange(selectElement, fieldsDiv, action) {
                 addInputField(fieldsDiv, 'isbn', 'ISBN');
                 addInputField(fieldsDiv, 'started_reading', 'Started Reading', 'date');
                 addInputField(fieldsDiv, 'ended_reading', 'Ended Reading', 'date');
-                addImgSelect(fieldsDiv);
                 addInputField(fieldsDiv, 'current_page', 'Pages Read', 'number');
                 addInputField(fieldsDiv, 'total_pages', 'Total Pages', 'number');
             }
-            if (action === 'edit') showDBdata('books', 'book_id');
+            if (action === 'edit') {
+                addImgSelect(fieldsDiv);
+                showDBdata('books', 'book_id');
+            }
             break;
         case 'chapter':
             if (action === 'add') {

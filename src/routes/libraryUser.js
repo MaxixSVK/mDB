@@ -1,4 +1,6 @@
 const router = require('express').Router();
+const path = require('path');
+const fs = require('fs');
 
 module.exports = function (pool) {
     const validateToken = require('../middleware/checkToken')(pool);
@@ -68,12 +70,6 @@ module.exports = function (pool) {
             const tableName = tableNameMapping[type];
             const primaryKey = `${type}_id`;
 
-            const dbDataQuery = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
-            const [dbData] = await conn.query(dbDataQuery, [id, req.userId]);
-            if (!dbData) {
-                return res.success('Data does not exist');
-            }
-
             let sql = `UPDATE ${tableName} SET `;
             let params = [];
 
@@ -100,6 +96,19 @@ module.exports = function (pool) {
                 await logChanges(conn, req.userId, 'UPDATE', tableName, id, JSON.stringify(oldDbData), JSON.stringify(newDbData));
 
                 res.success('Updated successfully');
+
+                if ((type === 'series' || type === 'book') && oldDbData.img === 1 && newDbData.img === 0) {
+                    const filename = type === 'series' ? `s-${id}.png` : `b-${id}.png`;
+                    const filePath = path.join(__dirname, '../../cdn/library', filename);
+
+                    if (fs.existsSync(filePath)) {
+                        fs.unlink(filePath, (err) => {
+                            if (err) {
+                                next(err);
+                            }
+                        });
+                    }
+                }
             } else {
                 res.success('No valid fields provided to update');
             }
