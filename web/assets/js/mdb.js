@@ -104,7 +104,7 @@ function updateEmptyLibraryMessage(username) {
 }
 
 function createFormatLists() {
-    fetch(api + '/library/series/formats')
+    fetch(api + '/library/config/series/formats')
         .then(response => response.json()
             .then(data => {
                 data.forEach(a => {
@@ -148,7 +148,7 @@ function getUniqueFormats(seriesData) {
 }
 
 function fetchSeriesList() {
-    fetch(api + '/library/series/u/' + userId)
+    fetch(api + '/library/user/series/' + userId)
         .then(response => response.json())
         .then(seriesIds => {
             const seriesPromises = seriesIds.map(seriesId =>
@@ -598,7 +598,7 @@ function setupSearch() {
 }
 
 function performSearch(searchTerm) {
-    fetch(api + '/library/search/' + userId + '/' + searchTerm)
+    fetch(api + '/library/user/search/' + userId + '/' + searchTerm)
         .then(response => response.json())
         .then(data => {
             if (data.length === 0) {

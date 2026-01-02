@@ -48,9 +48,9 @@ async function createSessionToken(userId, userAgent, ipAddress, pool) {
 
         await conn.commit();
         return updatedToken;
-    } catch (error) {
+    } catch (err) {
         if (conn) await conn.rollback();
-        throw error;
+        throw err;
     } finally {
         if (conn) conn.release();
     }
@@ -135,9 +135,9 @@ module.exports = function (pool) {
             }
 
             if (config.api.email.enabled) await sendRegistrationEmail();
-        } catch (error) {
+        } catch (err) {
             if (conn) await conn.rollback();
-            next(error);
+            next(err);
         } finally {
             if (conn) conn.release();
         }
@@ -202,8 +202,8 @@ module.exports = function (pool) {
             }
 
             if (config.api.email.enabled) await sendLoginEmail();
-        } catch (error) {
-            next(error);
+        } catch (err) {
+            next(err);
         } finally {
             if (conn) conn.release();
         }

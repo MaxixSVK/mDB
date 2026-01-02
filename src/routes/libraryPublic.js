@@ -1,7 +1,7 @@
 const router = require('express').Router();
 
 module.exports = function (pool) {
-    router.get('/series/formats', async (req, res, next) => {
+    router.get('/config/series/formats', async (req, res, next) => {
         const allowedFormats = [
             { format: 'lightNovel', name: 'Light Novel', pluralName: 'Light Novels' },
             { format: 'manga', name: 'Manga', pluralName: 'Manga' }
@@ -16,7 +16,7 @@ module.exports = function (pool) {
             const { username } = req.params;
             const [data] = await conn.query('SELECT id, public FROM users WHERE username = ?', [username]);
 
-            res.success(data ? [data.id] : []);
+            res.success(data ? data : []);
         } catch (err) {
             next(err);
         } finally {
@@ -24,7 +24,54 @@ module.exports = function (pool) {
         }
     });
 
-    router.get('/series/u/:user_id', async (req, res, next) => {
+    router.get('/user/search/:user_id/:search', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { user_id, search } = req.params;
+            const query = `
+        SELECT series.series_id, books.book_id, chapters.chapter_id
+        FROM series
+        LEFT JOIN books ON series.series_id = books.series_id
+        LEFT JOIN chapters ON books.book_id = chapters.book_id
+        WHERE (series.name LIKE ? OR books.name LIKE ? OR chapters.name LIKE ? OR books.isbn LIKE ?)
+          AND series.user_id = ?
+        ORDER BY series.series_id, books.book_id, chapters.chapter_id;
+        `;
+            const rows = await conn.query(query, [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, user_id]);
+
+            const seriesMap = new Map();
+            for (const row of rows) {
+                if (!seriesMap.has(row.series_id)) {
+                    seriesMap.set(row.series_id, new Map());
+                }
+                const booksMap = seriesMap.get(row.series_id);
+                if (row.book_id && !booksMap.has(row.book_id)) {
+                    booksMap.set(row.book_id, []);
+                }
+                if (row.book_id && row.chapter_id) {
+                    booksMap.get(row.book_id).push(row.chapter_id);
+                }
+            }
+
+            const result = [];
+            for (const [series_id, booksMap] of seriesMap.entries()) {
+                const booksArr = [];
+                for (const [book_id, chaptersArr] of booksMap.entries()) {
+                    booksArr.push([book_id, chaptersArr]);
+                }
+                result.push([series_id, booksArr]);
+            }
+
+            res.success(result);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
+    router.get('/user/series/:user_id', async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
@@ -121,53 +168,6 @@ module.exports = function (pool) {
             const [data] = await conn.query('SELECT * FROM chapters WHERE chapter_id = ?', [chapter_id]);
 
             res.success(data);
-        } catch (err) {
-            next(err);
-        } finally {
-            if (conn) conn.release();
-        }
-    });
-
-    router.get('/search/:user_id/:search', async (req, res, next) => {
-        let conn;
-        try {
-            conn = await pool.getConnection();
-            const { user_id, search } = req.params;
-            const query = `
-        SELECT series.series_id, books.book_id, chapters.chapter_id
-        FROM series
-        LEFT JOIN books ON series.series_id = books.series_id
-        LEFT JOIN chapters ON books.book_id = chapters.book_id
-        WHERE (series.name LIKE ? OR books.name LIKE ? OR chapters.name LIKE ? OR books.isbn LIKE ?)
-          AND series.user_id = ?
-        ORDER BY series.series_id, books.book_id, chapters.chapter_id;
-        `;
-            const rows = await conn.query(query, [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, user_id]);
-
-            const seriesMap = new Map();
-            for (const row of rows) {
-                if (!seriesMap.has(row.series_id)) {
-                    seriesMap.set(row.series_id, new Map());
-                }
-                const booksMap = seriesMap.get(row.series_id);
-                if (row.book_id && !booksMap.has(row.book_id)) {
-                    booksMap.set(row.book_id, []);
-                }
-                if (row.book_id && row.chapter_id) {
-                    booksMap.get(row.book_id).push(row.chapter_id);
-                }
-            }
-
-            const result = [];
-            for (const [series_id, booksMap] of seriesMap.entries()) {
-                const booksArr = [];
-                for (const [book_id, chaptersArr] of booksMap.entries()) {
-                    booksArr.push([book_id, chaptersArr]);
-                }
-                result.push([series_id, booksArr]);
-            }
-
-            res.success(result);
         } catch (err) {
             next(err);
         } finally {

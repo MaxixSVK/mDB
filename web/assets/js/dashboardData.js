@@ -126,7 +126,7 @@ async function addLibrarySelect(container, books, chapters) {
         const seriesSelect = createSelectElement('series_id');
         container.appendChild(seriesSelect);
 
-        const seriesIds = await fetchData('/library/series/u/' + userId);
+        const seriesIds = await fetchData('/library/user/series/' + userId);
         const seriesPromises = seriesIds.map(id => fetchData(`/library/series/${id}`));
         const series = await Promise.all(seriesPromises);
 
@@ -225,7 +225,7 @@ async function addFormatSelect(container) {
         const typeSelect = createSelectElement('format');
         container.appendChild(typeSelect);
 
-        const allowedFormats = await fetchData('/library/series/formats');
+        const allowedFormats = await fetchData('/library/config/series/formats');
 
         allowedFormats.forEach(field => {
             const option = new Option(field.name, field.format);

@@ -51,7 +51,7 @@ async function addCDNLibrarySelect(container, books) {
         const seriesSelect = createSelectElement('cdn_series_id');
         container.appendChild(seriesSelect);
 
-        const seriesIds = await fetchData('/library/series/u/' + userId);
+        const seriesIds = await fetchData('/library/user/series/' + userId);
         const seriesPromises = seriesIds.map(id => fetchData(`/library/series/${id}`));
         const series = await Promise.all(seriesPromises);
 
