@@ -17,6 +17,11 @@ function addEventListeners() {
         changePassword();
     });
 
+    document.getElementById('changeEmail').addEventListener('submit', function (event) {
+        event.preventDefault();
+        changeEmail();
+    });
+
     document.getElementById('deleteAccount').addEventListener('submit', function (event) {
         event.preventDefault();
         deleteAccount();
@@ -88,6 +93,32 @@ async function changePassword() {
     } catch (error) {
         showNotification('Failed to change password', 'error');
     }
+}
+
+async function changeEmail() {
+    const newEmail = document.getElementById('newEmail').value;
+    const password = document.getElementById('emailPassword').value;
+    try {
+        const response = await fetch(api + '/account/change-email', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getCookie('sessionToken')
+            },
+            body: JSON.stringify({ password, newEmail })
+        });
+        const responseData = await response.json();
+        if (!response.ok) {
+            throw new Error(responseData.msg);
+        }   
+        showNotification(responseData.msg, 'success');
+        document.getElementById('newEmail').value = '';
+        document.getElementById('emailPassword').value = '';
+
+        displayUser();
+    } catch (error) {
+        showNotification('Failed to change email', 'error');
+    } 
 }
 
 async function deleteAccount() {

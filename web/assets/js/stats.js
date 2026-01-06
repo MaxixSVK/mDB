@@ -49,6 +49,9 @@ function addEventListeners() {
 
     document.getElementById('next-year').addEventListener('click', function () {
         const year = parseInt(document.getElementById('current-year').textContent, 10) + 1;
+        if (year > new Date().getFullYear()) {
+            return showNotification('You cannot view stats for future years.', 'error');
+        }
         updateYear(year);
         fetchStatsByMonth(year);
     });

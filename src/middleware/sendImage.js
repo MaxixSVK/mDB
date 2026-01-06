@@ -2,33 +2,27 @@ const sharp = require('sharp');
 
 const imageSender = (req, res, next) => {
   res.sendImage = (filePath, quality) => {
+    const sendBuffer = (width) => {
+      sharp(filePath)
+        .resize(width)
+        .toBuffer({ resolveWithObject: true })
+        .then(({ data, info }) => {
+          res.type(info.format).send(data);
+        })
+        .catch(next);
+    };
+
     switch (quality) {
-      case 'l': 
-        sharp(filePath)
-          .resize(200)
-          .toBuffer()
-          .then(data => {
-            res.set('Content-Type', 'image').send(data);
-          })
-          .catch(err => {
-            next(err);
-          });
+      case 'l':
+        sendBuffer(200);
         break;
 
       case 'm':
-        sharp(filePath)
-          .resize(500)
-          .toBuffer()
-          .then(data => {
-            res.set('Content-Type', 'image').send(data);
-          })
-          .catch(err => {
-            next(err);
-          });
+        sendBuffer(500);
         break;
 
       default:
-        res.set('Content-Type', 'image').sendFile(filePath);
+        res.sendFile(filePath);
         break;
     }
   };

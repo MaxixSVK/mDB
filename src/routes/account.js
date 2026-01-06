@@ -21,16 +21,14 @@ module.exports = function (pool) {
                 [req.userId]
             );
 
+            user.sessionId = req.sessionId;
+            
             res.success(user);
-        } catch (error) {
-            next(error);
+        } catch (err) {
+            next(err);
         } finally {
             if (conn) conn.release();
         }
-    });
-
-    router.get('/validate', (req, res) => {
-        res.success({ userId: req.userId, sessionId: req.sessionId });
     });
 
     router.post('/logout', async (req, res, next) => {
@@ -49,8 +47,8 @@ module.exports = function (pool) {
             }
 
             res.success({ msg: 'Session destroyed' });
-        } catch (error) {
-            next(error);
+        } catch (err) {
+            next(err);
         } finally {
             if (conn) conn.release();
         }
@@ -66,8 +64,8 @@ module.exports = function (pool) {
             );
 
             res.success(data);
-        } catch (error) {
-            next(error);
+        } catch (err) {
+            next(err);
         } finally {
             if (conn) conn.release();
         }
@@ -84,8 +82,60 @@ module.exports = function (pool) {
             );
 
             res.success({ msg: 'Password changed' });
-        } catch (error) {
-            next(error);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
+    router.put('/change-username', requireAdditionalSecurity, async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+
+            const [usernameInUse] = await conn.query(
+                'SELECT id FROM users WHERE username = ?',
+                [req.body.newUsername]
+            );
+
+            if (usernameInUse) {
+                return res.error('Username is already in use', 409);
+            }
+
+            await conn.query(
+                'UPDATE users SET username = ? WHERE id = ?',
+                [req.body.newUsername, req.userId]
+            );
+            res.success({ msg: 'Username changed' });
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
+    router.put('/change-email', requireAdditionalSecurity, async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+
+            const [emailInUse] = await conn.query(
+                'SELECT id FROM users WHERE email = ?',
+                [req.body.newEmail]
+            );
+
+            if (emailInUse) {
+                return res.error('Email is already in use', 409);
+            }
+
+            await conn.query(
+                'UPDATE users SET email = ? WHERE id = ?',
+                [req.body.newEmail, req.userId]
+            );
+            res.success({ msg: 'Email changed' });
+        } catch (err) {
+            next(err);
         } finally {
             if (conn) conn.release();
         }
@@ -101,8 +151,8 @@ module.exports = function (pool) {
                 [publicValue, req.userId]
             );
             res.success({ msg: 'Profile public status updated', public: publicValue });
-        } catch (error) {
-            next(error);
+        } catch (err) {
+            next(err);
         } finally {
             if (conn) conn.release();
         }
@@ -199,9 +249,9 @@ module.exports = function (pool) {
             }
 
             if (config.api.email.enabled) await sendDeletionEmail();
-        } catch (error) {
+        } catch (err) {
             if (conn) await conn.rollback();
-            next(error);
+            next(err);
         } finally {
             if (conn) conn.release();
         }

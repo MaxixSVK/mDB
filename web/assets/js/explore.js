@@ -63,7 +63,7 @@ async function createUserCard(user) {
 
     let hasProfilePicture = false;
     try {
-        const pfpResponse = await fetch(`${cdn}/users/pfp/${user.username}.png`);
+        const pfpResponse = await fetch(cdn + '/users/pfp/' + user.id + '.png');
         const contentType = pfpResponse.headers.get('content-type');
         hasProfilePicture = contentType && contentType.indexOf('application/json') === -1;
     } catch (error) {
@@ -74,7 +74,7 @@ async function createUserCard(user) {
         <div class="flex items-center mb-4">
             <div class="w-12 h-12 rounded-full flex items-center justify-center mr-3">
                 ${hasProfilePicture
-            ? `<img src="${cdn}/users/pfp/${user.username}.png" alt="${user.username}" class="w-12 h-12 rounded-full object-cover">`
+            ? `<img src="${cdn}/users/pfp/${user.id}.png" alt="${user.username}" class="w-12 h-12 rounded-full object-cover">`
             : `<i class="fas fa-user text-3xl"></i>`
         }
             </div>
@@ -117,7 +117,7 @@ async function createUserCard(user) {
         `}
         
         <div class="flex gap-2">
-            <button onclick="viewUserLibrary('${user.username}')" class="flex-1 bg-[#FFA500] hover:bg-[#ffb733] text-white font-semibold py-2 px-4 rounded transition duration-300">
+            <button onclick="viewUserLibrary('${user.username}')" class="flex-1 border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300">
                 <i class="fas fa-eye mr-2"></i>View Library
             </button>
         </div>

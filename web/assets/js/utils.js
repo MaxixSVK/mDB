@@ -19,14 +19,11 @@ function setCookie(name, value, days) {
     document.cookie = name + "=" + (value || "") + expires + "; path=/";
 }
 
-async function checkLogin(admin) {
-    let endpoint = '/account/validate';
-    if (admin) endpoint = '/server';
-
+async function checkLogin() {
     const session = getCookie('sessionToken');
     if (session) {
         try {
-            const response = await fetch(api + endpoint, {
+            const response = await fetch(api + '/account', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -36,11 +33,9 @@ async function checkLogin(admin) {
 
             if (response.ok) {
                 const user = await response.json();
-                return { loggedIn: true, userId: user.userId, sessionId: user.sessionId };
+
+                return { loggedIn: true, userId: user.id, sessionId: user.sessionId };
             } else {
-                if (admin && response.status === 403) {
-                    return window.location.href = '/';
-                }
                 logout();
                 return { loggedIn: false };
             }
@@ -64,13 +59,15 @@ async function displayUser(userInfo = true) {
         });
         const data = await user.json();
 
-        const userPFP = await fetch(cdn + '/users/pfp/' + data.username + '.png');
+        const userPFP = await fetch(cdn + '/users/pfp/' + data.id + '.png');
         const contentType = userPFP.headers.get('content-type');
 
         if (userInfo) updateUserInfo(data);
 
         if (contentType && contentType.indexOf('application/json') === -1) {
-            updateUserProfilePicture(data.username);
+            document.getElementById('nopfp').classList.add('hidden');
+            document.getElementById('pfp').classList.remove('hidden');
+            document.getElementById('pfp').src = cdn + '/users/pfp/' + data.id + '.png?q=l';
         }
 
     } catch (error) {
@@ -83,12 +80,6 @@ function updateUserInfo(data) {
     document.getElementById('useremail').textContent = data.email;
 }
 
-function updateUserProfilePicture(username) {
-    document.getElementById('nopfp').classList.add('hidden');
-    document.getElementById('pfp').classList.remove('hidden');
-    document.getElementById('pfp').src = cdn + '/users/pfp/' + username + '.png';
-}
-
 async function logout(deletedAccount) {
     if (deletedAccount !== true) {
         await fetch(api + '/account/logout', {
@@ -99,7 +90,7 @@ async function logout(deletedAccount) {
             },
         });
     }
-    
+
     document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     window.location.href = deletedAccount ? '/' : '/auth';
 }
@@ -190,19 +181,4 @@ function showProfileBanner(username) {
 
     banner.appendChild(wrapper);
     banner.classList.remove('hidden');
-}
-
-function errorScreen() {
-    const app = document.getElementById('app');
-    app.innerHTML = `
-        <div class="bg-[#131313] font-figtree flex items-center justify-center h-screen">
-            <div class="text-center">
-                <h1 class="text-9xl font-bold text-white">Error</h1>
-                <p class="text-2xl text-gray-400 mb-4">Something Went Wrong</p>
-                <p class="text-lg text-gray-500 mb-8">Sorry, an unexpected error has occurred. Please try again later.</p>
-                <a href="javascript:location.reload()"
-                    class="w-full md:w-auto border-2 border-dashed border-[#FFA500] text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:bg-[#FFA500] hover:text-black transition duration-300 ease-in-out transform hover:scale-105">Refresh</a>
-            </div>
-        </div>
-    `;
 }

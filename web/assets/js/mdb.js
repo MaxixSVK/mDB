@@ -34,12 +34,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         const response = await fetch(api + '/library/user/' + publicProfileUsername);
         const data = await response.json();
 
-        if (data[0] === userId) {
+        if (data.id === userId) {
             window.location.href = '/';
             return;
         }
 
-        userId = data[0];
+        userId = data.id;
     }
     fetchStats(profileMatch);
 });
@@ -464,11 +464,11 @@ function renderBookDetails(book, chapters) {
 
     const pageCountText = document.createElement('span');
     pageCountText.className = 'text-gray-400 text-sm whitespace-nowrap';
-    pageCountText.textContent = hasValidPageData 
-      ? `Page ${currentPage} of ${totalPages}` 
-      : currentPage > 0 
-        ? `${currentPage} page${currentPage !== 1 ? 's' : ''} read`
-        : 'Not tracking pages';
+    pageCountText.textContent = hasValidPageData
+        ? `Page ${currentPage} of ${totalPages}`
+        : currentPage > 0
+            ? `${currentPage} page${currentPage !== 1 ? 's' : ''} read`
+            : 'Not tracking pages';
 
     pageStatusContainer.appendChild(topSection);
     pageStatusContainer.appendChild(progressBarContainer);
