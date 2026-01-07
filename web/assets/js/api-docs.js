@@ -20,8 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 case 'POST':
                     return `${base} bg-blue-600 text-white`;
                 case 'PUT':
-                case 'PATCH':
-                    return `${base} bg-yellow-600 text-black`;
+                    return `${base} bg-yellow-600 text-white`;
                 case 'DELETE':
                     return `${base} bg-red-600 text-white`;
                 default:
