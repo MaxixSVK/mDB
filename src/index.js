@@ -26,8 +26,23 @@ app.use(cors());
 app.use(express.json());
 app.use(responseFormatter);
 
+let endpoints = [];
+
 routes.forEach(({ path, route }) => {
-    app.use(path, require(route)(pool));
+    const router = require(route)(pool);
+    app.use(path, router);
+
+    router.stack.forEach(middleware => {
+        if (middleware.route) {
+            const methods = Object.keys(middleware.route.methods).join(', ').toUpperCase();
+
+            endpoints.push({
+                method: methods,
+                router: path,
+                path: `${path}${middleware.route.path}`
+            });
+        }
+    });
 });
 
 app.get('/', (req, res) => {
@@ -35,6 +50,10 @@ app.get('/', (req, res) => {
         name: package.name,
         version: package.version
     });
+});
+
+app.get('/docs', (req, res) => {
+    res.success({ endpoints });
 });
 
 app.use((req, res, next) => {

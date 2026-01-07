@@ -82,7 +82,7 @@ module.exports = function (pool) {
     }
   });
 
-  router.post('/users/upload/pfp', validateToken, uploadUserPFP.single('image'), async (req, res, next) => {
+  router.post('/users/pfp/upload', validateToken, uploadUserPFP.single('image'), async (req, res, next) => {
     try {
       if (!req.file) {
         return res.error('Please upload a file.', 400);

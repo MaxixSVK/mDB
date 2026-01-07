@@ -21,6 +21,8 @@
     --color-gray-300: oklch(87.2% 0.01 258.338);
     --color-gray-400: oklch(70.7% 0.022 261.325);
     --color-gray-500: oklch(55.1% 0.027 264.364);
+    --color-gray-700: oklch(37.3% 0.034 259.733);
+    --color-gray-800: oklch(27.8% 0.033 256.848);
     --color-black: #000;
     --color-white: #fff;
     --spacing: 0.25rem;
@@ -300,11 +302,17 @@
   .mt-4 {
     margin-top: calc(var(--spacing) * 4);
   }
+  .mt-6 {
+    margin-top: calc(var(--spacing) * 6);
+  }
   .mt-8 {
     margin-top: calc(var(--spacing) * 8);
   }
   .mt-auto {
     margin-top: auto;
+  }
+  .mr-1 {
+    margin-right: calc(var(--spacing) * 1);
   }
   .mr-2 {
     margin-right: calc(var(--spacing) * 2);
@@ -414,6 +422,9 @@
   .h-full {
     height: 100%;
   }
+  .min-h-\[400px\] {
+    min-height: 400px;
+  }
   .min-h-screen {
     min-height: 100vh;
   }
@@ -429,6 +440,9 @@
   .w-14 {
     width: calc(var(--spacing) * 14);
   }
+  .w-16 {
+    width: calc(var(--spacing) * 16);
+  }
   .w-full {
     width: 100%;
   }
@@ -437,6 +451,9 @@
   }
   .max-w-4xl {
     max-width: var(--container-4xl);
+  }
+  .max-w-full {
+    max-width: 100%;
   }
   .max-w-md {
     max-width: var(--container-md);
@@ -447,14 +464,26 @@
   .min-w-0 {
     min-width: calc(var(--spacing) * 0);
   }
+  .min-w-full {
+    min-width: 100%;
+  }
   .flex-1 {
     flex: 1;
+  }
+  .flex-shrink {
+    flex-shrink: 1;
+  }
+  .shrink-0 {
+    flex-shrink: 0;
   }
   .flex-grow {
     flex-grow: 1;
   }
   .grow {
     flex-grow: 1;
+  }
+  .table-auto {
+    table-layout: auto;
   }
   .border-collapse {
     border-collapse: collapse;
@@ -558,8 +587,27 @@
       margin-inline-end: calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-x-reverse)));
     }
   }
+  .divide-y {
+    :where(& > :not(:last-child)) {
+      --tw-divide-y-reverse: 0;
+      border-bottom-style: var(--tw-border-style);
+      border-top-style: var(--tw-border-style);
+      border-top-width: calc(1px * var(--tw-divide-y-reverse));
+      border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
+    }
+  }
+  .divide-gray-800 {
+    :where(& > :not(:last-child)) {
+      border-color: var(--color-gray-800);
+    }
+  }
   .self-center {
     align-self: center;
+  }
+  .truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .overflow-hidden {
     overflow: hidden;
@@ -604,6 +652,10 @@
     border-bottom-style: var(--tw-border-style);
     border-bottom-width: 1px;
   }
+  .border-b-2 {
+    border-bottom-style: var(--tw-border-style);
+    border-bottom-width: 2px;
+  }
   .border-dashed {
     --tw-border-style: dashed;
     border-style: dashed;
@@ -619,6 +671,9 @@
   }
   .border-blue-700 {
     border-color: var(--color-blue-700);
+  }
+  .border-gray-700 {
+    border-color: var(--color-gray-700);
   }
   .border-red-500 {
     border-color: var(--color-red-500);
@@ -641,9 +696,6 @@
   .bg-\[\#232323\] {
     background-color: #232323;
   }
-  .bg-\[\#FFA500\] {
-    background-color: #FFA500;
-  }
   .bg-blue-600 {
     background-color: var(--color-blue-600);
   }
@@ -655,6 +707,9 @@
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-blue-900) 80%, transparent);
     }
+  }
+  .bg-gray-700 {
+    background-color: var(--color-gray-700);
   }
   .bg-green-600 {
     background-color: var(--color-green-600);
@@ -689,6 +744,9 @@
   .p-8 {
     padding: calc(var(--spacing) * 8);
   }
+  .px-2 {
+    padding-inline: calc(var(--spacing) * 2);
+  }
   .px-3 {
     padding-inline: calc(var(--spacing) * 3);
   }
@@ -703,6 +761,15 @@
   }
   .px-8 {
     padding-inline: calc(var(--spacing) * 8);
+  }
+  .py-0 {
+    padding-block: calc(var(--spacing) * 0);
+  }
+  .py-0\.5 {
+    padding-block: calc(var(--spacing) * 0.5);
+  }
+  .py-1 {
+    padding-block: calc(var(--spacing) * 1);
   }
   .py-2 {
     padding-block: calc(var(--spacing) * 2);
@@ -734,11 +801,20 @@
   .pb-4 {
     padding-bottom: calc(var(--spacing) * 4);
   }
+  .pb-6 {
+    padding-bottom: calc(var(--spacing) * 6);
+  }
   .text-center {
     text-align: center;
   }
+  .text-left {
+    text-align: left;
+  }
   .font-figtree {
     font-family: var(--font-figtree);
+  }
+  .font-mono {
+    font-family: var(--font-mono);
   }
   .text-2xl {
     font-size: var(--text-2xl);
@@ -829,6 +905,9 @@
   .text-gray-500 {
     color: var(--color-gray-500);
   }
+  .text-gray-800 {
+    color: var(--color-gray-800);
+  }
   .text-green-500 {
     color: var(--color-green-500);
   }
@@ -914,13 +993,6 @@
   .scrollbar-track-\[\#191818\] {
     --scrollbar-track: #191818;
   }
-  .hover\:bg-\[\#2d2d2d\] {
-    &:hover {
-      @media (hover: hover) {
-        background-color: #2d2d2d;
-      }
-    }
-  }
   .hover\:bg-\[\#3A3A3A\] {
     &:hover {
       @media (hover: hover) {
@@ -939,13 +1011,6 @@
     &:hover {
       @media (hover: hover) {
         background-color: #FFA500;
-      }
-    }
-  }
-  .hover\:bg-\[\#ffb733\] {
-    &:hover {
-      @media (hover: hover) {
-        background-color: #ffb733;
       }
     }
   }
@@ -1047,6 +1112,11 @@
       margin-bottom: calc(var(--spacing) * 4);
     }
   }
+  .md\:mb-6 {
+    @media (width >= 48rem) {
+      margin-bottom: calc(var(--spacing) * 6);
+    }
+  }
   .md\:ml-4 {
     @media (width >= 48rem) {
       margin-left: calc(var(--spacing) * 4);
@@ -1145,6 +1215,11 @@
       padding: calc(var(--spacing) * 6);
     }
   }
+  .md\:px-6 {
+    @media (width >= 48rem) {
+      padding-inline: calc(var(--spacing) * 6);
+    }
+  }
   .md\:text-left {
     @media (width >= 48rem) {
       text-align: left;
@@ -1220,6 +1295,11 @@
   initial-value: 0;
 }
 @property --tw-space-x-reverse {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-divide-y-reverse {
   syntax: "*";
   inherits: false;
   initial-value: 0;
@@ -1328,6 +1408,7 @@
       --tw-skew-y: initial;
       --tw-space-y-reverse: 0;
       --tw-space-x-reverse: 0;
+      --tw-divide-y-reverse: 0;
       --tw-border-style: solid;
       --tw-leading: initial;
       --tw-font-weight: initial;
