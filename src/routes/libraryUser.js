@@ -41,8 +41,14 @@ module.exports = function (pool) {
 
             if (params.length > 1) {
                 const result = await conn.query(sql, params);
-                await logChanges(conn, req.userId, 'INSERT', tableName, result.insertId, null, JSON.stringify(data));
 
+                const primaryKey = `${type}_id`;
+                const [newDbData] = await conn.query(
+                    `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`,
+                    [result.insertId, req.userId]
+                );
+
+                await logChanges(conn, req.userId, 'INSERT', tableName, result.insertId, null, JSON.stringify(newDbData));
                 res.success('Added successfully');
             } else {
                 res.success('No valid fields provided to update');
@@ -184,7 +190,11 @@ module.exports = function (pool) {
             const params = [req.userId, name, bio || null];
 
             const result = await conn.query(sql, params);
-            await logChanges(conn, req.userId, 'INSERT', 'authors', result.insertId, null, JSON.stringify({ name, bio }));
+            const [newDbData] = await conn.query(
+                `SELECT * FROM authors WHERE author_id = ? AND user_id = ?`,
+                [result.insertId, req.userId]
+            );
+            await logChanges(conn, req.userId, 'INSERT', 'authors', result.insertId, null, JSON.stringify(newDbData));
 
             res.success('Author added successfully');
         } catch (err) {
