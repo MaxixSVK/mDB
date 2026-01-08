@@ -1,0 +1,10 @@
+Hello {{username}},
+
+We noticed a login to your mDB account from a new device:
+- IP Address: {{ipAddress}}
+- Device: {{userAgent}}
+- Time: {{loginTime}}
+
+If this was you, no further action is required. If you did not log in, please reset your password immediately to secure your account.
+
+{{year}} mDatabase

@@ -115,19 +115,13 @@ module.exports = function (pool) {
                 const emailSubject = `Welcome to mDB, ${username}!`;
                 const year = new Date().getFullYear();
 
-                const emailText = `
-                Welcome to mDB, ${username}!
+                const textTemplatePath = path.join(__dirname, '../emailTemplates/registration.txt');
+                const emailText = fs.readFileSync(textTemplatePath, 'utf8')
+                    .replace('{{username}}', username)
+                    .replace('{{year}}', year);
 
-                Thank you for registering with mDB, your personal db for manga and light novels.
-                Happy reading!
-
-                Start exploring mDB: https://mdb.maxix.sk
-
-                ${year} mDatabase
-                `.trim();
-
-                const emailTemplate = fs.readFileSync(path.join(__dirname, '../emailTemplates/registration.html'), 'utf8');
-                const emailHtml = emailTemplate
+                const htmlTemplatePath = fs.readFileSync(path.join(__dirname, '../emailTemplates/registration.html'), 'utf8');
+                const emailHtml = htmlTemplatePath
                     .replace('{{username}}', username)
                     .replace('{{year}}', year);
 
@@ -177,18 +171,13 @@ module.exports = function (pool) {
                 const parser = new UAParser(userAgent);
                 const deviceInfo = `${parser.getBrowser().name} on ${parser.getOS().name}`;
 
-                const emailText = `
-                Hello ${user.username},
-    
-                We noticed a login to your mDB account from a new device or location:
-                - IP Address: ${ipAddress}
-                - Device: ${deviceInfo}
-                - Time: ${loginTime}
-    
-                If this was you, no further action is required. If you did not log in, please reset your password immediately to secure your account.
-    
-                ${year} mDatabase
-                `.trim();
+                const textTemplatePath = path.join(__dirname, '../emailTemplates/login.txt');
+                const emailText = fs.readFileSync(textTemplatePath, 'utf8')
+                    .replace('{{username}}', user.username)
+                    .replace('{{ipAddress}}', ipAddress)
+                    .replace('{{userAgent}}', deviceInfo)
+                    .replace('{{loginTime}}', loginTime)
+                    .replace('{{year}}', year);
 
                 const emailTemplate = fs.readFileSync(path.join(__dirname, '../emailTemplates/login.html'), 'utf8');
                 const emailHtml = emailTemplate

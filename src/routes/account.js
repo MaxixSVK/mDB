@@ -22,7 +22,7 @@ module.exports = function (pool) {
             );
 
             user.sessionId = req.sessionId;
-            
+
             res.success(user);
         } catch (err) {
             next(err);
@@ -226,26 +226,17 @@ module.exports = function (pool) {
                 const emailSubject = 'Your Account Has Been Deleted';
                 const year = new Date().getFullYear();
 
-                const emailText = `
-                Hello ${user.username},
-
-                We're sorry to see you go. Your account has been successfully deleted.
-
-                If you have any questions or need further assistance, feel free to contact our support team.
-
-                ${year} mDatabase`.trim();
-
-                const emailTemplate = fs.readFileSync(path.join(__dirname, '../emailTemplates/delete.html'), 'utf8');
-                const emailHtml = emailTemplate
+                const textTemplatePath = path.join(__dirname, '../emailTemplates/delete.txt');
+                const emailText = fs.readFileSync(textTemplatePath, 'utf8')
                     .replace('{{username}}', user.username)
                     .replace('{{year}}', year);
 
-                await sendEmail(
-                    email,
-                    emailSubject,
-                    emailText,
-                    emailHtml
-                );
+                const htmlTemplatePath = fs.readFileSync(path.join(__dirname, '../emailTemplates/delete.html'), 'utf8');
+                const emailHtml = htmlTemplatePath
+                    .replace('{{username}}', user.username)
+                    .replace('{{year}}', year);
+
+                await sendEmail(email, emailSubject, emailText, emailHtml);
             }
 
             if (config.api.email.enabled) await sendDeletionEmail();

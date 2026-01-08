@@ -1,0 +1,8 @@
+Welcome to mDB, {{username}}!
+
+hank you for your registration on mDB, your personal db for manga and light novels.
+Happy reading!
+
+Start exploring mDB: https://mdb.maxix.sk
+
+{{year}} mDatabase

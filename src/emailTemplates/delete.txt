@@ -1,0 +1,6 @@
+Hello {{username}},
+
+We're sorry to see you go. Your account has been successfully deleted.
+If you have any questions or need further assistance, feel free to contact our support team.
+
+{{year}} mDatabase
