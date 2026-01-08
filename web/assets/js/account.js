@@ -61,7 +61,7 @@ function toggleUIVisibility(contentId, iconId) {
 }
 
 async function changePassword() {
-    const oldPassword = document.getElementById('oldPassword').value;
+    const password = document.getElementById('oldPassword').value;
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
 
@@ -77,7 +77,7 @@ async function changePassword() {
                 'Content-Type': 'application/json',
                 'Authorization': getCookie('sessionToken')
             },
-            body: JSON.stringify({ oldPassword, newPassword })
+            body: JSON.stringify({ password, newPassword })
         });
 
         const responseData = await response.json();
