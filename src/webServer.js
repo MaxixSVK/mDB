@@ -35,5 +35,4 @@ app.use((_req, res) => {
 
 app.listen(config.web.port, () => {
     logger.info(`Web server started on port ${config.web.port}`);
-    logger.info(`Web server version ${require('../package.json').version}`);
 });

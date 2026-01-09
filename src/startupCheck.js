@@ -87,19 +87,19 @@ function checkConfigFormat() {
     return isValid;
 }
 
-function checkRequiredFolders() {
-    const folders = ['backups', 'cdn', 'cdn/library', 'cdn/users', 'cdn/users/pfp'];
+function checkRequiredDirectories() {
+    const directories = ['backups', 'cdn', 'cdn/library', 'cdn/users', 'cdn/users/pfp'];
 
-    folders.forEach(folder => {
-        const folderPath = path.resolve(__dirname, `../${folder}`);
+    directories.forEach(directory => {
+        const directoryPath = path.resolve(__dirname, `../${directory}`);
 
-        if (!fs.existsSync(folderPath)) {
-            fs.mkdirSync(folderPath, { recursive: true });
-            logger.info(`Created folder ${folder}`);
+        if (!fs.existsSync(directoryPath)) {
+            fs.mkdirSync(directoryPath, { recursive: true });
+            logger.info(`Created directory ${directory}`);
         }
     });
 
-    logger.info('All required folders are present');
+    logger.info('Required directories are present');
 }
 
 function startupCheck() {
@@ -107,7 +107,7 @@ function startupCheck() {
         process.exit(1);
     }
 
-    checkRequiredFolders();
+    checkRequiredDirectories();
 }
 
 module.exports = { startupCheck };
