@@ -79,7 +79,7 @@ CREATE TABLE `books` (
   `series_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `isbn` varchar(17) DEFAULT NULL,
+  `isbn` varchar(13) DEFAULT NULL,
   `started_reading` date DEFAULT NULL,
   `ended_reading` date DEFAULT NULL,
   `img` BOOLEAN NOT NULL DEFAULT FALSE,
