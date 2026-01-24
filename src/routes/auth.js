@@ -1,5 +1,4 @@
 const router = require('express').Router();
-const nodemailer = require("nodemailer");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const UAParser = require('ua-parser-js');
@@ -118,12 +117,14 @@ module.exports = function (pool) {
                 const textTemplatePath = path.join(__dirname, '../emailTemplates/registration.txt');
                 const emailText = fs.readFileSync(textTemplatePath, 'utf8')
                     .replace('{{username}}', username)
-                    .replace('{{year}}', year);
+                    .replace('{{year}}', year)
+                    .replace('{{webUrl}}', 'https://' + process.env.WEB_HOST);
 
                 const htmlTemplatePath = fs.readFileSync(path.join(__dirname, '../emailTemplates/registration.html'), 'utf8');
                 const emailHtml = htmlTemplatePath
                     .replace('{{username}}', username)
-                    .replace('{{year}}', year);
+                    .replace('{{year}}', year)
+                    .replace('{{webUrl}}', 'https://' + process.env.WEB_HOST);
 
                 await sendEmail(email, emailSubject, emailText, emailHtml);
             }
@@ -177,7 +178,8 @@ module.exports = function (pool) {
                     .replace('{{ipAddress}}', ipAddress)
                     .replace('{{userAgent}}', deviceInfo)
                     .replace('{{loginTime}}', loginTime)
-                    .replace('{{year}}', year);
+                    .replace('{{year}}', year)
+                    .replace('{{webUrl}}', 'https://' + process.env.WEB_HOST);
 
                 const emailTemplate = fs.readFileSync(path.join(__dirname, '../emailTemplates/login.html'), 'utf8');
                 const emailHtml = emailTemplate
@@ -185,7 +187,8 @@ module.exports = function (pool) {
                     .replace('{{ipAddress}}', ipAddress)
                     .replace('{{userAgent}}', deviceInfo)
                     .replace('{{loginTime}}', loginTime)
-                    .replace('{{year}}', year);
+                    .replace('{{year}}', year)
+                    .replace('{{webUrl}}', 'https://' + process.env.WEB_HOST);
 
                 await sendEmail(user.email, emailSubject, emailText, emailHtml);
             }

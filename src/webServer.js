@@ -18,6 +18,10 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, '../web')));
 
+app.get('/api-url', (_req, res) => {
+    res.json({ url: process.env.API_HOST });
+});
+
 function customRoute(route, htmlFile) {
     app.get(route, (_req, res) => {
         const filePath = path.join(__dirname, '../web', htmlFile);

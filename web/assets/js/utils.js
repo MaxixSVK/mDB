@@ -20,6 +20,8 @@ function setCookie(name, value, days) {
 }
 
 async function checkLogin() {
+    await waitForApi();
+
     const session = getCookie('sessionToken');
     if (session) {
         try {
@@ -49,6 +51,8 @@ async function checkLogin() {
 }
 
 async function displayUser(userInfo = true) {
+    await Promise.all([waitForApi(), waitForCdn()]);
+
     try {
         const user = await fetch(api + '/account', {
             method: 'GET',
@@ -81,6 +85,8 @@ function updateUserInfo(data) {
 }
 
 async function logout(deletedAccount) {
+    await waitForApi();
+
     if (deletedAccount !== true) {
         await fetch(api + '/account/logout', {
             method: 'POST',
