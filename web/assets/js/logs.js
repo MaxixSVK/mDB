@@ -131,21 +131,29 @@ function createDataElement(data) {
 async function downloadLogs() {
     try {
         const session = getCookie('sessionToken');
-        const response = await fetch(api + '/account/logs?all=true&format=file', {
+        const response = await fetch(api + '/account/logs?all=true', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': session
             },
         });
+        if (!response.ok) {
+            throw new Error(`Failed to download logs (${response.status})`);
+        }
+
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = 'logs.json';
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
+        try {
+            a.href = url;
+            a.download = 'logs.json';
+            document.body.appendChild(a);
+            a.click();
+        } finally {
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        }
     } catch (error) {
         console.error('Error fetching logs:', error);
     }
