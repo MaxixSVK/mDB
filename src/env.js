@@ -5,7 +5,7 @@ const os = require('os');
 const logger = require('./logger');
 
 function runScript(command, args, name) {
-  const proc = spawn(command, args, { stdio: 'inherit', shell: true });
+  const proc = spawn(command, args, { stdio: 'inherit' });
   proc.on('close', code => {
     if (code !== 0) {
       logger.error(`${name} exited with code ${code}`);
@@ -15,7 +15,7 @@ function runScript(command, args, name) {
 
 function isMariaDBRunning() {
   if (os.platform() === 'win32') {
-    const result = spawnSync('sc', ['query', 'MariaDB'], { encoding: 'utf8', shell: true });
+    const result = spawnSync('sc', ['query', 'MariaDB'], { encoding: 'utf8' });
     return result.stdout && result.stdout.includes('RUNNING');
   } else {
     const result = spawnSync('systemctl', ['is-active', '--quiet', 'mariadb']);
@@ -25,7 +25,7 @@ function isMariaDBRunning() {
 
 function getWindowsStartCommand() {
   const { spawnSync } = require('child_process');
-  const checkSudo = spawnSync('where', ['sudo'], { encoding: 'utf8', shell: true });
+  const checkSudo = spawnSync('where', ['sudo'], { encoding: 'utf8' });
   if (checkSudo.status === 0) {
     return { cmd: 'sudo', args: ['net', 'start', 'MariaDB'] };
   } else {
@@ -49,7 +49,7 @@ async function ensureMariaDB() {
     startArgs = ['service', 'mariadb', 'start'];
   }
   return new Promise((resolve, reject) => {
-    const proc = spawn(startCmd, startArgs, { stdio: 'inherit', shell: true });
+    const proc = spawn(startCmd, startArgs, { stdio: 'inherit' });
     proc.on('close', code => {
       if (code === 0) {
         logger.info('MariaDB started.');
