@@ -1,4 +1,4 @@
-const config = require('../config.json');
+const config = require('../../config.json');
 
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, printf } = format;

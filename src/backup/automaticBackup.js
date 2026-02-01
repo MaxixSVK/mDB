@@ -4,7 +4,7 @@ const config = require('../../config.json');
 
 const { backupDatabase } = require('./db');
 const { backupCDN } = require('./cdn');
-const logger = require('../logger');
+const logger = require('../utils/logger');
 
 async function tieredBackupCleanup(backupDir, backupType) {
     try {

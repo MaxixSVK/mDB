@@ -10,7 +10,7 @@ const { automaticBackup } = require('./backup/automaticBackup');
 const config = require('../config.json');
 const package = require('../package.json');
 const responseFormatter = require('./middleware/responseFormatter');
-const logger = require('./logger');
+const logger = require('./utils/logger');
 const routes = require('./routes.json');
 
 const app = express();

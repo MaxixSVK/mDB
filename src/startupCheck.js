@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const logger = require('./logger');
+const logger = require('./utils/logger');
 const readline = require('readline-sync');
 
 function createDefaultConfig(configPath) {

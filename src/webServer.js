@@ -3,7 +3,7 @@ require('dotenv').config();
 const path = require('path');
 
 const config = require('../config.json');
-const logger = require('./logger');
+const logger = require('./utils/logger');
 const app = express();
 
 app.use((req, res, next) => {

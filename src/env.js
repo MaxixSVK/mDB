@@ -2,7 +2,7 @@ const { spawn } = require('cross-spawn');
 const { spawnSync } = require('child_process');
 const os = require('os');
 
-const logger = require('./logger');
+const logger = require('./utils/logger');
 
 function runScript(command, args, name) {
     const proc = spawn(command, args, { stdio: 'inherit' });
