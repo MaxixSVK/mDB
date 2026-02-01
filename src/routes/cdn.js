@@ -87,10 +87,25 @@ module.exports = function (pool) {
     });
 
     router.post('/users/pfp/upload', validateToken, uploadUserPFP.single('image'), async (req, res, next) => {
+        let conn;
         try {
-            res.success({ msg: 'File uploaded.', filename: req.file.originalname });
+            const oldPath = req.file.path;
+
+            conn = await pool.getConnection();
+            await conn.query(
+                `UPDATE users SET pfp = ? WHERE user_id = ?`,
+                [true, req.userId]
+            );
+
+            const newFileName = `u-${req.userId}.png`;
+            const newPath = path.join(path.dirname(oldPath), newFileName);
+            fs.renameSync(oldPath, newPath);
+
+            res.success('Profile picture uploaded.');
         } catch (err) {
             next(err);
+        } finally {
+            if (conn) conn.release();
         }
     });
 

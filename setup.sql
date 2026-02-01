@@ -16,6 +16,7 @@ CREATE TABLE `users` (
   `password_hash` varchar(255) NOT NULL,
   `role` enum('user','admin') NOT NULL DEFAULT 'user',
   `public` BOOLEAN NOT NULL DEFAULT TRUE,
+  `pfp` BOOLEAN NOT NULL DEFAULT FALSE,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `username` (`username`) USING BTREE,
