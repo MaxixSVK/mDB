@@ -1,16 +1,16 @@
+const fs = require('fs');
+const path = require('path');
 const router = require('express').Router();
 const sanitize = require('sanitize-filename');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-
-const { createLibraryStorage, createPfpStorage } = require('./cdnStorage')
-
-const sendImage = require('./middleware/sendImage');
-router.use(sendImage);
 
 module.exports = function (pool) {
-  const validateToken = require('./middleware/checkToken')(pool);
+  const validateToken = require('../middleware/checkToken')(pool);
+
+  const { createLibraryStorage, createPfpStorage } = require('../cdnStorage')
+
+  const sendImage = require('../middleware/sendImage');
+  router.use(sendImage);
 
   const uploadLibraryImage = multer({ storage: createLibraryStorage() });
   const uploadUserPFP = multer({ storage: createPfpStorage() });
@@ -18,13 +18,13 @@ module.exports = function (pool) {
   router.get('/library/:filename', (req, res, next) => {
     try {
       const filename = sanitize(req.params.filename);
-      const dir = path.join(__dirname, '../cdn/library');
+      const dir = path.join(__dirname, '../../cdn/library');
       const filePath = path.join(dir, filename);
       const normalizedPath = path.normalize(filePath);
       const quality = req.query.q;
 
       if (normalizedPath.startsWith(dir) && fs.existsSync(normalizedPath)) {
-        res.sendImage(filePath, quality, req, res, next);
+        res.sendImage(filePath, quality);
       } else {
         res.success('Requested file does not exist.');
       }
@@ -73,7 +73,7 @@ module.exports = function (pool) {
   router.get('/users/pfp/:filename', (req, res, next) => {
     try {
       const filename = sanitize(req.params.filename);
-      const dir = path.join(__dirname, '../cdn/users/pfp');
+      const dir = path.join(__dirname, '../../cdn/users/pfp');
       const filePath = path.join(dir, filename);
       const normalizedPath = path.normalize(filePath);
       const quality = req.query.q;
