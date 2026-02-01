@@ -158,7 +158,7 @@ module.exports = function (pool) {
                 const [dependentRows] = await conn.query(dependentRowsQuery, [id]);
 
                 if (dependentRows) {
-                    return res.error('Cannot delete because it is used elsewhere', 409, true);
+                    return res.error('Cannot delete because it is used elsewhere', 409);
                 }
             }
 
@@ -181,10 +181,6 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const { name, bio } = req.body;
-
-            if (!name || name.trim() === '') {
-                return res.error('Author name is required', 400, true);
-            }
 
             const sql = `INSERT INTO authors (user_id, name, bio) VALUES (?, ?, ?)`;
             const params = [req.userId, name, bio || null];

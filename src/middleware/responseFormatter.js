@@ -7,8 +7,8 @@ const responseFormatter = (req, res, next) => {
         }
     };
 
-    res.error = (message, code = 500, v2) => {
-        const response = v2 ? { error: message } : { msg: message };
+    res.error = (message, code = 500) => {
+        const response = { error: message };
         res.status(code).json(response);
     };
 

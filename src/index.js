@@ -62,7 +62,7 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
     logger.error(`500 Internal Server Error - ${err}`);
-    res.error('Internal Server Error', 500, true);
+    res.error('Internal Server Error', 500);
 });
 
 const startServer = async () => {

@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (!loggedIn) {
         window.location.href = '/about';
     }
-    
+
     setupEventListeners();
     displayUser();
 
@@ -49,6 +49,7 @@ async function addCDNLibrarySelect(container, books) {
     try {
         addFormDescription(container, 'Select reference');
         const seriesSelect = createSelectElement('cdn_series_id');
+        seriesSelect.id = 'cdn_series_id';
         container.appendChild(seriesSelect);
 
         const seriesIds = await fetchData('/library/user/series/' + userId);
@@ -59,6 +60,7 @@ async function addCDNLibrarySelect(container, books) {
 
         if (books) {
             const bookSelect = createSelectElement('cdn_book_id');
+            bookSelect.id = 'cdn_book_id';
             container.appendChild(bookSelect);
 
             seriesSelect.addEventListener('change', async () => await handleSelectionChange(container, seriesSelect, bookSelect));
@@ -78,20 +80,13 @@ function handleCDNUpload() {
         return;
     }
 
-    const referenceType = document.getElementById('cdn-data-type').value;
-    let refFilename
-
-    if (referenceType === 'series') {
-        const seriesId = document.getElementsByName('cdn_series_id')[0].value;
-        refFilename = `s-${seriesId}.png`;
-    } else {
-        const bookId = document.getElementsByName('cdn_book_id')[0].value;
-        refFilename = `b-${bookId}.png`;
-    }
+    let refType = document.getElementById('cdn-data-type').value;
+    refId = document.getElementById(`cdn_${refType}_id`).value;
 
     const form = new FormData();
     form.append('image', file);
-    form.append('refFilename', refFilename);
+    form.append('type', refType);
+    form.append('id', refId);
 
     uploadCDN(form);
 }
