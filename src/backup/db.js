@@ -11,7 +11,7 @@ async function backupDatabase(includeSensitiveTables) {
         const excludedTables = ['users', 'sessions'];
         const ignoreTables = includeSensitiveTables ? '' : excludedTables.map(table => `--ignore-table=${process.env.DB_NAME}.${table}`).join(' ');
 
-        const command = `mariadb-dump -u ${process.env.DB_USER} -p${process.env.DB_PASSWORD} ${process.env.DB_NAME} ${ignoreTables} > ${tempFile}`;
+        const command = `mariadb-dump -u ${process.env.DB_USER} -p${process.env.DB_PASS} ${process.env.DB_NAME} ${ignoreTables} > ${tempFile}`;
 
         exec(command, (error, stdout, stderr) => {
             if (error) {

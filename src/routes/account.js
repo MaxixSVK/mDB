@@ -7,9 +7,9 @@ module.exports = function (pool) {
     const config = require('../../config.json');
 
     const validateToken = require('../middleware/checkToken')(pool);
-    const requireAdditionalSecurity = require('../middleware/requireAdditionalSecurity')(pool);
     router.use(validateToken);
 
+    const requireAdditionalSecurity = require('../middleware/requireAdditionalSecurity')(pool);
     const sendEmail = require('../utils/sendEmail');
 
     router.get('/', async (req, res, next) => {
@@ -152,7 +152,7 @@ module.exports = function (pool) {
 
             const fileName = `${req.userId}.png`;
             const filePath = path.join(__dirname, '../../cdn/users/pfp', fileName);
-            
+
             if (fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath);
             }
