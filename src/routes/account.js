@@ -17,7 +17,7 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const [user] = await conn.query(
-                'SELECT id, username, email, role, public FROM users WHERE id = ?',
+                'SELECT id, username, email, role, public, pfp FROM users WHERE id = ?',
                 [req.userId]
             );
 
@@ -141,6 +141,30 @@ module.exports = function (pool) {
         }
     });
 
+    router.put('/pfp/reset', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            await conn.query(
+                'UPDATE users SET pfp = FALSE WHERE id = ?',
+                [req.userId]
+            );
+
+            const fileName = `${req.userId}.png`;
+            const filePath = path.join(__dirname, '../../cdn/users/pfp', fileName);
+            
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+
+            res.success({ msg: 'Profile picture reset to default' });
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
     router.put('/public-status', async (req, res, next) => {
         let conn;
         try {
@@ -198,9 +222,9 @@ module.exports = function (pool) {
                 )
                 ORDER BY change_date DESC
             `;
-            
+
             const searchTerm = `%${user_query}%`;
-            
+
             const logs = await conn.query(sql, [
                 req.userId,
                 searchTerm,

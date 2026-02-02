@@ -61,20 +61,13 @@ async function createUserCard(user) {
         console.error(`Error fetching stats for user ${user.id}:`, error);
     }
 
-    let hasProfilePicture = false;
-    try {
-        const pfpResponse = await fetch(cdn + '/users/pfp/' + user.id + '.png');
-        const contentType = pfpResponse.headers.get('content-type');
-        hasProfilePicture = contentType && contentType.indexOf('application/json') === -1;
-    } catch (error) {
-        console.error(`Error checking profile picture for user ${user.username}:`, error);
-    }
+    const hasProfilePicture = user.pfp ? true : false;
 
     card.innerHTML = `
         <div class="flex items-center mb-4">
             <div class="w-12 h-12 rounded-full flex items-center justify-center mr-3">
                 ${hasProfilePicture
-            ? `<img src="${cdn}/users/pfp/${user.id}.png" alt="${user.username}" class="w-12 h-12 rounded-full object-cover">`
+            ? `<img src="${cdn}/users/pfp/u-${user.id}.png" alt="${user.username}" class="w-12 h-12 rounded-full object-cover">`
             : `<i class="fas fa-user text-3xl"></i>`
         }
             </div>

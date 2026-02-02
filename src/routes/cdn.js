@@ -93,7 +93,7 @@ module.exports = function (pool) {
 
             conn = await pool.getConnection();
             await conn.query(
-                `UPDATE users SET pfp = ? WHERE user_id = ?`,
+                `UPDATE users SET pfp = ? WHERE id = ?`,
                 [true, req.userId]
             );
 

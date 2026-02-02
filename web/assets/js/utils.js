@@ -61,19 +61,14 @@ async function displayUser(userInfo = true) {
                 'authorization': getCookie('sessionToken')
             },
         });
-        const data = await user.json();
+        const userData = await user.json();
 
-        const userPFP = await fetch(cdn + '/users/pfp/' + data.id + '.png');
-        const contentType = userPFP.headers.get('content-type');
+        if (userInfo) updateUserInfo(userData);
+        if (!userData.pfp) return;
 
-        if (userInfo) updateUserInfo(data);
-
-        if (contentType && contentType.indexOf('application/json') === -1) {
-            document.getElementById('nopfp').classList.add('hidden');
-            document.getElementById('pfp').classList.remove('hidden');
-            document.getElementById('pfp').src = cdn + '/users/pfp/' + data.id + '.png?q=l';
-        }
-
+        document.getElementById('nopfp').classList.add('hidden');
+        document.getElementById('pfp').classList.remove('hidden');
+        document.getElementById('pfp').src = cdn + '/users/pfp/u-' + userData.id + '.png?q=l';
     } catch (error) {
         console.error('Error fetching user:', error);
     }

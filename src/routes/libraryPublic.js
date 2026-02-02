@@ -275,10 +275,9 @@ module.exports = function (pool) {
         let conn;
         try {
             conn = await pool.getConnection();
-            const data = await conn.query('SELECT id, username, public FROM users WHERE public = 1');
-            const users = data.map(row => ({ id: row.id, username: row.username }));
+            const data = await conn.query('SELECT id, username, pfp FROM users WHERE public = 1');
 
-            res.success(users);
+            res.success(data);
         } catch (err) {
             next(err);
         } finally {
