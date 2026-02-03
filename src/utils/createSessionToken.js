@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require("dotenv").config();
 
-const saltRounds = process.env.SALT_ROUNDS;
+const saltRounds = parseInt(process.env.SALT_ROUNDS, 10);
 const secretKey = process.env.JWT_SECRET_KEY;
 
 async function createSessionToken(userId, userAgent, ipAddress, pool) {
