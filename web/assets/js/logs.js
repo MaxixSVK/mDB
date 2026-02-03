@@ -72,6 +72,12 @@ function displayNoResults() {
     document.getElementById('load-more').classList.add('hidden');
 }
 
+const changeTypeMapping = {
+    'INSERT': 'New',
+    'UPDATE': 'Updated',
+    'DELETE': 'Deleted'
+}
+
 function createLogElement(log) {
     const logElement = document.createElement('div');
     logElement.className = 'bg-[#1F1F1F] p-6 rounded-lg shadow-md mb-4 mx-4';
@@ -80,12 +86,7 @@ function createLogElement(log) {
 
     logElement.innerHTML = `
         <div class="flex items-center">
-            <div class="text-lg font-bold ${changeTypeColor}">
-                ${log.change_type}
-            </div>
-            <div class="ml-2 text-sm text-gray-400">
-                from ${log.table_name.toUpperCase()}
-            </div>
+            <a class="text-lg font-bold ${changeTypeColor}">${changeTypeMapping[log.change_type]} <span class="text-sm text-gray-400">entry in ${log.table_name.toUpperCase()}</span></a>
         </div>
         <div class="text-gray-400 mb-2">
             <strong>Record ID:</strong> ${log.record_id}
