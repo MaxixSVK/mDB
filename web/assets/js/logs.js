@@ -31,7 +31,7 @@ function addEventListeners() {
 async function fetchLogs() {
     try {
         const session = getCookie('sessionToken');
-        const response = await fetch(api + '/account/logs?limit=' + logsLimit + '&offset=' + logsOffset, {
+        const response = await fetch(api + '/library/manage/logs?limit=' + logsLimit + '&offset=' + logsOffset, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ function createDataElement(data) {
 async function downloadLogs() {
     try {
         const session = getCookie('sessionToken');
-        const response = await fetch(api + '/account/logs?all=true', {
+        const response = await fetch(api + '/library/manage/logs?all=true', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

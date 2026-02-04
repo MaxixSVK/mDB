@@ -15,7 +15,7 @@ authorForm.addEventListener('submit', async function (event) {
     const authorBio = formData.get('author-bio');
 
     try {
-        const response = await fetch(api + '/mange-library/author/new', {
+        const response = await fetch(api + '/library/manage/author/new', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

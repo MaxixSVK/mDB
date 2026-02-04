@@ -84,7 +84,7 @@ async function handleDataSubmit(e, form, action) {
         delete data.series_id;
     }
 
-    let url = api + '/mange-library/' + action;
+    let url = api + '/library/manage/' + action;
     let method = 'POST';
 
     if (action === 'update') {

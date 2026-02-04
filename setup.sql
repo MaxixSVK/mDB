@@ -3,7 +3,7 @@ USE `mdb_prod`;
 
 DROP TABLE IF EXISTS `users`;
 DROP TABLE IF EXISTS `sessions`;
-DROP TABLE IF EXISTS `logs`;
+DROP TABLE IF EXISTS `library_logs`;
 DROP TABLE IF EXISTS `authors`;
 DROP TABLE IF EXISTS `series`;
 DROP TABLE IF EXISTS `books`;
@@ -37,7 +37,7 @@ CREATE TABLE `sessions` (
   CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 );
 
-CREATE TABLE `logs` (
+CREATE TABLE `library_logs` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `user_id` INT NOT NULL,
     `change_type` VARCHAR(50) NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE `logs` (
     `new_data` JSON DEFAULT NULL,
     `change_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     KEY `user_id` (`user_id`),
-    CONSTRAINT `logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    CONSTRAINT `library_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 );
 
 CREATE TABLE `authors` (

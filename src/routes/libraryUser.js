@@ -7,7 +7,7 @@ module.exports = function (pool) {
     router.use(validateToken);
 
     async function logChanges(conn, userId, changeType, tableName, recordId, oldData = null, newData = null) {
-        const logQuery = `INSERT INTO logs (user_id, change_type, table_name, record_id, old_data, new_data) VALUES (?, ?, ?, ?, ?, ?)`;
+        const logQuery = `INSERT INTO library_logs (user_id, change_type, table_name, record_id, old_data, new_data) VALUES (?, ?, ?, ?, ?, ?)`;
         await conn.query(logQuery, [userId, changeType, tableName, recordId, oldData, newData]);
     }
 
@@ -269,6 +269,63 @@ module.exports = function (pool) {
 
             await logChanges(conn, req.userId, 'DELETE', 'authors', id, JSON.stringify(dbData));
             res.success('Author deleted successfully');
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
+    router.get('/logs', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { limit = 10, offset = 0, all = 'false', format = 'file' } = req.query;
+
+            let sql;
+            let params;
+
+            if (all === 'true') {
+                sql = `SELECT * FROM library_logs WHERE user_id = ? ORDER BY change_date DESC`;
+                params = [req.userId];
+            } else {
+                sql = `SELECT * FROM library_logs WHERE user_id = ? ORDER BY change_date DESC LIMIT ? OFFSET ?`;
+                params = [req.userId, parseInt(limit), parseInt(offset)];
+            }
+
+            const logs = await conn.query(sql, params);
+            res.success(logs);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.end();
+        }
+    });
+
+    router.get('/logs/:user_query', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { user_query } = req.params;
+
+            const sql = `
+                    SELECT * FROM library_logs 
+                    WHERE user_id = ? AND (
+                        CAST(old_data AS CHAR) LIKE ? OR
+                        CAST(new_data AS CHAR) LIKE ?
+                    )
+                    ORDER BY change_date DESC
+                `;
+
+            const searchTerm = `%${user_query}%`;
+
+            const logs = await conn.query(sql, [
+                req.userId,
+                searchTerm,
+                searchTerm
+            ]);
+
+            res.success(logs);
         } catch (err) {
             next(err);
         } finally {

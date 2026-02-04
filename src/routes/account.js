@@ -182,65 +182,6 @@ module.exports = function (pool) {
         }
     });
 
-    router.get('/logs', async (req, res, next) => {
-        let conn;
-        try {
-            conn = await pool.getConnection();
-            const { limit = 10, offset = 0, all = 'false', format = 'file' } = req.query;
-
-            let sql;
-            let params;
-
-            if (all === 'true') {
-                sql = `SELECT * FROM logs WHERE user_id = ? ORDER BY change_date DESC`;
-                params = [req.userId];
-            } else {
-                sql = `SELECT * FROM logs WHERE user_id = ? ORDER BY change_date DESC LIMIT ? OFFSET ?`;
-                params = [req.userId, parseInt(limit), parseInt(offset)];
-            }
-
-            const logs = await conn.query(sql, params);
-            res.success(logs);
-        } catch (err) {
-            next(err);
-        } finally {
-            if (conn) conn.end();
-        }
-    });
-
-    router.get('/logs/:user_query', async (req, res, next) => {
-        let conn;
-        try {
-            conn = await pool.getConnection();
-            const { user_query } = req.params;
-
-            const sql = `
-                SELECT * FROM logs 
-                WHERE user_id = ? AND (
-                    CAST(old_data AS CHAR) LIKE ? OR
-                    CAST(new_data AS CHAR) LIKE ?
-                )
-                ORDER BY change_date DESC
-            `;
-
-            const searchTerm = `%${user_query}%`;
-
-            const logs = await conn.query(sql, [
-                req.userId,
-                searchTerm,
-                searchTerm
-            ]);
-
-            console.log(req.userId, user_query);
-            console.log(logs);
-            res.success(logs);
-        } catch (err) {
-            next(err);
-        } finally {
-            if (conn) conn.release();
-        }
-    });
-
     router.delete('/delete', requireAdditionalSecurity, async (req, res, next) => {
         let conn;
         try {
@@ -253,7 +194,7 @@ module.exports = function (pool) {
             );
 
             const deleteQueries = [
-                'DELETE FROM logs WHERE user_id = ?',
+                'DELETE FROM library_logs WHERE user_id = ?',
                 'DELETE FROM chapters WHERE user_id = ?',
                 'DELETE FROM books WHERE user_id = ?',
                 'DELETE FROM series WHERE user_id = ?',

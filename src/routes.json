@@ -1,7 +1,7 @@
 [
     { "path": "/auth", "route": "./routes/auth" },
     { "path": "/library", "route": "./routes/libraryPublic" },
-    { "path": "/mange-library", "route": "./routes/libraryUser" },
+    { "path": "/library/manage", "route": "./routes/libraryUser" },
     { "path": "/account", "route": "./routes/account" },
     { "path": "/cdn", "route": "./routes/cdn" }
 ]
