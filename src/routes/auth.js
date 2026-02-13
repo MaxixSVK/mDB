@@ -9,6 +9,7 @@ module.exports = function (pool) {
     const config = require('../../config.json');
 
     const sendEmail = require('../utils/sendEmail');
+    const newAccountLog = require('../utils/accountLogs');
     const createSessionToken = require('../utils/createSessionToken');
 
     router.post('/register', async (req, res, next) => {
@@ -100,18 +101,20 @@ module.exports = function (pool) {
                 [account, account]
             );
 
-            if (!user) {
-                return res.error('Invalid username or password', 401);
-            }
-
-            const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-
-            if (!isPasswordValid) {
+            if (user) {
+                const validPassword = await bcrypt.compare(password, user.password_hash);
+                if (!validPassword) {
+                    newAccountLog(user.id, 'login', false, ipAddress, userAgent, pool);
+                    return res.error('Invalid username or password', 401);
+                }
+            } else {
                 return res.error('Invalid username or password', 401);
             }
 
             const sessionToken = await createSessionToken(user.id, userAgent, ipAddress, pool);
             res.success({ sessionToken });
+
+            newAccountLog(user.id, 'login', true, ipAddress, userAgent, pool);
 
             async function sendLoginEmail() {
                 const emailSubject = `New Login Notification`;

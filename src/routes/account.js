@@ -11,6 +11,7 @@ module.exports = function (pool) {
 
     const requireAdditionalSecurity = require('../middleware/requireAdditionalSecurity')(pool);
     const sendEmail = require('../utils/sendEmail');
+    const newAccountLog = require('../utils/accountLogs');
 
     router.get('/', async (req, res, next) => {
         let conn;
@@ -46,6 +47,7 @@ module.exports = function (pool) {
                 return res.error('Session not found', 404);
             }
 
+            newAccountLog(req.userId, 'logout', true, req.ipAddress, req.userAgent, pool);
             res.success({ msg: 'Session destroyed' });
         } catch (err) {
             next(err);
@@ -81,6 +83,7 @@ module.exports = function (pool) {
                 [hashedPassword, req.userId]
             );
 
+            newAccountLog(req.userId, 'change_password', true, req.ipAddress, req.userAgent, pool);
             res.success({ msg: 'Password changed' });
         } catch (err) {
             next(err);
@@ -107,6 +110,8 @@ module.exports = function (pool) {
                 'UPDATE users SET username = ? WHERE id = ?',
                 [req.body.newUsername, req.userId]
             );
+
+            newAccountLog(req.userId, 'change_username', true, req.ipAddress, req.userAgent, pool);
             res.success({ msg: 'Username changed' });
         } catch (err) {
             next(err);
@@ -133,6 +138,8 @@ module.exports = function (pool) {
                 'UPDATE users SET email = ? WHERE id = ?',
                 [req.body.newEmail, req.userId]
             );
+
+            newAccountLog(req.userId, 'change_email', true, req.ipAddress, req.userAgent, pool);
             res.success({ msg: 'Email changed' });
         } catch (err) {
             next(err);
@@ -175,6 +182,40 @@ module.exports = function (pool) {
                 [publicValue, req.userId]
             );
             res.success({ msg: 'Profile public status updated', public: publicValue });
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
+    router.get('/logs/auth', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const logs = await conn.query(
+                'SELECT type, success, ip_address, user_agent, created_at FROM account_logs WHERE user_id = ? ORDER BY created_at DESC',
+                [req.userId]
+            );
+
+            res.success(logs);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
+    router.get('/logs/changes', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const logs = await conn.query(
+                'SELECT type, success, ip_address, user_agent, created_at FROM account_logs WHERE user_id = ? AND type IN ("change_password", "change_email", "change_username") ORDER BY created_at DESC',
+                [req.userId]
+            );
+
+            res.success(logs);
         } catch (err) {
             next(err);
         } finally {

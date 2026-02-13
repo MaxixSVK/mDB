@@ -4,6 +4,7 @@ USE `mdb_prod`;
 DROP TABLE IF EXISTS `users`;
 DROP TABLE IF EXISTS `sessions`;
 DROP TABLE IF EXISTS `library_logs`;
+DROP TABLE IF EXISTS `account_logs`;
 DROP TABLE IF EXISTS `authors`;
 DROP TABLE IF EXISTS `series`;
 DROP TABLE IF EXISTS `books`;
@@ -34,7 +35,7 @@ CREATE TABLE `sessions` (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `session_token` (`session_token`) USING BTREE,
   KEY `user_id` (`user_id`) USING BTREE,
-  CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 );
 
 CREATE TABLE `library_logs` (
@@ -48,6 +49,18 @@ CREATE TABLE `library_logs` (
     `change_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     KEY `user_id` (`user_id`),
     CONSTRAINT `library_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+);
+
+CREATE TABLE `account_logs` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NOT NULL,
+    `type` ENUM('register', 'login', 'logout', 'change_password', 'change_email', 'change_username') NOT NULL,
+    `success` BOOLEAN NOT NULL,
+    `ip_address` VARCHAR(45) DEFAULT NULL,
+    `user_agent` VARCHAR(255) DEFAULT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY `user_id` (`user_id`),
+    CONSTRAINT `account_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 );
 
 CREATE TABLE `authors` (

@@ -11,7 +11,7 @@ const validateToken = (pool, admin) => {
             return res.error('Session token is required', 401);
         }
 
-        jwt.verify(sessionToken, secretKey, async function(err, decoded) {
+        jwt.verify(sessionToken, secretKey, async function (err, decoded) {
             if (err) {
                 return res.error('Invalid session token', 401);
             }
@@ -31,6 +31,9 @@ const validateToken = (pool, admin) => {
 
                 req.userId = userId;
                 req.sessionId = sessionId;
+                req.userAgent = req.headers['user-agent'];
+                const forwarded = req.headers['x-forwarded-for'];
+                req.ipAddress = forwarded ? forwarded.split(',')[0].trim() : req.socket.remoteAddress;
 
                 if (admin) {
                     const connection = await pool.getConnection();
