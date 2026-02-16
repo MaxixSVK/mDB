@@ -25,7 +25,7 @@ module.exports = function (pool) {
             if (normalizedPath.startsWith(dir) && fs.existsSync(normalizedPath)) {
                 res.sendImage(filePath, quality);
             } else {
-                res.success('Requested file does not exist.');
+                res.success({ msg: 'Requested file does not exist.' });
             }
         } catch (err) {
             next(err);
@@ -79,7 +79,7 @@ module.exports = function (pool) {
             if (normalizedPath.startsWith(dir) && fs.existsSync(normalizedPath)) {
                 res.sendImage(filePath, quality);
             } else {
-                res.success('Requested file does not exist.');
+                res.success({ msg: 'Requested file does not exist.' });
             }
         } catch (err) {
             next(err);
@@ -101,7 +101,7 @@ module.exports = function (pool) {
             const newPath = path.join(path.dirname(oldPath), newFileName);
             fs.renameSync(oldPath, newPath);
 
-            res.success('Profile picture uploaded.');
+            res.success({ msg: 'Profile picture uploaded.' });
         } catch (err) {
             next(err);
         } finally {

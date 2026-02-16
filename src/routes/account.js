@@ -157,7 +157,7 @@ module.exports = function (pool) {
                 [req.userId]
             );
 
-            const fileName = `${req.userId}.png`;
+            const fileName = `u-${req.userId}.png`;
             const filePath = path.join(__dirname, '../../cdn/users/pfp', fileName);
 
             if (fs.existsSync(filePath)) {
