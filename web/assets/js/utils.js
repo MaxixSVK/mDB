@@ -36,7 +36,7 @@ async function checkLogin() {
             if (response.ok) {
                 const user = await response.json();
 
-                return { loggedIn: true, userId: user.id, sessionId: user.sessionId };
+                return { loggedIn: true, userId: user.id, sessionId: user.sessionId, user: user };
             } else {
                 logout();
                 return { loggedIn: false };
@@ -50,9 +50,7 @@ async function checkLogin() {
     }
 }
 
-async function displayUser(userInfo = true) {
-    await Promise.all([waitForApi(), waitForCdn()]);
-
+async function displayUser(userInfo = true, bypassCache = false) {
     try {
         const user = await fetch(api + '/account', {
             method: 'GET',
@@ -64,11 +62,17 @@ async function displayUser(userInfo = true) {
         const userData = await user.json();
 
         if (userInfo) updateUserInfo(userData);
-        if (!userData.pfp) return;
+
+        if (!userData.pfp) {
+            document.getElementById('pfp').classList.add('hidden');
+            document.getElementById('nopfp').classList.remove('hidden');
+            return;
+        }
 
         document.getElementById('nopfp').classList.add('hidden');
         document.getElementById('pfp').classList.remove('hidden');
-        document.getElementById('pfp').src = cdn + '/users/pfp/u-' + userData.id + '.png?q=l';
+        const cacheBuster = bypassCache ? '&t=' + Date.now() : '';
+        document.getElementById('pfp').src = cdn + '/users/pfp/u-' + userData.id + '.png?q=l' + cacheBuster;
     } catch (error) {
         console.error('Error fetching user:', error);
     }

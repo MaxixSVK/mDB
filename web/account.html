@@ -38,135 +38,248 @@
                 <a class="text-3xl text-white font-bold">Account</a>
             </div>
         </nav>
-        <main class="bg-[#191818] rounded-md pt-4 pb-0.5">
-            <section
-                class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 p-4 md:p-6 rounded-md flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex items-center space-x-4 w-full md:w-auto">
-                    <img id="pfp" class="w-14 h-14 rounded-full object-cover hidden">
-                    <div id="nopfp" class="flex items-center">
-                        <i class="fas fa-user text-white text-2xl"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-bold" id="username"></h2>
-                        <p class="text-sm text-gray-400" id="useremail"></p>
+        <main class="bg-[#191818] rounded-md p-4 flex flex-col md:flex-row gap-6">
+            <aside class="w-full md:w-56 flex flex-col gap-2">
+                <div class="bg-[#1F1F1F] rounded-md p-4 mb-4">
+                    <div class="flex items-center gap-3">
+                        <img id="pfp" class="w-12 h-12 rounded-full object-cover hidden">
+                        <div id="nopfp" class="flex items-center w-12 h-12 bg-[#191818] rounded-full justify-center">
+                            <i class="fas fa-user text-white text-lg"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-white font-bold text-sm truncate" id="username"></h3>
+                            <p class="text-gray-400 text-xs truncate" id="useremail"></p>
+                        </div>
                     </div>
                 </div>
-                <div class="flex flex-row gap-3 w-full md:w-auto justify-end">
-                    <button id="logout"
-                        class="w-full sm:w-auto border-2 border-dashed border-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-500 hover:text-black transition duration-300">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
+
+                <nav class="flex flex-col gap-1">
+                    <button data-category="profile"
+                        class="category-btn active text-left px-4 py-2 rounded-md font-medium text-white bg-[#1F1F1F] hover:bg-[#2a2a2a]">
+                        <i class="fas fa-user mr-2"></i>Profile
                     </button>
+                    <button data-category="security"
+                        class="category-btn text-left px-4 py-2 rounded-md font-medium text-white bg-[#1F1F1F] hover:bg-[#2a2a2a]">
+                        <i class="fas fa-lock mr-2"></i>Security
+                    </button>
+                    <button data-category="email"
+                        class="category-btn text-left px-4 py-2 rounded-md font-medium text-white bg-[#1F1F1F] hover:bg-[#2a2a2a]">
+                        <i class="fas fa-envelope mr-2"></i>Email
+                    </button>
+                    <button data-category="devices"
+                        class="category-btn text-left px-4 py-2 rounded-md font-medium text-white bg-[#1F1F1F] hover:bg-[#2a2a2a]">
+                        <i class="fas fa-mobile mr-2"></i>Devices
+                    </button>
+                    <button data-category="privacy"
+                        class="category-btn text-left px-4 py-2 rounded-md font-medium text-white bg-[#1F1F1F] hover:bg-[#2a2a2a]">
+                        <i class="fas fa-shield mr-2"></i>Privacy
+                    </button>
+                    <hr class="border-[#2a2a2a] my-2">
+                    <button id="logout"
+                        class="text-left px-4 py-2 rounded-md font-medium text-white border-2 border-dashed border-red-500 hover:bg-red-500 hover:text-black">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                </nav>
+            </aside>
+
+            <section class="flex-1 flex flex-col gap-4">
+                <div id="profile" class="content-panel active">
+                    <div class="bg-[#1F1F1F] rounded-md p-6 text-white">
+                        <h2 class="text-2xl font-bold mb-6">Profile Information</h2>
+                        <div class="space-y-6">
+                            <div class="pb-6 border-b border-[#2a2a2a]">
+                                <form id="changeProfilePicture" class="space-y-3">
+                                    <div>
+                                        <label class="block font-semibold text-gray-300 uppercase tracking-wide mb-2"
+                                            for="profilePicture">
+                                            Upload New PFP
+                                        </label>
+                                        <input
+                                            class="w-full px-3 py-2 text-white bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white transition-colors duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#2a2a2a] file:text-white file:cursor-pointer hover:file:bg-[#353535]"
+                                            id="profilePicture" name="profilePicture" type="file" accept="image/*">
+                                    </div>
+                                    <div class="flex flex-col md:flex-row gap-3">
+                                        <button type="submit"
+                                            class="w-full md:w-auto px-6 py-2 font-semibold text-white border-2 border-dashed border-[#FFA500] rounded-md hover:bg-[#FFA500] hover:text-black transition-colors duration-200">
+                                            Update PFP
+                                        </button>
+                                        <button type="button" id="deleteProfilePicture"
+                                            class="w-full md:w-auto px-6 py-2 font-semibold text-white border-2 border-dashed border-red-500 rounded-md hover:bg-red-500 hover:text-black transition-colors duration-200">
+                                            Delete Curent PFP
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="pb-6 border-b border-[#2a2a2a]">
+                                <form id="changeUsername" class="space-y-3">
+                                    <div>
+                                        <label class="block font-semibold text-gray-300 uppercase tracking-wide mb-2"
+                                            for="newUsername">
+                                            New Username
+                                        </label>
+                                        <input
+                                            class="w-full px-3 py-2 text-white bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white transition-colors duration-200"
+                                            id="newUsername" name="newUsername" type="text"
+                                            placeholder="Enter your new username" required="true">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-gray-300 uppercase tracking-wide mb-2"
+                                            for="usernamePassword">
+                                            Password
+                                        </label>
+                                        <input
+                                            class="w-full px-3 py-2 text-white bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white transition-colors duration-200"
+                                            id="usernamePassword" name="usernamePassword" type="password"
+                                            placeholder="Enter your password to confirm" required="true">
+                                    </div>
+                                    <button type="submit"
+                                        class="w-full md:w-auto px-6 py-2 font-semibold text-white border-2 border-dashed border-[#FFA500] rounded-md hover:bg-[#FFA500] hover:text-black transition-colors duration-200">
+                                        Change Username
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </section>
-            <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 mb:mb-6 p-4 md:p-6 rounded-md">
-                <div class="flex items-center justify-between cursor-pointer" id="changePasswordToggle">
-                    <h1 class="text-2xl font-bold text-white">Change Password</h1>
-                    <i class="fas fa-chevron-down text-white transition-transform duration-300"
-                        id="changePasswordIcon"></i>
-                </div>
-                <div id="changePasswordContent" class="hidden">
-                    <form id="changePassword">
-                        <div class="mb-3">
-                            <label class="block text-white text-sm font-bold my-2" for="oldPassword">
-                                Old Password
-                            </label>
-                            <input
-                                class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline"
-                                id="oldPassword" name="oldPassword" type="password" placeholder="Old Password"
-                                required="true">
-                        </div>
-                        <div class="mb-3">
-                            <label class="block text-white text-sm font-bold mb-2" for="newPassword">
-                                New Password
-                            </label>
-                            <input
-                                class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline"
-                                id="newPassword" name="newPassword" type="password" placeholder="New Password"
-                                required="true">
-                        </div>
-                        <div class="mb-3">
-                            <input
-                                class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline"
-                                id="confirmPassword" name="confirmPassword" type="password"
-                                placeholder="Confirm Password" required="true">
-                        </div>
-                        <div class="flex items-center justify-between">
+
+                <div id="security" class="content-panel hidden">
+                    <div class="bg-[#1F1F1F] rounded-md p-6 text-white">
+                        <h2 class="text-2xl font-bold mb-6">Security Settings</h2>
+                        <form id="changePassword" class="space-y-4">
+                            <div>
+                                <label class="block font-semibold text-gray-300 uppercase tracking-wide mb-2"
+                                    for="oldPassword">
+                                    Current Password
+                                </label>
+                                <input
+                                    class="w-full px-3 py-2 text-white bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white transition-colors duration-200"
+                                    id="oldPassword" name="oldPassword" type="password"
+                                    placeholder="Enter your current password" required="true">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-gray-300 uppercase tracking-wide mb-2"
+                                    for="newPassword">
+                                    New Password
+                                </label>
+                                <input
+                                    class="w-full px-3 py-2 text-white bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white transition-colors duration-200"
+                                    id="newPassword" name="newPassword" type="password"
+                                    placeholder="Enter your new password" required="true">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-gray-300 uppercase tracking-wide mb-2"
+                                    for="confirmPassword">
+                                    New Password Again
+                                </label>
+                                <input
+                                    class="w-full px-3 py-2 text-white bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white transition-colors duration-200"
+                                    id="confirmPassword" name="confirmPassword" type="password"
+                                    placeholder="Confirm your new password" required="true">
+                            </div>
                             <button type="submit"
-                                class="w-full md:w-auto border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300">
+                                class="w-full md:w-auto px-6 py-2 font-semibold text-white border-2 border-dashed border-[#FFA500] rounded-md hover:bg-[#FFA500] transition-colors duration-200 mt-2">
                                 Change Password
                             </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
-            </section>
-            <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 mb:mb-6 p-4 md:p-6 rounded-md">
-                <div class="flex items-center justify-between cursor-pointer" id="changeEmailToggle">
-                    <h1 class="text-2xl font-bold text-white">Change Email</h1>
-                    <i class="fas fa-chevron-down text-white transition-transform duration-300"
-                        id="changeEmailIcon"></i>
-                </div>
-                <div id="changeEmailContent" class="hidden">
-                    <form id="changeEmail">
-                        <div class="mb-3">
-                            <label class="block text-white text-sm font-bold my-2" for="newEmail">
-                                New Email
-                            </label>
-                            <input
-                                class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline"
-                                id="newEmail" name="newEmail" type="email" placeholder="New Email" required="true">
-                        </div>
-                        <div class="mb-3">
-                            <label class="block text-white text-sm font-bold mb-2" for="emailPassword">
-                                Password
-                            </label>
-                            <input
-                                class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline"
-                                id="emailPassword" name="emailPassword" type="password"
-                                placeholder="Enter your password" required="true">
-                        </div>
-                        <div class="flex items-center justify-between">
+
+                <div id="email" class="content-panel hidden">
+                    <div class="bg-[#1F1F1F] rounded-md p-6 text-white">
+                        <h2 class="text-2xl font-bold mb-6">Email Settings</h2>
+                        <form id="changeEmail" class="space-y-4">
+                            <div>
+                                <label class="block font-semibold text-gray-300 uppercase tracking-wide mb-2"
+                                    for="newEmail">
+                                    New Email Address
+                                </label>
+                                <input
+                                    class="w-full px-3 py-2 text-white bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white transition-colors duration-200"
+                                    id="newEmail" name="newEmail" type="email"
+                                    placeholder="Enter your new email address" required="true">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-gray-300 uppercase tracking-wide mb-2"
+                                    for="emailPassword">
+                                    Password
+                                </label>
+                                <input
+                                    class="w-full px-3 py-2 text-white bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white transition-colors duration-200"
+                                    id="emailPassword" name="emailPassword" type="password"
+                                    placeholder="Enter your password to confirm" required="true">
+                            </div>
                             <button type="submit"
-                                class="w-full md:w-auto border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300">
+                                class="w-full md:w-auto px-6 py-2 font-semibold text-white border-2 border-dashed border-[#FFA500] rounded-md hover:bg-[#FFA500] transition-colors duration-200 mt-2">
                                 Change Email
                             </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="devices" class="content-panel hidden">
+                    <div class="bg-[#1F1F1F] rounded-md p-6 text-white">
+                        <h2 class="text-2xl font-bold mb-6">Active Devices</h2>
+                        <div id="sessionList" class="space-y-3">
+
                         </div>
-                    </form>
+                    </div>
                 </div>
-            </section>
-            <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 mb:mb-6 p-4 md:p-6 rounded-md">
-                <div class="flex items-center justify-between cursor-pointer" id="sessionsToggle">
-                    <h1 class="text-2xl font-bold text-white">Sessions</h1>
-                    <i class="fas fa-chevron-down text-white transition-transform duration-300" id="sessionsIcon"></i>
-                </div>
-                <div id="sessionsContent" class="hidden">
-                    <div id="sessionList"></div>
-                </div>
-            </section>
-            <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 mb:mb-6 p-4 md:p-6 rounded-md">
-                <div class="flex items-center justify-between cursor-pointer" id="deleteAccountToggle">
-                    <h1 class="text-2xl font-bold text-white">Delete Account</h1>
-                    <i class="fas fa-chevron-down text-white transition-transform duration-300"
-                        id="deleteAccountIcon"></i>
-                </div>
-                <div id="deleteAccountContent" class="hidden">
-                    <form id="deleteAccount">
-                        <div class="mb-3">
-                            <label class="block text-white text-sm font-bold mb-2" for="deletePassword">
-                                Password
-                            </label>
-                            <input
-                                class="shadow-sm border rounded-sm w-full py-2 px-3 text-white bg-[#191818] leading-tight focus:outline-hidden focus:shadow-outline"
-                                id="deletePassword" name="deletePassword" type="password"
-                                placeholder="Enter your password" required="true">
+
+                <div id="privacy" class="content-panel hidden">
+                    <div class="bg-[#1F1F1F] rounded-md p-6 text-white">
+                        <h2 class="text-2xl font-bold mb-6">Privacy Settings</h2>
+                        <div class="space-y-6">
+                            <div class="pb-6 border-b border-[#2a2a2a]">
+                                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                    <div>
+                                        <h3 class="font-semibold text-gray-300 uppercase tracking-wide mb-2">Public
+                                            Status</h3>
+                                        <p class="text-sm text-gray-400">Show your profile and library activity to other
+                                            users.</p>
+                                    </div>
+                                    <label class="inline-flex items-center gap-3 cursor-pointer select-none">
+                                        <input type="checkbox" id="public-status" class="sr-only peer">
+                                        <span
+                                            class="relative w-12 h-6 bg-[#191818] rounded-full border border-[#2a2a2a] transition-colors duration-200 peer-checked:bg-[#FFA500] after:content-[''] after:absolute after:top-1/2 after:left-1 after:h-4 after:w-4 after:-translate-y-1/2 after:bg-white after:rounded-full after:transition-transform after:duration-200 peer-checked:after:translate-x-6"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="pb-6 border-b border-[#2a2a2a]">
+                                <h3 class="font-semibold text-gray-300 uppercase tracking-wide mb-2">GDPR Data Request
+                                </h3>
+                                <p class="text-sm text-gray-400 mb-4">Export your account data and receive a copy via
+                                    email.</p>
+                                <button type="button"
+                                    class="w-full md:w-auto px-6 py-2 font-semibold text-white border-2 border-dashed border-[#FFA500] rounded-md hover:bg-[#FFA500] transition-colors duration-200">
+                                    Request Data Export
+                                </button>
+                            </div>
+
+                            <div>
+                                <h3 class="font-semibold text-gray-300 uppercase tracking-wide mb-2">Delete Account</h3>
+                                <p class="text-sm text-gray-400 mb-4">This action is permanent and removes all your
+                                    data.</p>
+                                <form id="deleteAccount" class="space-y-3">
+                                    <div>
+                                        <label class="block font-semibold text-gray-300 uppercase tracking-wide mb-2"
+                                            for="deletePassword">
+                                            Password
+                                        </label>
+                                        <input
+                                            class="w-full px-3 py-2 text-white bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white transition-colors duration-200"
+                                            id="deletePassword" name="deletePassword" type="password"
+                                            placeholder="Enter your password to confirm" required="true">
+                                    </div>
+                                    <button type="submit"
+                                        class="w-full md:w-auto px-6 py-2 font-semibold text-white border-2 border-dashed border-red-500 rounded-md hover:bg-red-500 hover:text-black transition-colors duration-200">
+                                        Delete Account
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <button type="submit"
-                                class="w-full md:w-auto border-2 border-dashed border-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-500 hover:text-black transition duration-300"></i>
-                                Delete Account Permanently
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </section>
         </main>
