@@ -235,6 +235,7 @@ module.exports = function (pool) {
             );
 
             const deleteQueries = [
+                'DELETE FROM account_logs WHERE user_id = ?',
                 'DELETE FROM library_logs WHERE user_id = ?',
                 'DELETE FROM chapters WHERE user_id = ?',
                 'DELETE FROM books WHERE user_id = ?',
