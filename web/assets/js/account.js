@@ -50,6 +50,8 @@ function addEventListeners() {
 
     document.getElementById('logout').addEventListener('click', logout);
 
+    document.getElementById('requestDataExport').addEventListener('click', requestDataExport);
+
     document.getElementById('changePassword').addEventListener('submit', function (event) {
         event.preventDefault();
         changePassword();
@@ -246,6 +248,29 @@ async function changeEmail() {
         document.getElementById('emailPassword').value = '';
     } catch (error) {
         showNotification('Failed to change email', 'error');
+    }
+}
+
+async function requestDataExport() {
+    showNotification('Exporting data, this may take a while...', 'info');
+    try {
+        const response = await fetch(api + '/account/export', {
+            headers: {
+                'Authorization': getCookie('sessionToken')
+            }
+        });
+        const responseData = await response.json();
+        if (!response.ok) {
+            if (responseData.error) {
+                showNotification(responseData.error, 'error');
+            } else {
+                showNotification('Failed to export data', 'error');
+            }
+            return;
+        }
+        showNotification(responseData.msg, 'success');
+    } catch (error) {
+        showNotification('Failed to export data', 'error');
     }
 }
 

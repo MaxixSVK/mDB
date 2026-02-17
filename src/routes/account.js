@@ -1,7 +1,9 @@
+const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
+const archiver = require('archiver');
 
 module.exports = function (pool) {
     const config = require('../../config.json');
@@ -12,6 +14,7 @@ module.exports = function (pool) {
     const requireAdditionalSecurity = require('../middleware/requireAdditionalSecurity')(pool);
     const sendEmail = require('../utils/sendEmail');
     const newAccountLog = require('../utils/accountLogs');
+    const getUserFiles = require('../utils/getUserFiles');
 
     router.get('/', async (req, res, next) => {
         let conn;
@@ -223,6 +226,125 @@ module.exports = function (pool) {
         }
     });
 
+    router.get('/export', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+
+            const [user] = await conn.query(
+                'SELECT username, email, role, public, pfp, created_at FROM users WHERE id = ?',
+                [req.userId]
+            );
+
+            const sessions = await conn.query(
+                'SELECT created_at, expires_at, user_agent, ip_address FROM sessions WHERE user_id = ?',
+                [req.userId]
+            );
+
+            const accountLogs = await conn.query(
+                'SELECT type, success, ip_address, user_agent, created_at FROM account_logs WHERE user_id = ? ORDER BY created_at DESC',
+                [req.userId]
+            );
+
+            const libraryLogs = await conn.query(
+                'SELECT change_type, table_name, record_id, old_data, new_data, change_date FROM library_logs WHERE user_id = ? ORDER BY change_date DESC',
+                [req.userId]
+            );
+
+            const authors = await conn.query(
+                'SELECT author_id, name, bio FROM authors WHERE user_id = ?',
+                [req.userId]
+            );
+
+            const series = await conn.query(
+                'SELECT series_id, author_id, name, img, format, status FROM series WHERE user_id = ?',
+                [req.userId]
+            );
+
+            const books = await conn.query(
+                'SELECT book_id, series_id, name, isbn, started_reading, ended_reading, img, current_page, total_pages FROM books WHERE user_id = ?',
+                [req.userId]
+            );
+
+            const chapters = await conn.query(
+                'SELECT chapter_id, book_id, name, date FROM chapters WHERE user_id = ?',
+                [req.userId]
+            );
+
+            const files = await getUserFiles(req.userId, pool);
+
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                exportVersion: '1.0',
+                user: user,
+                sessions: sessions,
+                accountLogs: accountLogs,
+                libraryLogs: libraryLogs,
+                library: {
+                    authors: authors,
+                    series: series,
+                    books: books,
+                    chapters: chapters
+                },
+            };
+
+            const tempDir = os.tmpdir();
+            const zipFileName = `export-user-${req.userId}-${Date.now()}.zip`;
+            const zipFilePath = path.join(tempDir, zipFileName);
+
+            const archive = archiver('zip', {
+                zlib: { level: 9 }
+            });
+
+            const output = fs.createWriteStream(zipFilePath);
+
+            archive.pipe(output);
+            archive.append(JSON.stringify(exportData, null, 2), { name: 'data.json' });
+
+            if (user.pfp) {
+                const pfpPath = path.join(__dirname, '../../cdn/users/pfp', `u-${req.userId}.png`);
+                if (fs.existsSync(pfpPath)) {
+                    archive.file(pfpPath, { name: 'files/profile-picture.png' });
+                }
+            }
+
+            if (files.series && Array.isArray(files.series)) {
+                for (const seriesId of files.series) {
+                    const seriesImgPath = path.join(__dirname, '../../cdn/library', `s-${seriesId}.png`);
+                    if (fs.existsSync(seriesImgPath)) {
+                        archive.file(seriesImgPath, { name: `files/series/s-${seriesId}.png` });
+                    }
+                }
+            }
+
+            if (files.books && Array.isArray(files.books)) {
+                for (const bookId of files.books) {
+                    const bookImgPath = path.join(__dirname, '../../cdn/library', `b-${bookId}.png`);
+                    if (fs.existsSync(bookImgPath)) {
+                        archive.file(bookImgPath, { name: `files/books/b-${bookId}.png` });
+                    }
+                }
+            }
+
+            archive.on('error', (err) => {
+                throw err;
+            });
+
+            await new Promise((resolve, reject) => {
+                output.on('close', resolve);
+                output.on('error', reject);
+                archive.finalize();
+            });
+
+            //TODO: Find a way to send file to the client
+            res.success({ msg: 'Export completed' });
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
     router.delete('/delete', requireAdditionalSecurity, async (req, res, next) => {
         let conn;
         try {
@@ -234,6 +356,7 @@ module.exports = function (pool) {
                 [req.userId]
             );
 
+            const userFiles = await getUserFiles(req.userId, pool);
             const deleteQueries = [
                 'DELETE FROM account_logs WHERE user_id = ?',
                 'DELETE FROM library_logs WHERE user_id = ?',
@@ -250,6 +373,30 @@ module.exports = function (pool) {
             }
 
             await conn.commit();
+
+            if (userFiles.series && Array.isArray(userFiles.series)) {
+                for (const seriesId of userFiles.series) {
+                    const seriesImgPath = path.join(__dirname, '../../cdn/library', `s-${seriesId}.png`);
+                    if (fs.existsSync(seriesImgPath)) {
+                        fs.unlinkSync(seriesImgPath);
+                    }
+                }
+            }
+
+            if (userFiles.books && Array.isArray(userFiles.books)) {
+                for (const bookId of userFiles.books) {
+                    const bookImgPath = path.join(__dirname, '../../cdn/library', `b-${bookId}.png`);
+                    if (fs.existsSync(bookImgPath)) {
+                        fs.unlinkSync(bookImgPath);
+                    }
+                }
+            }
+
+            const pfpPath = path.join(__dirname, '../../cdn/users/pfp', `u-${req.userId}.png`);
+            if (fs.existsSync(pfpPath)) {
+                fs.unlinkSync(pfpPath);
+            }
+
             res.success({ msg: 'Account deleted successfully' });
 
             async function sendDeletionEmail() {

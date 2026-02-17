@@ -1,6 +1,6 @@
 {
   "name": "mdb",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "main": "src/index.js",
   "scripts": {
     "api": "node src/index.js",
