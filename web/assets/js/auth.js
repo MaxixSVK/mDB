@@ -68,7 +68,7 @@ async function handleLogin(loginData) {
             window.location.href = '/';
         } else {
             const responseData = await response.json();
-            showError('login', responseData.msg);
+            showError('login', responseData.error);
         }
     } catch (error) {
         console.error('Login failed:', error);
@@ -92,7 +92,7 @@ async function handleRegister(registerData) {
             window.location.href = '/';
         } else {
             const responseData = await response.json();
-            showError('register', responseData.msg);
+            showError('register', responseData.error);
         }
     } catch (error) {
         console.error('Registration failed:', error);
