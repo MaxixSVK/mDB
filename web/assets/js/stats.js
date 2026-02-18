@@ -23,12 +23,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         const response = await fetch(api + '/library/user/' + publicProfileUsername);
         const data = await response.json();
 
-        if (data[0] === userId) {
+        if (data.id === userId) {
             window.location.href = '/stats';
             return;
         }
 
-        userId = data[0];
+        userId = data.id;
     }
 
     fetchStats();
