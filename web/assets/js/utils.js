@@ -163,25 +163,21 @@ function showProfileBanner(username) {
     }
 
     const wrapper = document.createElement('div');
-    wrapper.className = 'flex items-center justify-center bg-blue-900/80 border border-blue-700 rounded-lg px-4 py-3 shadow text-white';
-
-    const icon = document.createElement('i');
-    icon.className = 'fas fa-user-friends mr-3 text-xl';
+    wrapper.className = 'flex items-center gap-3 bg-[#1F1F1F] border border-[#2a2a2a] rounded-md px-4 py-3 text-white hover:border-[#FFA500] transition-colors duration-200';
 
     const text = document.createElement('span');
-    text.className = 'text-lg font-semibold';
+    text.className = 'text-xl font-semibold text-gray-300';
 
     const usernameSpan = document.createElement('span');
-    usernameSpan.className = 'text-blue-300';
-    usernameSpan.textContent = `@${username}`;
+    usernameSpan.className = 'text-xl text-[#FFA500] font-bold';
+    usernameSpan.textContent = username;
 
     text.append(
-        'You are viewing ',
+        'Viewing ',
         usernameSpan,
-        "'s public library"
+        "'s library"
     );
 
-    wrapper.appendChild(icon);
     wrapper.appendChild(text);
 
     banner.appendChild(wrapper);
