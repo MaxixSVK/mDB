@@ -6,6 +6,17 @@ const { backupDatabase } = require('./db');
 const { backupCDN } = require('./cdn');
 const logger = require('../utils/logger');
 
+/**
+ * GFS (Grandfather-Father-Son) backup retention strategy
+ * 
+ * Tiers with mutually exclusive time ranges:
+ * - Daily   (0-7 days):    Keep up to 7 backups
+ * - Weekly  (7-35 days):   Keep 1 per calendar week, max 4 weeks
+ * - Monthly (35-365 days): Keep 1 per calendar month, max 12 months
+ * - Expired (365+ days):   Delete all
+ * 
+ * Always keeps at least 1 backup (the most recent)
+ */
 async function tieredBackupCleanup(backupDir, backupType) {
     try {
         if (!fs.existsSync(backupDir)) {
@@ -18,71 +29,94 @@ async function tieredBackupCleanup(backupDir, backupType) {
                 file.startsWith(`mdb-${backupType.toLowerCase()}-backup-`) && 
                 (file.endsWith('.sql') || file.endsWith('.zip'))
             )
-            .map(file => ({
-                name: file,
-                path: path.join(backupDir, file),
-                mtime: fs.statSync(path.join(backupDir, file)).mtime
-            }))
+            .map(file => {
+                const filePath = path.join(backupDir, file);
+                return {
+                    name: file,
+                    path: filePath,
+                    mtime: fs.statSync(filePath).mtime
+                };
+            })
             .sort((a, b) => b.mtime - a.mtime);
             
         if (backupFiles.length === 0) {
             return;
         }
 
+        const retention = {
+            daily: { maxAge: 7, maxCount: 7 },
+            weekly: { minAge: 7, maxAge: 35, maxCount: 4 },
+            monthly: { minAge: 35, maxAge: 365, maxCount: 12 }
+        };
+
         const now = Date.now();
         const oneDay = 24 * 60 * 60 * 1000;
-        const oneWeek = 7 * oneDay;
-        const oneMonth = 30 * oneDay;
-
         const toKeep = new Set();
-        const toDelete = [];
 
-        const dailyBackups = backupFiles.filter(file => 
-            now - file.mtime.getTime() <= 3 * oneDay
-        );
-        dailyBackups.forEach(file => toKeep.add(file.name));
+        const getWeekKey = (date) => {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+            const yearStart = new Date(d.getFullYear(), 0, 1);
+            const weekNum = Math.ceil((((d - yearStart) / oneDay) + 1) / 7);
+            return `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+        };
 
-        const weeklyBackups = backupFiles.filter(file => {
-            const age = now - file.mtime.getTime();
-            return age > 3 * oneDay && age <= 7 * oneWeek;
-        });
-        
-        const weeklyGroups = new Map();
-        weeklyBackups.forEach(file => {
-            const weekNumber = Math.floor((now - file.mtime.getTime()) / oneWeek);
-            if (!weeklyGroups.has(weekNumber)) {
-                weeklyGroups.set(weekNumber, file);
-                toKeep.add(file.name);
+        const getMonthKey = (date) => {
+            const d = new Date(date);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        };
+
+        const getAgeDays = (mtime) => (now - mtime.getTime()) / oneDay;
+
+        let dailyCount = 0;
+        for (const file of backupFiles) {
+            const ageDays = getAgeDays(file.mtime);
+            if (ageDays <= retention.daily.maxAge) {
+                if (dailyCount < retention.daily.maxCount) {
+                    toKeep.add(file.name);
+                    dailyCount++;
+                }
             }
-        });
+        }
 
-        const monthlyBackups = backupFiles.filter(file => {
-            const age = now - file.mtime.getTime();
-            return age > 7 * oneWeek;
-        });
+        const weeklyGroups = new Map();
+        for (const file of backupFiles) {
+            const ageDays = getAgeDays(file.mtime);
+            if (ageDays > retention.weekly.minAge && ageDays <= retention.weekly.maxAge) {
+                const weekKey = getWeekKey(file.mtime);
+                if (!weeklyGroups.has(weekKey) && weeklyGroups.size < retention.weekly.maxCount) {
+                    weeklyGroups.set(weekKey, file);
+                    toKeep.add(file.name);
+                }
+            }
+        }
 
         const monthlyGroups = new Map();
-        monthlyBackups.forEach(file => {
-            const monthNumber = Math.floor((now - file.mtime.getTime()) / oneMonth);
-            if (!monthlyGroups.has(monthNumber)) {
-                monthlyGroups.set(monthNumber, file);
-                toKeep.add(file.name);
+        for (const file of backupFiles) {
+            const ageDays = getAgeDays(file.mtime);
+            if (ageDays > retention.monthly.minAge && ageDays <= retention.monthly.maxAge) {
+                const monthKey = getMonthKey(file.mtime);
+                if (!monthlyGroups.has(monthKey) && monthlyGroups.size < retention.monthly.maxCount) {
+                    monthlyGroups.set(monthKey, file);
+                    toKeep.add(file.name);
+                }
             }
-        });
+        }
 
-        backupFiles.forEach(file => {
-            if (!toKeep.has(file.name)) {
-                toDelete.push(file);
-            }
-        });
+        if (toKeep.size === 0 && backupFiles.length > 0) {
+            toKeep.add(backupFiles[0].name);
+        }
+
+        const toDelete = backupFiles.filter(file => !toKeep.has(file.name));
 
         for (const file of toDelete) {
             fs.unlinkSync(file.path);
             logger.info(`Deleted old ${backupType} backup: ${file.name} (tiered cleanup)`);
         }
 
-        if (toDelete.length > 0) {
-            logger.info(`${backupType} backup cleanup: kept ${toKeep.size} backups, deleted ${toDelete.length} backups`);
+        if (toDelete.length > 0 || toKeep.size > 0) {
+            logger.info(`${backupType} backup cleanup: kept ${toKeep.size} (daily: ${dailyCount}, weekly: ${weeklyGroups.size}, monthly: ${monthlyGroups.size}), deleted ${toDelete.length}`);
         }
 
     } catch (error) {
