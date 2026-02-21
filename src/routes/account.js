@@ -21,7 +21,7 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const [user] = await conn.query(
-                'SELECT id, username, email, role, public, pfp FROM users WHERE id = ?',
+                'SELECT id, username, email, public, pfp FROM users WHERE id = ?',
                 [req.userId]
             );
 
@@ -232,7 +232,7 @@ module.exports = function (pool) {
             conn = await pool.getConnection();
 
             const [user] = await conn.query(
-                'SELECT username, email, role, public, pfp, created_at FROM users WHERE id = ?',
+                'SELECT username, email, public, pfp, created_at FROM users WHERE id = ?',
                 [req.userId]
             );
 
