@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 const secretKey = process.env.JWT_SECRET_KEY;
 
-const validateToken = (pool, admin) => {
+const validateToken = (pool) => {
     return async (req, res, next) => {
         const sessionToken = req.headers['authorization'];
 
@@ -25,7 +25,7 @@ const validateToken = (pool, admin) => {
                 );
                 connection.release();
 
-                if (session.length === 0 || !(await bcrypt.compare(sessionToken, session.session_token))) {
+                if (!session || !(await bcrypt.compare(sessionToken, session.session_token))) {
                     return res.error('Invalid or expired session', 401);
                 }
 
@@ -34,19 +34,7 @@ const validateToken = (pool, admin) => {
                 req.userAgent = req.headers['user-agent'];
                 const forwarded = req.headers['x-forwarded-for'];
                 req.ipAddress = forwarded ? forwarded.split(',')[0].trim() : req.socket.remoteAddress;
-
-                if (admin) {
-                    const connection = await pool.getConnection();
-                    const [user] = await connection.query(
-                        'SELECT role FROM users WHERE id = ?',
-                        [req.userId]
-                    );
-                    connection.release();
-
-                    if (user.length === 0 || user.role !== 'admin') {
-                        return res.error('Missing admin privileges', 403);
-                    }
-                }
+                
                 next();
             } catch (err) {
                 return next(err);

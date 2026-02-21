@@ -15,7 +15,6 @@ CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
-  `role` enum('user','admin') NOT NULL DEFAULT 'user',
   `public` BOOLEAN NOT NULL DEFAULT TRUE,
   `pfp` BOOLEAN NOT NULL DEFAULT FALSE,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
