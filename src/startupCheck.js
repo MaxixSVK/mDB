@@ -88,7 +88,7 @@ function checkConfigFormat() {
 }
 
 function checkRequiredDirectories() {
-    const directories = ['backups', 'cdn', 'cdn/library', 'cdn/users', 'cdn/users/pfp'];
+    const directories = ['backups', 'cdn', 'cdn/web', 'cdn/library', 'cdn/users', 'cdn/users/pfp'];
 
     directories.forEach(directory => {
         const directoryPath = path.resolve(__dirname, `../${directory}`);
