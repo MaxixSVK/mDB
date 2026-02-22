@@ -1,6 +1,8 @@
-const express = require('express');
-require('dotenv').config();
 const path = require('path');
+const express = require('express');
+const favicon = require('serve-favicon');
+require('dotenv').config();
+
 
 const config = require('../config.json');
 const logger = require('./utils/logger');
@@ -17,6 +19,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.static(path.join(__dirname, '../web')));
+app.use(favicon(path.join(__dirname, '../cdn/web/favicon.png')));
 
 app.get('/api-url', (_req, res) => {
     res.json({ url: process.env.API_HOST });

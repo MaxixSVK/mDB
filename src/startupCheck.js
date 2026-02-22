@@ -102,12 +102,24 @@ function checkRequiredDirectories() {
     logger.info('Required directories are present');
 }
 
+function checkRequiredImages() {
+    const images = [ 'cdn/web/favicon.png', 'cdn/library/404.png' ];
+    images.forEach(image => {
+        const imagePath = path.resolve(__dirname, `../${image}`);
+        if (!fs.existsSync(imagePath)) {
+            logger.warn(`Required image file missing: ${image}`);
+            //TODO: Download default missing images
+        }
+    });
+}
+
 function startupCheck() {
     if (!checkConfigFormat()) {
         process.exit(1);
     }
 
     checkRequiredDirectories();
+    checkRequiredImages();
 }
 
 module.exports = { startupCheck };
