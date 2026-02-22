@@ -286,10 +286,10 @@ module.exports = function (pool) {
             let params;
 
             if (all === 'true') {
-                sql = `SELECT * FROM library_logs WHERE user_id = ? ORDER BY change_date DESC`;
+                sql = `SELECT * FROM library_logs WHERE user_id = ? ORDER BY created_at DESC`;
                 params = [req.userId];
             } else {
-                sql = `SELECT * FROM library_logs WHERE user_id = ? ORDER BY change_date DESC LIMIT ? OFFSET ?`;
+                sql = `SELECT * FROM library_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`;
                 params = [req.userId, parseInt(limit), parseInt(offset)];
             }
 
@@ -314,7 +314,7 @@ module.exports = function (pool) {
                         CAST(old_data AS CHAR) LIKE ? OR
                         CAST(new_data AS CHAR) LIKE ?
                     )
-                    ORDER BY change_date DESC
+                    ORDER BY created_at DESC
                 `;
 
             const searchTerm = `%${user_query}%`;

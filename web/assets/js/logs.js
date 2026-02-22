@@ -94,7 +94,7 @@ function createLogElement(log) {
         ${log.change_type !== 'INSERT' ? createDataElement(log.old_data) : ''}
         ${log.change_type !== 'DELETE' ? createDataElement(log.new_data) : ''}
         <div class="text-gray-400">
-            ${new Date(log.change_date).toLocaleString()}
+            ${new Date(log.created_at).toLocaleString()}
         </div>
     `;
     return logElement;

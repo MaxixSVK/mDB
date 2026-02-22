@@ -247,7 +247,7 @@ module.exports = function (pool) {
             );
 
             const libraryLogs = await conn.query(
-                'SELECT change_type, table_name, record_id, old_data, new_data, change_date FROM library_logs WHERE user_id = ? ORDER BY change_date DESC',
+                'SELECT change_type, table_name, record_id, old_data, new_data, created_at FROM library_logs WHERE user_id = ? ORDER BY created_at DESC',
                 [req.userId]
             );
 
