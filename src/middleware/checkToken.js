@@ -3,12 +3,13 @@ const bcrypt = require('bcrypt');
 
 const secretKey = process.env.JWT_SECRET_KEY;
 
-const validateToken = (pool) => {
+const validateToken = (pool, type) => {
     return async (req, res, next) => {
         const sessionToken = req.headers['authorization'];
-
         if (!sessionToken) {
-            return res.error('Session token is required', 401);
+            return type === 'auth'
+                ? res.error('Session token is required', 401)
+                : next();
         }
 
         jwt.verify(sessionToken, secretKey, async function (err, decoded) {
@@ -26,7 +27,7 @@ const validateToken = (pool) => {
                 connection.release();
 
                 if (!session || !(await bcrypt.compare(sessionToken, session.session_token))) {
-                    return res.error('Invalid or expired session', 401);
+                    return res.error('Expired session', 401);
                 }
 
                 req.userId = userId;
@@ -34,7 +35,7 @@ const validateToken = (pool) => {
                 req.userAgent = req.headers['user-agent'];
                 const forwarded = req.headers['x-forwarded-for'];
                 req.ipAddress = forwarded ? forwarded.split(',')[0].trim() : req.socket.remoteAddress;
-                
+
                 next();
             } catch (err) {
                 return next(err);

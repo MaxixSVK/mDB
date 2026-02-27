@@ -104,29 +104,29 @@ function updateEmptyLibraryMessage(username) {
 }
 
 function createFormatLists() {
-    fetch(api + '/library/config/series/formats')
-        .then(response => response.json()
-            .then(data => {
-                data.forEach(a => {
-                    const existingSection = document.getElementById(a.format);
-                    if (existingSection) {
-                        existingSection.remove();
-                    }
+    const allowedFormats = [
+        { format: 'lightNovel', name: 'Light Novel', pluralName: 'Light Novels' },
+        { format: 'manga', name: 'Manga', pluralName: 'Manga' }
+    ];
 
-                    const section = document.createElement('section');
-                    section.id = a.format;
-                    section.className = 'hidden';
+    allowedFormats.forEach(a => {
+        const existingSection = document.getElementById(a.format);
+        if (existingSection) {
+            existingSection.remove();
+        }
 
-                    const header = document.createElement('h2');
-                    header.className = 'text-2xl mb-2 text-white font-bold';
-                    header.textContent = a.pluralName;
+        const section = document.createElement('section');
+        section.id = a.format;
+        section.className = 'hidden';
 
-                    section.appendChild(header);
-                    document.getElementById('series-list').appendChild(section);
-                });
-                fetchSeriesList();
-            })
-        );
+        const header = document.createElement('h2');
+        header.className = 'text-2xl mb-2 text-white font-bold';
+        header.textContent = a.pluralName;
+
+        section.appendChild(header);
+        document.getElementById('series-list').appendChild(section);
+    });
+    fetchSeriesList();
 }
 
 function showFormatList(formatId) {

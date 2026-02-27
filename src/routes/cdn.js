@@ -5,7 +5,7 @@ const sanitize = require('sanitize-filename');
 const multer = require('multer');
 
 module.exports = function (pool) {
-    const validateToken = require('../middleware/checkToken')(pool);
+    const validateToken = require('../middleware/checkToken')(pool, 'auth');
     const { createLibraryStorage, createPfpStorage } = require('../utils/cdnStorage');
 
     const sendImage = require('../middleware/sendImage');

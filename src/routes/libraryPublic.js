@@ -1,22 +1,20 @@
 const router = require('express').Router();
 
 module.exports = function (pool) {
-    router.get('/config/series/formats', async (req, res, next) => {
-        const allowedFormats = [
-            { format: 'lightNovel', name: 'Light Novel', pluralName: 'Light Novels' },
-            { format: 'manga', name: 'Manga', pluralName: 'Manga' }
-        ];
-        res.success(allowedFormats);
-    });
+    const validateToken = require('../middleware/checkToken')(pool, 'viewOnly');
+    router.use(validateToken);
 
     router.get('/user/:username', async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
             const { username } = req.params;
-            const [data] = await conn.query('SELECT id, public FROM users WHERE username = ?', [username]);
+            const [data] = await conn.query('SELECT id, public, pfp FROM users WHERE username = ?', [username]);
+            if (!data) {
+                return res.error('User does not exist', 404);
+            }
 
-            res.success(data ? data : []);
+            res.success(data);
         } catch (err) {
             next(err);
         } finally {
@@ -38,10 +36,16 @@ module.exports = function (pool) {
           AND series.user_id = ?
         ORDER BY series.series_id, books.book_id, chapters.chapter_id;
         `;
-            const rows = await conn.query(query, [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, user_id]);
+            let searchTerm = "%" + search + "%";
+            const data = await conn.query(query, [searchTerm, searchTerm, searchTerm, searchTerm, user_id]);
+
+            const [{ public }] = await conn.query('SELECT public FROM users WHERE id = ?', [user_id]);
+            if (!public && req.userId !== user_id) {
+                return res.error('You do not have access to view this data', 403);
+            }
 
             const seriesMap = new Map();
-            for (const row of rows) {
+            for (const row of data) {
                 if (!seriesMap.has(row.series_id)) {
                     seriesMap.set(row.series_id, new Map());
                 }
@@ -54,16 +58,15 @@ module.exports = function (pool) {
                 }
             }
 
-            const result = [];
+            const searchResult = [];
             for (const [series_id, booksMap] of seriesMap.entries()) {
                 const booksArr = [];
                 for (const [book_id, chaptersArr] of booksMap.entries()) {
                     booksArr.push([book_id, chaptersArr]);
                 }
-                result.push([series_id, booksArr]);
+                searchResult.push([series_id, booksArr]);
             }
-
-            res.success(result);
+            res.success(searchResult);
         } catch (err) {
             next(err);
         } finally {
@@ -76,9 +79,17 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const { user_id } = req.params;
-            const data = await conn.query('SELECT series_id FROM series WHERE user_id = ?', [user_id]);
-            const seriesIds = data.map(row => row.series_id);
+            const data = await conn.query('SELECT series_id, user_id FROM series WHERE user_id = ?', [user_id]);
+            if (data.length === 0) {
+                return res.error('Entries does not exist', 404);
+            }
 
+            const [{ public }] = await conn.query('SELECT public FROM users WHERE id = ?', [data[0].user_id]);
+            if (!public && req.userId !== data[0].user_id) {
+                return res.error('You do not have access to view this data', 403);
+            }
+
+            const seriesIds = data.map(row => row.series_id);
             res.success(seriesIds);
         } catch (err) {
             next(err);
@@ -94,6 +105,14 @@ module.exports = function (pool) {
             conn = await pool.getConnection();
             const { series_id } = req.params;
             const [data] = await conn.query('SELECT * FROM series WHERE series_id = ?', [series_id]);
+            if (!data) {
+                return res.error('Entry does not exist', 404);
+            }
+
+            const [{ public }] = await conn.query('SELECT public FROM users WHERE id = ?', [data.user_id]);
+            if (!public && req.userId !== data.user_id) {
+                return res.error('You do not have access to view this data', 403);
+            }
 
             res.success(data);
         } catch (err) {
@@ -108,9 +127,17 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const { series_id } = req.params;
-            const data = await conn.query('SELECT book_id FROM books WHERE series_id = ?', [series_id]);
-            const bookIds = data.map(row => row.book_id);
+            const data = await conn.query('SELECT book_id, user_id FROM books WHERE series_id = ?', [series_id]);
+            if (data.length === 0) {
+                return res.error('Entries does not exist', 404);
+            }
 
+            const [{ public }] = await conn.query('SELECT public FROM users WHERE id = ?', [data[0].user_id]);
+            if (!public && req.userId !== data[0].user_id) {
+                return res.error('You do not have access to view this data', 403);
+            }
+
+            const bookIds = data.map(row => row.book_id);
             res.success(bookIds);
         } catch (err) {
             next(err);
@@ -124,17 +151,15 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const { book_id } = req.params;
-            const query = `
-                SELECT 
-                    books.*, 
-                    series.author_id, 
-                    authors.name AS author_name
-                FROM books
-                LEFT JOIN series ON books.series_id = series.series_id
-                LEFT JOIN authors ON series.author_id = authors.author_id
-                WHERE books.book_id = ?;
-            `;
-            const [data] = await conn.query(query, [book_id]);
+            const [data] = await conn.query('SELECT * FROM books WHERE book_id = ?', [book_id]);
+            if (!data) {
+                return res.error('Entry does not exist', 404);
+            }
+
+            const [{ public }] = await conn.query('SELECT public FROM users WHERE id = ?', [data.user_id]);
+            if (!public && req.userId !== data.user_id) {
+                return res.error('You do not have access to view this data', 403);
+            }
 
             res.success(data);
         } catch (err) {
@@ -149,9 +174,17 @@ module.exports = function (pool) {
         try {
             conn = await pool.getConnection();
             const { book_id } = req.params;
-            const data = await conn.query('SELECT chapter_id FROM chapters WHERE book_id = ?', [book_id]);
-            const chapterIds = data.map(row => row.chapter_id);
+            const data = await conn.query('SELECT chapter_id, user_id FROM chapters WHERE book_id = ?', [book_id]);
+            if (data.length === 0) {
+                return res.error('Entries does not exist', 404);
+            }
 
+            const [{ public }] = await conn.query('SELECT public FROM users WHERE id = ?', [data[0].user_id]);
+            if (!public && req.userId !== data[0].user_id) {
+                return res.error('You do not have access to view this data', 403);
+            }
+
+            const chapterIds = data.map(row => row.chapter_id);
             res.success(chapterIds);
         } catch (err) {
             next(err);
@@ -166,6 +199,61 @@ module.exports = function (pool) {
             conn = await pool.getConnection();
             const { chapter_id } = req.params;
             const [data] = await conn.query('SELECT * FROM chapters WHERE chapter_id = ?', [chapter_id]);
+            if (!data) {
+                return res.error('Entry does not exist', 404);
+            }
+
+            const [{ public }] = await conn.query('SELECT public FROM users WHERE id = ?', [data.user_id]);
+            if (!public && req.userId !== data.user_id) {
+                return res.error('You do not have access to view this data', 403);
+            }
+
+            res.success(data);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
+    router.get('/user/authors/:user_id', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { user_id } = req.params;
+            const data = await conn.query('SELECT author_id, user_id FROM authors WHERE user_id = ?', [user_id]);
+            if (data.length === 0) {
+                return res.error('Entries does not exist', 404);
+            }
+
+            const [{ public }] = await conn.query('SELECT public FROM users WHERE id = ?', [data[0].user_id]);
+            if (!public && req.userId !== data[0].user_id) {
+                return res.error('You do not have access to view this data', 403);
+            }
+
+            const authorIds = data.map(row => row.author_id);
+            res.success(authorIds);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
+    router.get('/author/:author_id', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const { author_id } = req.params;
+            const [data] = await conn.query('SELECT * FROM authors WHERE author_id = ?', [author_id]);
+            if (!data) {
+                return res.error('Entry does not exist', 404);
+            }
+
+            const [{ public }] = await conn.query('SELECT public FROM users WHERE id = ?', [data.user_id]);
+            if (!public && req.userId !== data.user_id) {
+                return res.error('You do not have access to view this data', 403);
+            }
 
             res.success(data);
         } catch (err) {
@@ -189,9 +277,7 @@ module.exports = function (pool) {
             (SELECT COUNT(series_id) FROM series WHERE user_id = ? AND format = 'lightNovel') as lightNovelCount;
         `;
 
-            const [data] = await conn.query(query, [
-                user_id, user_id, user_id, user_id, user_id
-            ]);
+            const [data] = await conn.query(query, [user_id, user_id, user_id, user_id, user_id]);
             const stats = {
                 seriesCount: Number(data.seriesCount),
                 bookCount: Number(data.bookCount),
@@ -236,40 +322,6 @@ module.exports = function (pool) {
             if (conn) conn.release();
         }
     });
-    router.get('/author/:author_id', async (req, res, next) => {
-        let conn;
-        try {
-            conn = await pool.getConnection();
-            const { author_id } = req.params;
-            const [data] = await conn.query('SELECT * FROM authors WHERE author_id = ?', [author_id]);
-
-            res.success(data);
-        } catch (err) {
-            next(err);
-        } finally {
-            if (conn) conn.release();
-        }
-    });
-
-    router.get('/authors/:user_id', async (req, res, next) => {
-        let conn;
-        try {
-            conn = await pool.getConnection();
-            const { user_id } = req.params;
-            const data = await conn.query('SELECT author_id FROM authors WHERE user_id = ?', [user_id]);
-            const authorIds = data.map(row => row.author_id);
-
-            res.success(authorIds);
-        } catch (err) {
-            next(err);
-        } finally {
-            if (conn) conn.release();
-        }
-    });
-
-    //TODO: We need to implement a way to return users with best profiles
-    //Maybe some rating system or most active users
-    //For now, we will just return all public users? 
 
     router.get('/explore/users', async (req, res, next) => {
         let conn;

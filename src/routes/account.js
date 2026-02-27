@@ -8,7 +8,7 @@ const archiver = require('archiver');
 module.exports = function (pool) {
     const config = require('../../config.json');
 
-    const validateToken = require('../middleware/checkToken')(pool);
+    const validateToken = require('../middleware/checkToken')(pool, 'auth');
     router.use(validateToken);
 
     const requireAdditionalSecurity = require('../middleware/requireAdditionalSecurity')(pool);

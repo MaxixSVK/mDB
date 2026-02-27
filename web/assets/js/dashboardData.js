@@ -160,7 +160,7 @@ async function addLibrarySelect(container, books, chapters) {
 async function addAuthorSelect(container) {
     const authorSelect = createSelectElement('author_id');
     container.appendChild(authorSelect);
-    const authors = await fetchData(`/library/authors/${userId}`);
+    const authors = await fetchData(`/library/user/authors/${userId}`);
     const authorPromises = authors.map(id => fetchData(`/library/author/${id}`));
     const authorDetails = await Promise.all(authorPromises);
 
@@ -225,7 +225,10 @@ async function addFormatSelect(container) {
         const typeSelect = createSelectElement('format');
         container.appendChild(typeSelect);
 
-        const allowedFormats = await fetchData('/library/config/series/formats');
+        const allowedFormats = [
+            { format: 'lightNovel', name: 'Light Novel', pluralName: 'Light Novels' },
+            { format: 'manga', name: 'Manga', pluralName: 'Manga' }
+        ];
 
         allowedFormats.forEach(field => {
             const option = new Option(field.name, field.format);

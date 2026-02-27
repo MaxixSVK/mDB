@@ -3,7 +3,7 @@ const path = require('path');
 const router = require('express').Router();
 
 module.exports = function (pool) {
-    const validateToken = require('../middleware/checkToken')(pool);
+    const validateToken = require('../middleware/checkToken')(pool, 'auth');
     router.use(validateToken);
 
     async function logChanges(conn, userId, changeType, tableName, recordId, oldData = null, newData = null) {
