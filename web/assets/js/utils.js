@@ -163,7 +163,8 @@ function showProfileBanner(username) {
     }
 
     const wrapper = document.createElement('div');
-    wrapper.className = 'flex items-center gap-3 bg-[#1F1F1F] border border-[#2a2a2a] rounded-md px-4 py-3 text-white hover:border-[#FFA500] transition-colors duration-200';
+    wrapper.className = 'flex items-center gap-3 bg-[#1F1F1F] border border-[#2a2a2a] rounded-md px-4 py-3 text-white hover:border-[#FFA500] transition-colors duration-200 cursor-pointer';
+    wrapper.onclick = () => window.location.href = `/user/${username}`;
 
     const text = document.createElement('span');
     text.className = 'text-xl font-semibold text-gray-300';

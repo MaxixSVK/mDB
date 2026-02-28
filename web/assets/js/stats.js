@@ -1,34 +1,42 @@
-let userId;
+let user, publicUser = {};
+let public = false;
 
 document.addEventListener('DOMContentLoaded', async function () {
     const profileMatch = window.location.pathname.match(/^\/stats\/([^\/]+)$/);
-
-    let loggedIn = false;
-    let publicProfileUsername;
-
-    ({ loggedIn, userId } = await checkLogin());
+    ({ loggedIn, user } = await checkLogin());
 
     if (profileMatch) {
-        publicProfileUsername = profileMatch[1];
-        window.publicProfileUsername = publicProfileUsername;
-
-        if (!loggedIn || publicProfileUsername !== userId) {
-            showProfileBanner(publicProfileUsername);
-        }
+        public = true;
+        publicUser.username = profileMatch[1];
     } else if (!loggedIn) {
         window.location.href = '/about';
     }
 
-    if (publicProfileUsername) {
-        const response = await fetch(api + '/library/user/' + publicProfileUsername);
-        const data = await response.json();
+    const mainPageData = loggedIn
+        ? await fetch(api + '/library/user/' + (publicUser.username || user.username), {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getCookie('sessionToken')
+            },
+        })
+        : await fetch(api + '/library/user/' + (publicUser.username || user.username));
 
-        if (data.id === userId) {
-            window.location.href = '/stats';
-            return;
-        }
+    publicUser = { ...publicUser, ...await mainPageData.json() };
 
-        userId = data.id;
+    if (publicUser.error) {
+        window.location.href = '/404';
+    }
+
+    if (publicUser.public == 0 && publicUser.id !== user?.id) {
+        window.location.href = '/404';
+    }
+
+    if (public && publicUser.id === user?.id) {
+        public = false;
+        history.replaceState(null, '', '/');
+    } else if (public) {
+        showProfileBanner(publicUser.username);
     }
 
     fetchStats();
@@ -58,7 +66,15 @@ function addEventListeners() {
 }
 
 function fetchStats() {
-    fetch(api + '/library/stats/' + userId)
+    (loggedIn
+        ? fetch(api + '/library/stats/' + publicUser.id, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getCookie('sessionToken')
+            },
+        })
+        : fetch(api + '/library/stats/' + publicUser.id))
         .then(response => response.json())
         .then(data => {
             document.getElementById('series-count').textContent = data.seriesCount;
@@ -68,7 +84,15 @@ function fetchStats() {
 }
 
 function fetchStatsByMonth(year) {
-    fetch(api + '/library/stats/month/' + userId + '/' + year)
+    (loggedIn
+        ? fetch(api + '/library/stats/month/' + publicUser.id + '/' + year, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getCookie('sessionToken')
+            },
+        })
+        : fetch(api + '/library/stats/month/' + publicUser.id + '/' + year))
         .then(response => response.json())
         .then(data => {
             const canvas = document.getElementById('chart-month');

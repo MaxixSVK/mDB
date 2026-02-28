@@ -1,22 +1,42 @@
-let userId;
+let user, publicUser = {};
+let public = false;
 
 document.addEventListener('DOMContentLoaded', async function () {
     const profileMatch = window.location.pathname.match(/^\/user\/([^\/]+)$/);
-
-    let loggedIn = false;
-    let publicProfileUsername;
-
-    ({ loggedIn, userId } = await checkLogin());
+    ({ loggedIn, user } = await checkLogin());
 
     if (profileMatch) {
-        publicProfileUsername = profileMatch[1];
-        window.publicProfileUsername = publicProfileUsername;
-
-        if (!loggedIn || publicProfileUsername !== userId) {
-            showProfileBanner(publicProfileUsername);
-        }
+        public = true;
+        publicUser.username = profileMatch[1];
     } else if (!loggedIn) {
         window.location.href = '/about';
+    }
+
+    const mainPageData = loggedIn
+        ? await fetch(api + '/library/user/' + (publicUser.username || user.username), {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getCookie('sessionToken')
+            },
+        })
+        : await fetch(api + '/library/user/' + (publicUser.username || user.username));
+
+    publicUser = { ...publicUser, ...await mainPageData.json() };
+
+    if (publicUser.error) {
+        window.location.href = '/404';
+    }
+
+    if (publicUser.public == 0 && publicUser.id !== user?.id) {
+        window.location.href = '/404';
+    }
+
+    if (public && publicUser.id === user?.id) {
+        public = false;
+        history.replaceState(null, '', '/');
+    } else if (public) {
+        showProfileBanner(publicUser.username);
     }
 
     const pfp = document.getElementById('pfp');
@@ -30,30 +50,28 @@ document.addEventListener('DOMContentLoaded', async function () {
         nopfp.addEventListener('click', () => window.location.href = '/auth');
     }
 
-    if (publicProfileUsername) {
-        const response = await fetch(api + '/library/user/' + publicProfileUsername);
-        const data = await response.json();
-
-        if (data.id === userId) {
-            window.location.href = '/';
-            return;
-        }
-
-        userId = data.id;
-    }
-    fetchStats(profileMatch);
+    fetchStats();
 });
 
-function fetchStats(publicProfile) {
+function fetchStats() {
     let statstUrl = '/stats'
-    if (publicProfile) {
-        statstUrl += '/' + publicProfile[1];
+    if (public) {
+        statstUrl += '/' + publicUser.username;
     }
 
     document.getElementById('stats').addEventListener('click', function () {
         window.location.href = statstUrl;
     });
-    fetch(api + '/library/stats/' + userId)
+
+    (loggedIn
+        ? fetch(api + '/library/stats/' + publicUser.id, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getCookie('sessionToken')
+            },
+        })
+        : fetch(api + '/library/stats/' + publicUser.id))
         .then(response => response.json())
         .then(data => {
             if (data.seriesCount === 0) {
@@ -72,25 +90,21 @@ function fetchStats(publicProfile) {
             toggleVisibility(document.getElementById('empty-library'));
         });
 
-    if (window.publicProfileUsername && window.publicProfileUsername !== userId) {
-        updateEmptyLibraryMessage(window.publicProfileUsername);
-    } else {
-        updateEmptyLibraryMessage(null);
-    }
+    updateEmptyLibraryMessage();
 }
 
-function updateEmptyLibraryMessage(username) {
+function updateEmptyLibraryMessage() {
     const emptyLibrary = document.getElementById('empty-library');
     if (!emptyLibrary) return;
 
     const title = emptyLibrary.querySelector('h1');
     if (title) {
-        title.textContent = `${username ? `@${username}'s Library is Empty` : 'Your Library is Empty'}`;
+        title.textContent = `${public ? `${publicUser.username}'s Library is Empty` : 'Your Library is Empty'}`;
     }
 
     const desc = emptyLibrary.querySelector('p');
     if (desc) {
-        if (username) {
+        if (public) {
             desc.innerHTML = `This user hasn't added any manga or light novels yet.<br>Check back later or explore other libraries!`;
         } else {
             desc.innerHTML = `Start building your manga & light novel collection.<br>Add your first series to get started!`;
@@ -99,7 +113,7 @@ function updateEmptyLibraryMessage(username) {
 
     const addBtn = emptyLibrary.querySelector('button[onclick*="/dashboard"]');
     if (addBtn) {
-        addBtn.style.display = username ? 'none' : '';
+        addBtn.style.display = public ? 'none' : '';
     }
 }
 
@@ -148,14 +162,19 @@ function getUniqueFormats(seriesData) {
 }
 
 function fetchSeriesList() {
-    fetch(api + '/library/user/series/' + userId)
-        .then(response => response.json())
-        .then(seriesIds => {
-            const seriesPromises = seriesIds.map(seriesId =>
-                fetch(api + '/library/series/' + seriesId).then(response => response.json())
-            );
-            return Promise.all(seriesPromises);
-        })
+    const seriesPromises = publicUser.series.map(seriesId =>
+        loggedIn
+            ? fetch(api + '/library/series/' + seriesId, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': getCookie('sessionToken')
+                },
+            }).then(response => response.json())
+            : fetch(api + '/library/series/' + seriesId).then(response => response.json())
+    );
+
+    Promise.all(seriesPromises)
         .then(seriesData => {
             seriesData.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -227,23 +246,9 @@ function renderSeries(series, isSearch) {
     content.appendChild(title);
     content.appendChild(status);
 
-    if (isSearch && series.books) {
-        const count = series.books.length;
-        bookCountBadge.textContent = count.toString();
-        if (count > 99) bookCountBadge.textContent = '99+';
-    } else {
-        fetch(api + '/library/books/' + series.series_id)
-            .then(response => response.json())
-            .then(bookIds => {
-                const count = bookIds.length;
-                series.books = bookIds;
-                bookCountBadge.textContent = count.toString();
-                if (count > 99) bookCountBadge.textContent = '99+';
-            })
-            .catch(() => {
-                bookCountBadge.textContent = '0';
-            });
-    }
+    const count = series.books.length;
+    bookCountBadge.textContent = count.toString();
+    if (count > 99) bookCountBadge.textContent = '99+';
 
     header.appendChild(imgContainer);
     header.appendChild(content);
@@ -292,7 +297,7 @@ function renderNoBook(booksList) {
     const desc = document.createElement('p');
     desc.className = 'text-md';
 
-    if (window.publicProfileUsername && window.publicProfileUsername !== userId) {
+    if (public) {
         desc.innerHTML = `This user hasn't added any books to this series yet.<br>Check back later to see updates!`;
     } else {
         desc.innerHTML = `This series doesn't have any books yet.<br>Add your first book to get started!`;
@@ -306,9 +311,16 @@ function renderNoBook(booksList) {
 function getBookList(data, isSearch, seriesId) {
     const bookPromises = data.map(async bookOrId => {
         const bookId = isSearch ? bookOrId.book_id : bookOrId;
-        const bookData = await fetch(api + '/library/book/' + bookId).then(res => res.json());
-        const chapters = await fetch(api + '/library/chapters/' + bookId).then(res => res.json());
-        bookData.chapters = chapters;
+        const bookData = await (loggedIn
+            ? fetch(api + '/library/book/' + bookId, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': getCookie('sessionToken')
+                },
+            })
+            : fetch(api + '/library/book/' + bookId)
+        ).then(res => res.json());
         if (isSearch) bookData.chapters = bookOrId.chapters;
         return bookData;
     });
@@ -377,7 +389,16 @@ function renderBook(book, isSearch) {
 
 async function fetchBookDetails(book, isSearch) {
     let chapters = await Promise.all(
-        book.chapters.map(chapterId => fetch(api + '/library/chapter/' + chapterId).then(response => response.json()))
+        book.chapters.map(chapterId => (loggedIn
+            ? fetch(api + '/library/chapter/' + chapterId, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': getCookie('sessionToken')
+                },
+            })
+            : fetch(api + '/library/chapter/' + chapterId)
+        ).then(response => response.json()))
     );
 
     chapters.sort((a, b) => a.date.localeCompare(b.date));
@@ -598,7 +619,15 @@ function setupSearch() {
 }
 
 function performSearch(searchTerm) {
-    fetch(api + '/library/user/search/' + userId + '/' + searchTerm)
+    (loggedIn
+        ? fetch(api + '/library/user/search/' + user.id + '/' + searchTerm, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getCookie('sessionToken')
+            },
+        })
+        : fetch(api + '/library/user/search/' + user.id + '/' + searchTerm))
         .then(response => response.json())
         .then(data => {
             if (data.length === 0) {
@@ -616,7 +645,15 @@ function renderSearchResults(results) {
 
     results.forEach(seriesArr => {
         const [series_id, booksArr] = seriesArr;
-        fetch(api + '/library/series/' + series_id)
+        (loggedIn
+            ? fetch(api + '/library/series/' + series_id, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': getCookie('sessionToken')
+                },
+            })
+            : fetch(api + '/library/series/' + series_id))
             .then(response => response.json())
             .then(series => {
                 series.books = booksArr.map(bookArr => {
