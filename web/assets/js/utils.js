@@ -36,7 +36,7 @@ async function checkLogin() {
             if (response.ok) {
                 const user = await response.json();
 
-                return { loggedIn: true, userId: user.id, sessionId: user.sessionId, user: user };
+                return { loggedIn: true, user: user };
             } else {
                 logout();
                 return { loggedIn: false };

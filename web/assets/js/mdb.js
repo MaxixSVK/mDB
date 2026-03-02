@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         window.location.href = '/about';
     }
 
-    const mainPageData = loggedIn
+    const mainPageData = loggedIn && !publicUser.public
         ? await fetch(api + '/library/user/' + (publicUser.username || user.username), {
             method: 'GET',
             headers: {
@@ -63,7 +63,7 @@ function fetchStats() {
         window.location.href = statstUrl;
     });
 
-    (loggedIn
+    (loggedIn && !publicUser.public
         ? fetch(api + '/library/stats/' + publicUser.id, {
             method: 'GET',
             headers: {
@@ -163,7 +163,7 @@ function getUniqueFormats(seriesData) {
 
 function fetchSeriesList() {
     const seriesPromises = publicUser.series.map(seriesId =>
-        loggedIn
+        loggedIn && !publicUser.public
             ? fetch(api + '/library/series/' + seriesId, {
                 method: 'GET',
                 headers: {
@@ -311,7 +311,7 @@ function renderNoBook(booksList) {
 function getBookList(data, isSearch, seriesId) {
     const bookPromises = data.map(async bookOrId => {
         const bookId = isSearch ? bookOrId.book_id : bookOrId;
-        const bookData = await (loggedIn
+        const bookData = await (loggedIn && !publicUser.public
             ? fetch(api + '/library/book/' + bookId, {
                 method: 'GET',
                 headers: {
@@ -389,7 +389,7 @@ function renderBook(book, isSearch) {
 
 async function fetchBookDetails(book, isSearch) {
     let chapters = await Promise.all(
-        book.chapters.map(chapterId => (loggedIn
+        book.chapters.map(chapterId => (loggedIn && !publicUser.public
             ? fetch(api + '/library/chapter/' + chapterId, {
                 method: 'GET',
                 headers: {
@@ -619,7 +619,7 @@ function setupSearch() {
 }
 
 function performSearch(searchTerm) {
-    (loggedIn
+    (loggedIn && !publicUser.public
         ? fetch(api + '/library/user/search/' + user.id + '/' + searchTerm, {
             method: 'GET',
             headers: {
@@ -645,7 +645,7 @@ function renderSearchResults(results) {
 
     results.forEach(seriesArr => {
         const [series_id, booksArr] = seriesArr;
-        (loggedIn
+        (loggedIn && !publicUser.public
             ? fetch(api + '/library/series/' + series_id, {
                 method: 'GET',
                 headers: {

@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         window.location.href = '/about';
     }
 
-    const mainPageData = loggedIn
+    const mainPageData = loggedIn && !publicUser.public
         ? await fetch(api + '/library/user/' + (publicUser.username || user.username), {
             method: 'GET',
             headers: {
@@ -66,7 +66,7 @@ function addEventListeners() {
 }
 
 function fetchStats() {
-    (loggedIn
+    (loggedIn && !publicUser.public
         ? fetch(api + '/library/stats/' + publicUser.id, {
             method: 'GET',
             headers: {
@@ -84,7 +84,7 @@ function fetchStats() {
 }
 
 function fetchStatsByMonth(year) {
-    (loggedIn
+    (loggedIn && !publicUser.public
         ? fetch(api + '/library/stats/month/' + publicUser.id + '/' + year, {
             method: 'GET',
             headers: {

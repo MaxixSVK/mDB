@@ -1,10 +1,10 @@
-let userId, logsLimit, logsOffset;
+let logsLimit, logsOffset;
 
 document.addEventListener('DOMContentLoaded', async function () {
     logsLimit = 10;
     logsOffset = 0;
 
-    ({ loggedIn, userId } = await checkLogin());
+    ({ loggedIn } = await checkLogin());
 
     if (!loggedIn) {
         window.location.href = '/about';
