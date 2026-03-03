@@ -532,12 +532,7 @@ function renderBookDetails(book, chapters) {
     const chaptersList = document.createElement('ul');
     chaptersList.className = 'text-white space-y-2 overflow-y-auto flex-1 mb-4 md:mb-0 scrollbar scrollbar-thumb-[#2A2A2A] scrollbar-track-[#191818]';
 
-    if (chapters.length === 0) {
-        const noChaptersMessage = document.createElement('p');
-        noChaptersMessage.className = 'text-gray-400 text-center italic';
-        noChaptersMessage.textContent = `This book's journey began on ${new Date(book.started_reading).toLocaleDateString()}. The first chapter is still in progress.`;
-        chaptersList.appendChild(noChaptersMessage);
-    } else {
+    if (chapters.length !== 0) {
         chapters.forEach(chapter => {
             const chapterItem = document.createElement('li');
             chapterItem.className = 'p-2 bg-[#2A2A2A] rounded-md max-w-md flex justify-between items-center';
