@@ -2,11 +2,13 @@ const os = require('os');
 const { spawn } = require('cross-spawn');
 const { spawnSync } = require('child_process');
 
+const { startupCheck } = require('./startupCheck');
+
 function runScript(command, args, name) {
     spawn(command, args, { stdio: 'inherit' });
 }
 
-function isMariaDBRunning() {
+function isDBRunning() {
     if (os.platform() === 'win32') {
         const result = spawnSync('sc', ['query', 'MariaDB'], { encoding: 'utf8' });
         return result.stdout && result.stdout.includes('RUNNING');
@@ -16,25 +18,14 @@ function isMariaDBRunning() {
     }
 }
 
-function getWindowsStartCommand() {
-    const { spawnSync } = require('child_process');
-    const checkSudo = spawnSync('where', ['sudo'], { encoding: 'utf8' });
-    if (checkSudo.status === 0) {
-        return { cmd: 'sudo', args: ['net', 'start', 'MariaDB'] };
-    } else {
-        return { cmd: 'net', args: ['start', 'MariaDB'] };
-    }
-}
-
-async function ensureMariaDB() {
-    if (isMariaDBRunning()) {
+async function checkDB() {
+    if (isDBRunning()) {
         return;
     }
     let startCmd, startArgs;
     if (os.platform() === 'win32') {
-        const win = getWindowsStartCommand();
-        startCmd = win.cmd;
-        startArgs = win.args;
+        startCmd = 'sudo';
+        startArgs = ['net', 'start', 'MariaDB'];
     } else {
         startCmd = 'sudo';
         startArgs = ['service', 'mariadb', 'start'];
@@ -53,7 +44,8 @@ async function ensureMariaDB() {
 
 (async () => {
     try {
-        await ensureMariaDB();
+        await checkDB();
+        await startupCheck();
         runScript('node', ['src/index.js'], 'API');
         runScript('node', ['src/webServer.js'], 'Web');
     } catch (err) {

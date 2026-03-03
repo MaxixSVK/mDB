@@ -3,10 +3,8 @@
   "version": "0.7.0",
   "main": "src/index.js",
   "scripts": {
-    "api": "node src/index.js",
-    "web": "node src/webServer.js",
-    "style": "npx @tailwindcss/cli -i ./web/assets/css/tailwind.css -o ./web/assets/css/index.css --watch",
-    "env": "node src/env.js"
+    "env": "node src/env.js",
+    "style": "npx @tailwindcss/cli -i ./web/assets/css/tailwind.css -o ./web/assets/css/index.css --watch"
   },
   "keywords": [],
   "author": "MaxixSVK",

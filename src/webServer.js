@@ -1,8 +1,8 @@
+const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const favicon = require('serve-favicon');
 require('dotenv').config();
-
 
 const config = require('../config.json');
 const logger = require('./utils/logger');
@@ -11,7 +11,7 @@ const app = express();
 app.use((req, res, next) => {
     if (path.extname(req.path) === '') {
         const filePath = path.join(__dirname, '../web', req.path + '.html');
-        if (require('fs').existsSync(filePath)) {
+        if (fs.existsSync(filePath)) {
             return res.sendFile(filePath);
         }
     }
@@ -19,7 +19,11 @@ app.use((req, res, next) => {
 });
 
 app.use(express.static(path.join(__dirname, '../web')));
-app.use(favicon(path.join(__dirname, '../cdn/web/favicon.png')));
+
+const faviconPath = path.join(__dirname, '../cdn/web/favicon.png');
+if (fs.existsSync(faviconPath)) {
+    app.use(favicon(faviconPath));
+}
 
 app.get('/api-url', (_req, res) => {
     res.json({ url: process.env.API_HOST });

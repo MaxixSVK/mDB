@@ -3,9 +3,6 @@ const cors = require('cors');
 const mariadb = require('mariadb');
 require('dotenv').config();
 
-const { startupCheck } = require('./startupCheck');
-startupCheck();
-
 const { automaticBackup } = require('./backup/automaticBackup');
 const config = require('../config.json');
 const package = require('../package.json');

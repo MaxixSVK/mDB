@@ -6,6 +6,6 @@ backups/
 cdn/
 
 config.json
-server.log
+mDB-server.log
 
 .vscode/

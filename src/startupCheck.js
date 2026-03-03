@@ -1,14 +1,20 @@
-const fs = require('fs');
+const fs = require('fs/promises');
 const path = require('path');
+const readline = require('readline');
 const logger = require('./utils/logger');
-const readline = require('readline-sync');
 
-function createDefaultConfig(configPath) {
+function askQuestion(query) {
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    return new Promise(resolve => {
+        rl.question(query, answer => {
+            rl.close();
+            resolve(answer);
+        });
+    });
+}
+
+async function createDefaultConfig(configPath) {
     const defaultConfig = {
-        logs: {
-            saveToFile: true,
-            name: "server.log"
-        },
         api: {
             port: 3000,
             backup: {
@@ -24,12 +30,12 @@ function createDefaultConfig(configPath) {
             }
         },
         web: {
-            port: 3001
+            port: 3500
         }
     };
 
     try {
-        fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 4), 'utf8');
+        await fs.writeFile(configPath, JSON.stringify(defaultConfig, null, 4), 'utf8');
         logger.info('Default config file created');
     } catch (error) {
         logger.error(`Error creating default config file: ${error.message}`);
@@ -37,17 +43,19 @@ function createDefaultConfig(configPath) {
     }
 }
 
-function checkConfigFormat() {
+async function checkConfigFormat() {
     const configPath = path.resolve(__dirname, '../config.json');
     let config;
 
-    if (!fs.existsSync(configPath)) {
+    try {
+        await fs.access(configPath);
+    } catch {
         logger.warn('Config file not found. Creating default config file...');
-        createDefaultConfig(configPath);
+        await createDefaultConfig(configPath);
     }
 
     try {
-        const data = fs.readFileSync(configPath, 'utf8');
+        const data = await fs.readFile(configPath, 'utf8');
         config = JSON.parse(data);
     } catch (error) {
         logger.error(`Error reading config file: ${error.message}`);
@@ -55,9 +63,6 @@ function checkConfigFormat() {
     }
 
     const isValid = config &&
-        typeof config.logs === 'object' &&
-        typeof config.logs.saveToFile === 'boolean' &&
-        typeof config.logs.name === 'string' &&
         typeof config.api === 'object' &&
         typeof config.api.port === 'number' &&
         config.api.backup &&
@@ -74,9 +79,9 @@ function checkConfigFormat() {
 
     if (!isValid) {
         logger.error('Invalid config file format');
-        const answer = readline.question('Config file format is invalid. Do you want to restore the default config? (y/N): ');
+        const answer = await askQuestion('Config file format is invalid. Do you want to restore the default config? (y/N): ');
         if (answer.trim().toLowerCase() === 'y') {
-            createDefaultConfig(configPath);
+            await createDefaultConfig(configPath);
             logger.info('Default config restored. Please review and restart the server.');
             process.exit(0);
         }
@@ -87,39 +92,43 @@ function checkConfigFormat() {
     return isValid;
 }
 
-function checkRequiredDirectories() {
+async function checkRequiredDirectories() {
     const directories = ['backups', 'cdn', 'cdn/web', 'cdn/library', 'cdn/users', 'cdn/users/pfp'];
 
-    directories.forEach(directory => {
+    for (const directory of directories) {
         const directoryPath = path.resolve(__dirname, `../${directory}`);
 
-        if (!fs.existsSync(directoryPath)) {
-            fs.mkdirSync(directoryPath, { recursive: true });
+        try {
+            await fs.access(directoryPath);
+        } catch {
+            await fs.mkdir(directoryPath, { recursive: true });
             logger.info(`Created directory ${directory}`);
         }
-    });
+    }
 
     logger.info('Required directories are present');
 }
 
-function checkRequiredImages() {
+async function checkRequiredImages() {
     const images = [ 'cdn/web/favicon.png', 'cdn/library/404.png' ];
-    images.forEach(image => {
+    for (const image of images) {
         const imagePath = path.resolve(__dirname, `../${image}`);
-        if (!fs.existsSync(imagePath)) {
+        try {
+            await fs.access(imagePath);
+        } catch {
             logger.warn(`Required image file missing: ${image}`);
             //TODO: Download default missing images
         }
-    });
+    }
 }
 
-function startupCheck() {
-    if (!checkConfigFormat()) {
+async function startupCheck() {
+    if (!await checkConfigFormat()) {
         process.exit(1);
     }
 
-    checkRequiredDirectories();
-    checkRequiredImages();
+    await checkRequiredDirectories();
+    await checkRequiredImages();
 }
 
 module.exports = { startupCheck };
