@@ -1,29 +1,27 @@
-let gUser = null;
+let user = {};
 
 document.addEventListener("DOMContentLoaded", async () => {
-    ({ loggedIn } = await checkLogin());
-    if (loggedIn) await removeMyProfile();
+    ({ user } = await checkLogin());
 
     const noUsersEl = document.getElementById("no-public-users");
     const usersGridEl = document.getElementById("users-grid");
 
     try {
         const response = await fetch(api + '/library/explore/users');
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
         const result = await response.json();
 
         if (Array.isArray(result) && result.length > 0) {
-            usersGridEl.classList.remove("hidden");
             const gridContainer = usersGridEl.querySelector("div");
-            for (const user of result) {
-                if (user.username !== gUser) {
-                    const userCard = await createUserCard(user);
+            for (const publicUser of result) {
+                if (publicUser.username !== user?.username) {
+                    const userCard = await createUserCard(publicUser);
                     gridContainer.appendChild(userCard);
                 }
+            }
+            if (gridContainer.children.length > 0) {
+                usersGridEl.classList.remove("hidden");
+            } else {
+                noUsersEl.classList.remove("hidden");
             }
         } else {
             noUsersEl.classList.remove("hidden");
@@ -33,46 +31,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-async function removeMyProfile() {
-    const user = await fetch(api + '/account', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'authorization': getCookie('sessionToken')
-        },
-    });
-    const data = await user.json();
-    gUser = data.username;
-}
-
-
-async function createUserCard(user) {
+async function createUserCard(cardUser) {
     const card = document.createElement("div");
     card.className = "bg-[#2A2A2A] rounded-lg p-4 cursor-pointer hover:bg-[#333333] transition duration-300";
 
     let stats = null;
     try {
-        const statsResponse = await fetch(api + '/library/stats/' + user.id);
+        const statsResponse = await fetch(api + '/library/stats/' + cardUser.id);
         if (statsResponse.ok) {
             const statsResult = await statsResponse.json();
             stats = statsResult
         }
     } catch (error) {
-        console.error(`Error fetching stats for user ${user.id}:`, error);
+        console.error(`Error fetching stats for user ${cardUser.id}:`, error);
     }
 
-    const hasProfilePicture = user.pfp ? true : false;
+    const hasProfilePicture = cardUser.pfp ? true : false;
 
     card.innerHTML = `
         <div class="flex items-center mb-4">
             <div class="w-12 h-12 rounded-full flex items-center justify-center mr-3">
                 ${hasProfilePicture
-            ? `<img src="${cdn}/users/pfp/u-${user.id}.png" alt="${user.username}" class="w-12 h-12 rounded-full object-cover">`
+            ? `<img src="${cdn}/users/pfp/u-${cardUser.id}.png" alt="${cardUser.username}" class="w-12 h-12 rounded-full object-cover">`
             : `<i class="fas fa-user text-3xl"></i>`
         }
             </div>
             <div class="flex-1">
-                <h3 class="text-lg font-bold text-white">${user.username || 'Unknown User'}</h3>
+                <h3 class="text-lg font-bold text-white">${cardUser.username || 'Unknown User'}</h3>
                 <p class="text-sm text-gray-400">Public Library</p>
             </div>
         </div>
@@ -110,7 +95,7 @@ async function createUserCard(user) {
         `}
         
         <div class="flex gap-2">
-            <button onclick="viewUserLibrary('${user.username}')" class="flex-1 border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300">
+            <button onclick="viewUserLibrary('${cardUser.username}')" class="flex-1 border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300">
                 <i class="fas fa-eye mr-2"></i>View Library
             </button>
         </div>
