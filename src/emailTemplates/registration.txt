@@ -5,4 +5,4 @@ Happy reading!
 
 Start exploring mDB: {{webUrl}}
 
-{{year}} mDatabase
+{{year}} mDB

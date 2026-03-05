@@ -9,4 +9,4 @@ If this was you, no further action is required. If you did not log in, please re
 
 Reset Password: {{webUrl}}/account
 
-{{year}} mDatabase
+{{year}} mDB
