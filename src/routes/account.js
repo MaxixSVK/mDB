@@ -25,8 +25,6 @@ module.exports = function (pool) {
                 [req.userId]
             );
 
-            user.sessionId = req.sessionId;
-
             res.success(user);
         } catch (err) {
             next(err);
@@ -35,28 +33,14 @@ module.exports = function (pool) {
         }
     });
 
-    router.post('/logout', async (req, res, next) => {
-        let conn;
-        try {
-            const session = req.body.sessionId || req.sessionId;
-
-            conn = await pool.getConnection();
-            const result = await conn.query(
-                'DELETE FROM sessions WHERE user_id = ? AND id = ?',
-                [req.userId, session]
-            );
-
-            if (result.affectedRows === 0) {
-                return res.error('Session not found', 404);
-            }
-
-            newAccountLog(req.userId, 'logout', true, req.ipAddress, req.userAgent, pool);
-            res.success({ msg: 'Session destroyed' });
-        } catch (err) {
-            next(err);
-        } finally {
-            if (conn) conn.release();
+    router.get('/session', async (req, res, next) => {
+        let session = {
+            id: req.sessionId,
+            userAgent: req.userAgent,
+            ipAddress: req.ipAddress
         }
+
+        res.success(session);
     });
 
     router.get('/sessions', async (req, res, next) => {
@@ -76,6 +60,29 @@ module.exports = function (pool) {
         }
     });
 
+    router.post('/logout', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const sessionToDestroy = req.body.sessionId || req.sessionId;
+            const result = await conn.query(
+                'DELETE FROM sessions WHERE user_id = ? AND id = ?',
+                [req.userId, sessionToDestroy]
+            );
+
+            if (result.affectedRows === 0) {
+                return res.error('Session not found', 404);
+            }
+
+            newAccountLog(req.userId, 'logout', true, req.ipAddress, req.userAgent, pool);
+            res.success('Session destroyed');
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
     router.put('/change-password', requireAdditionalSecurity, async (req, res, next) => {
         let conn;
         try {
@@ -87,7 +94,7 @@ module.exports = function (pool) {
             );
 
             newAccountLog(req.userId, 'change_password', true, req.ipAddress, req.userAgent, pool);
-            res.success({ msg: 'Password changed' });
+            res.success('Password changed');
         } catch (err) {
             next(err);
         } finally {
@@ -99,7 +106,6 @@ module.exports = function (pool) {
         let conn;
         try {
             conn = await pool.getConnection();
-
             const [usernameInUse] = await conn.query(
                 'SELECT id FROM users WHERE username = ?',
                 [req.body.newUsername]
@@ -115,7 +121,7 @@ module.exports = function (pool) {
             );
 
             newAccountLog(req.userId, 'change_username', true, req.ipAddress, req.userAgent, pool);
-            res.success({ msg: 'Username changed' });
+            res.success('Username changed');
         } catch (err) {
             next(err);
         } finally {
@@ -127,7 +133,6 @@ module.exports = function (pool) {
         let conn;
         try {
             conn = await pool.getConnection();
-
             const [emailInUse] = await conn.query(
                 'SELECT id FROM users WHERE email = ?',
                 [req.body.newEmail]
@@ -143,7 +148,7 @@ module.exports = function (pool) {
             );
 
             newAccountLog(req.userId, 'change_email', true, req.ipAddress, req.userAgent, pool);
-            res.success({ msg: 'Email changed' });
+            res.success('Email changed');
         } catch (err) {
             next(err);
         } finally {
@@ -167,7 +172,7 @@ module.exports = function (pool) {
                 fs.unlinkSync(filePath);
             }
 
-            res.success({ msg: 'Profile picture reset to default' });
+            res.success('Profile picture reset to default');
         } catch (err) {
             next(err);
         } finally {
@@ -337,7 +342,7 @@ module.exports = function (pool) {
             });
 
             //TODO: Find a way to send file to the client
-            res.success({ msg: 'Export completed' });
+            res.success('Export completed');
         } catch (err) {
             next(err);
         } finally {
@@ -397,7 +402,7 @@ module.exports = function (pool) {
                 fs.unlinkSync(pfpPath);
             }
 
-            res.success({ msg: 'Account deleted successfully' });
+            res.success('Account deleted successfully');
 
             async function sendDeletionEmail() {
                 const email = user.email;

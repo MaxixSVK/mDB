@@ -6,17 +6,6 @@ const { backupDatabase } = require('./db');
 const { backupCDN } = require('./cdn');
 const logger = require('../utils/logger');
 
-/**
- * GFS (Grandfather-Father-Son) backup retention strategy
- * 
- * Tiers with mutually exclusive time ranges:
- * - Daily   (0-7 days):    Keep up to 7 backups
- * - Weekly  (7-35 days):   Keep 1 per calendar week, max 4 weeks
- * - Monthly (35-365 days): Keep 1 per calendar month, max 12 months
- * - Expired (365+ days):   Delete all
- * 
- * Always keeps at least 1 backup (the most recent)
- */
 async function tieredBackupCleanup(backupDir, backupType) {
     try {
         if (!fs.existsSync(backupDir)) {

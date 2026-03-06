@@ -6,10 +6,7 @@ module.exports = function (pool) {
     const validateToken = require('../middleware/checkToken')(pool, 'auth');
     router.use(validateToken);
 
-    async function logChanges(conn, userId, changeType, tableName, recordId, oldData = null, newData = null) {
-        const logQuery = `INSERT INTO library_logs (user_id, change_type, table_name, record_id, old_data, new_data) VALUES (?, ?, ?, ?, ?, ?)`;
-        await conn.query(logQuery, [userId, changeType, tableName, recordId, oldData, newData]);
-    }
+    const newlibraryLog = require('../utils/libraryLogs');
 
     router.post('/new', async (req, res, next) => {
         let conn;
@@ -48,7 +45,7 @@ module.exports = function (pool) {
                     [result.insertId, req.userId]
                 );
 
-                await logChanges(conn, req.userId, 'INSERT', tableName, result.insertId, null, JSON.stringify(newDbData));
+                await newlibraryLog(req.userId, 'INSERT', tableName, result.insertId, null, JSON.stringify(newDbData), pool);
                 res.success('Added successfully');
             } else {
                 res.success('No valid fields provided to update');
@@ -99,8 +96,7 @@ module.exports = function (pool) {
                 const newDbDataQuery = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
                 const [newDbData] = await conn.query(newDbDataQuery, [id, req.userId]);
 
-                await logChanges(conn, req.userId, 'UPDATE', tableName, id, JSON.stringify(oldDbData), JSON.stringify(newDbData));
-
+                await newlibraryLog(req.userId, 'UPDATE', tableName, id, JSON.stringify(oldDbData), JSON.stringify(newDbData), pool);
                 res.success('Updated successfully');
 
                 if ((type === 'series' || type === 'book') && oldDbData.img === 1 && newDbData.img === 0) {
@@ -167,7 +163,7 @@ module.exports = function (pool) {
                 [id, req.userId]
             );
 
-            await logChanges(conn, req.userId, 'DELETE', tableName, id, JSON.stringify(dbData));
+            await newlibraryLog(req.userId, 'DELETE', tableName, id, JSON.stringify(dbData), null, pool);
             res.success('Deleted successfully');
         } catch (err) {
             next(err);
@@ -190,8 +186,8 @@ module.exports = function (pool) {
                 `SELECT * FROM authors WHERE author_id = ? AND user_id = ?`,
                 [result.insertId, req.userId]
             );
-            await logChanges(conn, req.userId, 'INSERT', 'authors', result.insertId, null, JSON.stringify(newDbData));
 
+            await newlibraryLog(req.userId, 'INSERT', 'authors', result.insertId, null, JSON.stringify(newDbData), pool);
             res.success('Author added successfully');
         } catch (err) {
             next(err);
@@ -238,7 +234,7 @@ module.exports = function (pool) {
                 const newDbDataQuery = `SELECT * FROM authors WHERE author_id = ? AND user_id = ?`;
                 const [newDbData] = await conn.query(newDbDataQuery, [id, req.userId]);
 
-                await logChanges(conn, req.userId, 'UPDATE', 'authors', id, JSON.stringify(oldDbData), JSON.stringify(newDbData));
+                await newlibraryLog(req.userId, 'UPDATE', 'authors', id, JSON.stringify(oldDbData), JSON.stringify(newDbData), pool);
                 res.success('Author updated successfully');
             } else {
                 res.success('No valid fields provided to update');
@@ -267,7 +263,7 @@ module.exports = function (pool) {
                 [id, req.userId]
             );
 
-            await logChanges(conn, req.userId, 'DELETE', 'authors', id, JSON.stringify(dbData));
+            await newlibraryLog(req.userId, 'DELETE', 'authors', id, JSON.stringify(dbData), null, pool);
             res.success('Author deleted successfully');
         } catch (err) {
             next(err);

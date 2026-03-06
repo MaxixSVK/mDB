@@ -156,8 +156,8 @@ async function handleDataTypeChange(selectElement, fieldsDiv, action) {
                 if (await addLibrarySelect(fieldsDiv) === false) return;
             }
             if (action !== 'delete') {
-                await addAuthorSelect(fieldsDiv);
                 addFormDescription(fieldsDiv, action === 'add' ? 'New DB Data:' : 'DB Data');
+                await addAuthorSelect(fieldsDiv);
                 addInputField(fieldsDiv, 'name', 'Series Name');
                 addStatusSelect(fieldsDiv);
                 addFormatSelect(fieldsDiv);
@@ -242,7 +242,7 @@ async function handleDataSubmit(e, form, action) {
         }
 
         refreshContent();
-        showNotification(responseData.data, 'success');
+        showNotification(responseData.msg, 'success');
     } catch (e) {
         showNotification(e.message, 'error');
     }
@@ -342,9 +342,10 @@ async function handleBookChange(container, bookSelect, chapterSelect) {
 async function addAuthorSelect(container) {
     const authorSelect = createSelectElement('author_id');
     container.appendChild(authorSelect);
-    const authors = await fetchData(`/library/user/authors/${user.id}`);
-    
-    if (authors.error) {
+    const userData = await fetchData(`/library/user/${user.username}`);
+    const authors = userData.authors;
+
+    if (userData.error) {
         document.getElementById('add-data-form').parentElement.classList.add('hidden');
         document.getElementById('edit-data-form').parentElement.classList.add('hidden');
         document.getElementById('delete-data-form').parentElement.classList.add('hidden');

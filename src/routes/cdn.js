@@ -101,7 +101,7 @@ module.exports = function (pool) {
             const newPath = path.join(path.dirname(oldPath), newFileName);
             fs.renameSync(oldPath, newPath);
 
-            res.success({ msg: 'Profile picture uploaded.' });
+            res.success('Profile picture uploaded.');
         } catch (err) {
             next(err);
         } finally {

@@ -15,8 +15,11 @@ module.exports = function (pool) {
             }
 
             if (userData.public || req.userId == userData.id) {
-                const seriesList = await conn.query('SELECT series_id, user_id FROM series WHERE user_id = ?', [userData.id]);
+                const seriesList = await conn.query('SELECT series_id FROM series WHERE user_id = ?', [userData.id]);
                 userData.series = seriesList.map(series => series.series_id);
+
+                const authorList = await conn.query('SELECT author_id FROM authors WHERE user_id = ?', [userData.id]);
+                userData.authors = authorList.map(author => author.author_id);
             }
 
             res.success(userData);
@@ -33,14 +36,15 @@ module.exports = function (pool) {
             conn = await pool.getConnection();
             const { user_id, search } = req.params;
             const query = `
-        SELECT series.series_id, books.book_id, chapters.chapter_id
-        FROM series
-        LEFT JOIN books ON series.series_id = books.series_id
-        LEFT JOIN chapters ON books.book_id = chapters.book_id
-        WHERE (series.name LIKE ? OR books.name LIKE ? OR chapters.name LIKE ? OR books.isbn LIKE ?)
-          AND series.user_id = ?
-        ORDER BY series.series_id, books.book_id, chapters.chapter_id;
-        `;
+            SELECT series.series_id, books.book_id, chapters.chapter_id
+            FROM series
+            LEFT JOIN books ON series.series_id = books.series_id
+            LEFT JOIN chapters ON books.book_id = chapters.book_id
+            WHERE (series.name LIKE ? OR books.name LIKE ? OR chapters.name LIKE ? OR books.isbn LIKE ?)
+            AND series.user_id = ?
+            ORDER BY series.series_id, books.book_id, chapters.chapter_id;
+            `;
+            
             let searchTerm = "%" + search + "%";
             const data = await conn.query(query, [searchTerm, searchTerm, searchTerm, searchTerm, user_id]);
 
@@ -147,30 +151,6 @@ module.exports = function (pool) {
             }
 
             res.success(data);
-        } catch (err) {
-            next(err);
-        } finally {
-            if (conn) conn.release();
-        }
-    });
-
-    router.get('/user/authors/:user_id', async (req, res, next) => {
-        let conn;
-        try {
-            conn = await pool.getConnection();
-            const { user_id } = req.params;
-            const data = await conn.query('SELECT author_id, user_id FROM authors WHERE user_id = ?', [user_id]);
-            if (data.length === 0) {
-                return res.error('Entries does not exist', 200);
-            }
-
-            const [{ public }] = await conn.query('SELECT public FROM users WHERE id = ?', [data[0].user_id]);
-            if (!public && req.userId !== data[0].user_id) {
-                return res.error('You do not have access to view this data', 403);
-            }
-
-            const authorIds = data.map(row => row.author_id);
-            res.success(authorIds);
         } catch (err) {
             next(err);
         } finally {

@@ -7,12 +7,24 @@ document.addEventListener('DOMContentLoaded', async function () {
         window.location.href = '/about';
     }
 
+    user.session = await getSessionInfo();
+
     displayUser()
     addEventListeners();
 
     displayPublicStatus();
     fetchSessions();
 });
+
+async function getSessionInfo() {
+    const response = await fetch(api + '/account/session', {
+        headers: {
+            'Authorization': getCookie('sessionToken')
+        }
+    });
+
+    return await response.json();
+}
 
 function addEventListeners() {
     document.querySelectorAll('.category-btn').forEach(btn => {
@@ -328,7 +340,7 @@ async function renderSessions(sessions) {
         const uaResult = parser.getResult();
         const userAgentInfo = `${uaResult.browser.name}, ${uaResult.os.name}`;
 
-        const isCurrentSession = session.id === user.sessionId;
+        const isCurrentSession = session.id === user.session.id;
 
         listItem.innerHTML = `
                 <div class="flex-1 min-w-0">
@@ -360,7 +372,7 @@ async function destroySession(targetSessionId) {
     const sessionToken = getCookie('sessionToken');
 
     try {
-        if (targetSessionId == user.sessionId) {
+        if (targetSessionId == user.session.id) {
             logout();
             return;
         }

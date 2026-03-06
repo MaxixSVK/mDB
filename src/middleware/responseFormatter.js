@@ -3,7 +3,7 @@ const responseFormatter = (req, res, next) => {
         if (typeof data === 'object') {
             res.json(data);
         } else {
-            res.json({ data });
+            res.json({ msg: data });
         }
     };
 
