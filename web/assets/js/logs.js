@@ -121,6 +121,7 @@ function createDataElement(data) {
     const formattedData = { ...data };
     if (formattedData.started_reading) formattedData.started_reading = formatDate(formattedData.started_reading);
     if (formattedData.ended_reading) formattedData.ended_reading = formatDate(formattedData.ended_reading);
+    if (formattedData.date) formattedData.date = formatDate(formattedData.date);
 
     return `
         <div class="text-white mb-2 overflow-x-auto">
