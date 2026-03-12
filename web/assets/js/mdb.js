@@ -187,12 +187,9 @@ function fetchSeriesList() {
         });
 }
 
-function renderSeries(series, isSearch) {
+function renderSeries(series) {
     const formatSection = document.getElementById(series.format);
-
-    if (isSearch) {
-        showFormatList(series.format);
-    }
+    showFormatList(series.format);
 
     const card = document.createElement('div');
     card.className = 'bg-[#1F1F1F] rounded-md p-4 mb-4 cursor-pointer';
@@ -274,7 +271,7 @@ function renderSeries(series, isSearch) {
                 }, 250);
             });
         } else {
-            getBookList(series.books || series.books, isSearch, series.series_id);
+            getBookList(series);
         }
     });
 
@@ -308,9 +305,11 @@ function renderNoBook(booksList) {
     booksList.appendChild(noBooksMsg);
 }
 
-function getBookList(data, isSearch, seriesId) {
-    const bookPromises = data.map(async bookOrId => {
-        const bookId = isSearch ? bookOrId.book_id : bookOrId;
+function getBookList(series) {
+    const bookPromises = series.books.map(async entry => {
+        const isTuple = Array.isArray(entry);
+        const [bookId, chapters] = isTuple ? entry : [entry, undefined];
+
         const bookData = await (loggedIn && !publicUser.public
             ? fetch(api + '/library/book/' + bookId, {
                 method: 'GET',
@@ -321,23 +320,27 @@ function getBookList(data, isSearch, seriesId) {
             })
             : fetch(api + '/library/book/' + bookId)
         ).then(res => res.json());
-        if (isSearch) bookData.chapters = bookOrId.chapters;
+
+        if (isTuple && chapters !== undefined) {
+            bookData.chapters = chapters;
+        }
+
         return bookData;
     });
 
     Promise.all(bookPromises).then(bookData => {
-        const booksList = document.getElementById('books-list-' + seriesId);
+        const booksList = document.getElementById('books-list-' + series.series_id);
         if (bookData.length === 0) {
             renderNoBook(booksList);
             return;
         }
         bookData.sort((a, b) => a.started_reading.localeCompare(b.started_reading));
-        bookData.forEach(book => renderBook(book, isSearch));
+        bookData.forEach(book => renderBook(series, book));
     });
 }
 
-function renderBook(book, isSearch) {
-    const booksList = document.getElementById('books-list-' + book.series_id);
+function renderBook(series, book) {
+    const booksList = document.getElementById('books-list-' + series.series_id);
 
     const card = document.createElement('div');
     card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
@@ -383,11 +386,11 @@ function renderBook(book, isSearch) {
     });
 
     card.addEventListener('click', function () {
-        fetchBookDetails(book, isSearch);
+        fetchBookDetails(series, book);
     });
 }
 
-async function fetchBookDetails(book, isSearch) {
+async function fetchBookDetails(series, book) {
     let chapters = await Promise.all(
         book.chapters.map(chapterId => (loggedIn && !publicUser.public
             ? fetch(api + '/library/chapter/' + chapterId, {
@@ -401,11 +404,24 @@ async function fetchBookDetails(book, isSearch) {
         ).then(response => response.json()))
     );
 
+    const author = await (loggedIn && !publicUser.public
+        ? fetch(api + '/library/author/' + series.author_id, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getCookie('sessionToken')
+            },
+        })
+        : fetch(api + '/library/author/' + series.author_id)
+    ).then(response => response.json());
+
+    series.author_name = author.name || 'Unknown';
     chapters.sort((a, b) => a.date.localeCompare(b.date));
-    renderBookDetails(book, chapters);
+    
+    renderBookDetails(series, book, chapters);
 }
 
-function renderBookDetails(book, chapters) {
+function renderBookDetails(series, book, chapters) {
     document.body.classList.add('overflow-hidden');
 
     const container = document.createElement('div');
@@ -508,7 +524,7 @@ function renderBookDetails(book, chapters) {
 
     const authorValue = document.createElement('p');
     authorValue.className = 'text-white text-sm';
-    authorValue.textContent = book.author_name || 'Not available';
+    authorValue.textContent = series.author_name;
 
     authorWrapper.appendChild(authorLabel);
     authorWrapper.appendChild(authorValue);
@@ -625,21 +641,21 @@ function performSearch(searchTerm) {
         : fetch(api + '/library/user/search/' + user.id + '/' + searchTerm))
         .then(response => response.json())
         .then(data => {
-            if (data.length === 0) {
-                showNoResultsMessage();
-                return null;
-            }
-            if (data) {
-                renderSearchResults(data);
+            if (data.length !== 0) {
+                fetchSearchSeries(data);
+            } else {
+                toggleVisibility(document.getElementById('series-list'), true);
+                toggleVisibility(document.getElementById('no-results'));
             }
         });
 }
 
-function renderSearchResults(results) {
+function fetchSearchSeries(searchResults) {
     cleanAllFormatLists();
 
-    results.forEach(seriesArr => {
+    searchResults.forEach(seriesArr => {
         const [series_id, booksArr] = seriesArr;
+
         (loggedIn && !publicUser.public
             ? fetch(api + '/library/series/' + series_id, {
                 method: 'GET',
@@ -651,21 +667,10 @@ function renderSearchResults(results) {
             : fetch(api + '/library/series/' + series_id))
             .then(response => response.json())
             .then(series => {
-                series.books = booksArr.map(bookArr => {
-                    const [book_id, chaptersArr] = bookArr;
-                    return {
-                        book_id,
-                        chapters: chaptersArr
-                    };
-                });
-                renderSeries(series, true);
+                series.books = booksArr;
+                renderSeries(series);
             });
     });
-}
-
-function showNoResultsMessage() {
-    toggleVisibility(document.getElementById('series-list'), true);
-    toggleVisibility(document.getElementById('no-results'));
 }
 
 function toggleVisibility(element, hide) {
