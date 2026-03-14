@@ -335,11 +335,22 @@ async function renderSessions(sessions) {
         const listItem = document.createElement('li');
         listItem.className = 'bg-[#2A2A2A] p-3 md:p-4 mt-3 rounded-md transition duration-300 ease-in-out flex justify-between items-center gap-4';
 
-        const parser = new UAParser();
-        parser.setUA(session.user_agent);
-        const uaResult = parser.getResult();
-        const userAgentInfo = `${uaResult.browser.name}, ${uaResult.os.name}`;
+        const ua = session.user_agent || '';
+        let browser = 'Unknown Browser';
+        if (ua.includes('Firefox') || ua.includes('FxiOS')) browser = 'Firefox';
+        else if (ua.includes('Edg')) browser = 'Edge';
+        else if (ua.includes('OPR') || ua.includes('Opera')) browser = 'Opera';
+        else if (ua.includes('Chrome') || ua.includes('CriOS')) browser = 'Chrome';
+        else if (ua.includes('Safari')) browser = 'Safari';
 
+        let os = 'Unknown OS';
+        if (ua.includes('Windows')) os = 'Windows';
+        else if (ua.includes('Mac')) os = 'Mac OS';
+        else if (ua.includes('Linux')) os = 'Linux';
+        else if (ua.includes('Android')) os = 'Android';
+        else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+
+        const userAgentInfo = `${browser}, ${os}`;
         const isCurrentSession = session.id === user.session.id;
 
         listItem.innerHTML = `
