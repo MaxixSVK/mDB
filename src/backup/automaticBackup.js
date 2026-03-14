@@ -74,9 +74,11 @@ async function tieredBackupCleanup(backupDir, backupType) {
             const ageDays = getAgeDays(file.mtime);
             if (ageDays > retention.weekly.minAge && ageDays <= retention.weekly.maxAge) {
                 const weekKey = getWeekKey(file.mtime);
-                if (!weeklyGroups.has(weekKey) && weeklyGroups.size < retention.weekly.maxCount) {
-                    weeklyGroups.set(weekKey, file);
-                    toKeep.add(file.name);
+                if (!weeklyGroups.has(weekKey)) {
+                    if (weeklyGroups.size < retention.weekly.maxCount) {
+                        weeklyGroups.set(weekKey, file);
+                        toKeep.add(file.name);
+                    }
                 }
             }
         }
@@ -86,9 +88,11 @@ async function tieredBackupCleanup(backupDir, backupType) {
             const ageDays = getAgeDays(file.mtime);
             if (ageDays > retention.monthly.minAge && ageDays <= retention.monthly.maxAge) {
                 const monthKey = getMonthKey(file.mtime);
-                if (!monthlyGroups.has(monthKey) && monthlyGroups.size < retention.monthly.maxCount) {
-                    monthlyGroups.set(monthKey, file);
-                    toKeep.add(file.name);
+                if (!monthlyGroups.has(monthKey)) {
+                    if (monthlyGroups.size < retention.monthly.maxCount) {
+                        monthlyGroups.set(monthKey, file);
+                        toKeep.add(file.name);
+                    }
                 }
             }
         }
