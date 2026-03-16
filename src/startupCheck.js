@@ -110,7 +110,7 @@ async function checkRequiredDirectories() {
 }
 
 async function checkRequiredImages() {
-    const images = [ 'cdn/web/favicon.png', 'cdn/library/404.png' ];
+    const images = [ 'cdn/web/favicon.png', 'cdn/library/404.avif' ];
     for (const image of images) {
         const imagePath = path.resolve(__dirname, `../${image}`);
         try {
