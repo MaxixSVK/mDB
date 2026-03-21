@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    await checkLogin();
+
     try {
         const data = await fetch(api + '/docs').then(res => res.json());
 
@@ -13,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const methodBadgeClass = (method) => {
             const m = String(method || '').toUpperCase();
-            const base = 'inline-flex items-center justify-center w-16 px-2 py-0.5 rounded-md text-xs font-semibold text-center';
+            const base = 'inline-flex items-center justify-center px-4 py-1 rounded-md text-xs font-semibold text-center shrink-0 w-full md:w-16';
             switch (m) {
                 case 'GET':
                     return `${base} bg-green-600 text-white`;
@@ -32,10 +34,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const endpoints = groupedByRouter[router];
 
             const card = document.createElement('section');
-            card.className = 'mb-4 md:mb-6 border border-gray-700 rounded-lg overflow-hidden bg-[#191818]';
+            card.className = 'text-white py-2 bg-[#1F1F1F] m-4 mb:m-8 rounded-md';
 
             const header = document.createElement('div');
-            header.className = 'px-4 md:px-6 py-3 border-b border-gray-700 flex items-center justify-between';
+            header.className = 'px-4 pt-2 md:px-6 flex items-center justify-between';
 
             const title = document.createElement('h2');
             title.className = 'text-xl font-bold text-white';
@@ -49,32 +51,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             header.appendChild(count);
 
             const list = document.createElement('div');
-            list.className = 'divide-y divide-gray-800 w-full';
 
             endpoints
                 .forEach(ep => {
                     const row = document.createElement('div');
-                    row.className = 'px-4 md:px-6 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full';
+                    row.className = 'px-4 md:px-6 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2 bg-[#2A2A2A] rounded-md transition duration-300 m-4';
 
                     const left = document.createElement('div');
-                    left.className = 'flex items-center gap-3 min-w-0 flex-1 w-full';
+                    left.className = 'flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3 min-w-0 flex-1 w-full';
 
                     const badge = document.createElement('span');
                     badge.className = methodBadgeClass(ep.method);
                     badge.textContent = String(ep.method || '').toUpperCase();
 
                     const path = document.createElement('code');
-                    path.className = 'font-mono text-sm text-white bg-[#1F1F1F] border border-gray-700 rounded-md px-2 py-1 truncate block max-w-full';
+                    path.className = 'font-mono text-sm text-white border border-gray-400 rounded-md px-2 py-1 truncate flex-1 min-w-0 w-full md:w-auto';
                     path.textContent = ep.path || '/';
 
                     left.appendChild(badge);
                     left.appendChild(path);
 
                     const right = document.createElement('div');
-                    right.className = 'flex items-center gap-2 md:gap-3 shrink-0';
+                    right.className = 'flex items-center gap-2 md:gap-3 shrink-0 w-full md:w-auto';
 
                     const copyBtn = document.createElement('button');
-                    copyBtn.className = 'border-2 border-dashed border-[#FFA500] text-white font-medium text-xs py-1 px-2 rounded-md hover:bg-[#FFA500] hover:text-black transition duration-300';
+                    copyBtn.className = 'border-2 border-dashed border-[#FFA500] text-white font-medium text-xs py-1 px-2 rounded-md hover:bg-[#FFA500] hover:text-black transition duration-300 w-full md:w-auto';
                     copyBtn.innerHTML = '<i class="fas fa-copy mr-1"></i>Copy';
                     copyBtn.addEventListener('click', async () => {
                         try {
