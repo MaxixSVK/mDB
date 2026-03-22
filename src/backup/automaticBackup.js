@@ -56,15 +56,23 @@ async function tieredBackupCleanup(backupDir, backupType) {
             return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
         };
 
+        const getDayKey = (date) => {
+            const d = new Date(date);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        };
+
         const getAgeDays = (mtime) => (now - mtime.getTime()) / oneDay;
 
-        let dailyCount = 0;
+        const dailyGroups = new Map();
         for (const file of backupFiles) {
             const ageDays = getAgeDays(file.mtime);
             if (ageDays <= retention.daily.maxAge) {
-                if (dailyCount < retention.daily.maxCount) {
-                    toKeep.add(file.name);
-                    dailyCount++;
+                const dayKey = getDayKey(file.mtime);
+                if (!dailyGroups.has(dayKey)) {
+                    if (dailyGroups.size < retention.daily.maxCount) {
+                        dailyGroups.set(dayKey, file);
+                        toKeep.add(file.name);
+                    }
                 }
             }
         }
@@ -109,7 +117,7 @@ async function tieredBackupCleanup(backupDir, backupType) {
         }
 
         if (toDelete.length > 0 || toKeep.size > 0) {
-            logger.info(`${backupType} backup cleanup: kept ${toKeep.size} (daily: ${dailyCount}, weekly: ${weeklyGroups.size}, monthly: ${monthlyGroups.size}), deleted ${toDelete.length}`);
+            logger.info(`${backupType} backup cleanup: kept ${toKeep.size} (daily: ${dailyGroups.size}, weekly: ${weeklyGroups.size}, monthly: ${monthlyGroups.size}), deleted ${toDelete.length}`);
         }
 
     } catch (error) {
