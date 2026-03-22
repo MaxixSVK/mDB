@@ -1,3 +1,39 @@
+let api, cdn, dev = null;
+
+const CACHE_KEY = 'mdb.config';
+const CACHE_TTL_MS = 600000;
+
+const waitForApi = async () => {
+    let cached = null;
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.timestamp && (Date.now() - parsed.timestamp) < CACHE_TTL_MS) {
+            cached = parsed.data;
+        }
+    }
+
+    const data = cached || await fetch('/api').then(res => res.json());
+
+    if (!cached) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+    }
+
+    dev = data.env === 'dev';
+    api = `${dev ? 'http' : 'https'}://${data.url}`;
+    cdn = api + '/cdn';
+
+    if (dev) {
+        fetch(api)
+            .then(response => response.json())
+            .then(data => {
+                createWarningDiv(`You are using development API. Version: ${data.version}`);
+            })
+    }
+
+    return { api, cdn };
+};
+
 function getCookie(name) {
     const nameEQ = name + "=";
     const ca = document.cookie.split(';');
@@ -50,42 +86,7 @@ async function checkLogin() {
     }
 }
 
-async function displayUser(userInfo = true, bypassCache = false) {
-    try {
-        const user = await fetch(api + '/account', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': getCookie('sessionToken')
-            },
-        });
-        const userData = await user.json();
-
-        if (userInfo) updateUserInfo(userData);
-
-        if (!userData.pfp) {
-            document.getElementById('pfp').classList.add('hidden');
-            document.getElementById('nopfp').classList.remove('hidden');
-            return;
-        }
-
-        document.getElementById('nopfp').classList.add('hidden');
-        document.getElementById('pfp').classList.remove('hidden');
-        const cacheBuster = bypassCache ? '&t=' + Date.now() : '';
-        document.getElementById('pfp').src = cdn + '/users/pfp/u-' + userData.id + '.png?q=l' + cacheBuster;
-    } catch (error) {
-        console.error('Error fetching user:', error);
-    }
-}
-
-function updateUserInfo(data) {
-    document.getElementById('username').textContent = data.username;
-    document.getElementById('useremail').textContent = data.email;
-}
-
 async function logout(deletedAccount) {
-    await waitForApi();
-
     if (deletedAccount !== true) {
         await fetch(api + '/account/logout', {
             method: 'POST',
@@ -156,6 +157,37 @@ function showNotification(message, type = 'info', progress = null) {
     }, 5000);
 }
 
+async function displayUser(userInfo = true, bypassCache = false) {
+    try {
+        const user = await fetch(api + '/account', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': getCookie('sessionToken')
+            },
+        });
+        const userData = await user.json();
+
+        if (userInfo) {
+            document.getElementById('username').textContent = userData.username;
+            document.getElementById('useremail').textContent = userData.email;
+        }
+
+        if (!userData.pfp) {
+            document.getElementById('pfp').classList.add('hidden');
+            document.getElementById('nopfp').classList.remove('hidden');
+            return;
+        }
+
+        document.getElementById('nopfp').classList.add('hidden');
+        document.getElementById('pfp').classList.remove('hidden');
+        const cacheBuster = bypassCache ? '&t=' + Date.now() : '';
+        document.getElementById('pfp').src = cdn + '/users/pfp/u-' + userData.id + '.png?q=l' + cacheBuster;
+    } catch (error) {
+        console.error('Error fetching user:', error);
+    }
+}
+
 function showProfileBanner(username) {
     const banner = document.getElementById('profile-banner');
     while (banner.firstChild) {
@@ -184,3 +216,13 @@ function showProfileBanner(username) {
     banner.appendChild(wrapper);
     banner.classList.remove('hidden');
 }
+
+const createWarningDiv = (message) => {
+    const warningDiv = document.createElement('div');
+    warningDiv.className = 'fixed top-0 left-0 right-0 bg-red-500 text-white text-center p-4 z-10';
+    warningDiv.innerText = message;
+
+    document.body.insertBefore(warningDiv, document.body.firstChild);
+
+    document.body.style.paddingTop = `${warningDiv.offsetHeight}px`;
+};

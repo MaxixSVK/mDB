@@ -25,8 +25,8 @@ if (fs.existsSync(faviconPath)) {
     app.use(favicon(faviconPath));
 }
 
-app.get('/api-url', (_req, res) => {
-    res.json({ url: process.env.API_HOST });
+app.get('/api', (_req, res) => {
+    res.json({ url: process.env.API_HOST, env: process.env.ENV });
 });
 
 function customRoute(route, htmlFile) {
