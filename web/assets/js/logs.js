@@ -16,8 +16,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 });
 
 function addEventListeners() {
-    document.getElementById('logout').addEventListener('click', logout);
-
     document.getElementById('load-more').addEventListener('click', function () {
         logsOffset += logsLimit;
         fetchLogs();

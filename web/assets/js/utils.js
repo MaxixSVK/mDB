@@ -3,7 +3,7 @@ let api, cdn, dev = null;
 const CACHE_KEY = 'mdb.config';
 const CACHE_TTL_MS = 600000;
 
-const waitForApi = async () => {
+async function waitForApi() {
     let cached = null;
     const raw = localStorage.getItem(CACHE_KEY);
     if (raw) {
@@ -102,7 +102,13 @@ async function logout(deletedAccount) {
 }
 
 function showNotification(message, type = 'info', progress = null) {
-    const container = document.getElementById('notification-container');
+    let container = document.getElementById('notification-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notification-container';
+        container.className = 'fixed top-4 right-4 space-y-4 z-50';
+        document.body.appendChild(container);
+    }
     let notification = Array.from(container.children).find(child => child.dataset.message === message);
 
     if (!notification) {

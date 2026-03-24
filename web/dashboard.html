@@ -23,8 +23,8 @@
 </head>
 
 <body class="bg-[#131313] font-figtree min-h-screen flex justify-center">
-    <div id="app" class="flex-1 flex flex-col max-w-7xl mx-4">
-        <nav class="flex justify-between items-center py-4">
+    <div id="app" class="flex-1 flex flex-col max-w-7xl m-4">
+        <nav class="flex justify-between items-center pb-4 px-4">
             <a href="/" class="text-3xl text-white font-bold">
                 mDB
             </a>
@@ -32,9 +32,9 @@
                 <a class="text-3xl text-white font-bold">Dashboard</a>
             </div>
         </nav>
-        <main class="bg-[#191818] rounded-md pt-4 pb-0.5">
+        <main class="bg-[#191818] rounded-md grow">
             <section
-                class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 p-4 md:p-6 rounded-md flex flex-col md:flex-row items-center justify-between gap-4">
+                class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 mt-4 p-4 md:p-6 rounded-md flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center space-x-4 w-full md:w-auto">
                     <img id="pfp" class="w-14 h-14 rounded-full object-cover hidden">
                     <div id="nopfp" class="flex items-center">
@@ -57,15 +57,6 @@
                         <span>Logout</span>
                     </button>
                 </div>
-            </section>
-            <section
-                class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6 p-4 md:p-6 rounded-md flex flex-col md:flex-row items-center justify-between gap-4">
-                <h1 class="text-2xl font-bold">See your past changes</h1>
-                <button onclick="window.location.href='/logs';"
-                    class="w-full md:w-auto border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Check logs</span>
-                </button>
             </section>
             <section class="text-white bg-[#1F1F1F] mx-4 mb:mx-8 mb-6  mb:mb-6 p-4 md:p-6 rounded-md">
                 <form id="add-data-form">
@@ -207,7 +198,6 @@
                 </form>
             </section>
         </main>
-        <section id="notification-container" class="fixed top-4 right-4 space-y-4 z-50"></section>
     </div>
 
     <script src="/assets/js/utils.js"></script>

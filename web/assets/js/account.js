@@ -64,6 +64,10 @@ function addEventListeners() {
 
     document.getElementById('requestDataExport').addEventListener('click', requestDataExport);
 
+    document.getElementById('checkLibraryLogs').addEventListener('click', function () {
+        window.location.href = '/logs';
+    });
+
     document.getElementById('changePassword').addEventListener('submit', function (event) {
         event.preventDefault();
         changePassword();
