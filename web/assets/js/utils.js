@@ -196,12 +196,9 @@ async function displayUser(userInfo = true, bypassCache = false) {
 
 function showProfileBanner(username) {
     const banner = document.getElementById('profile-banner');
-    while (banner.firstChild) {
-        banner.removeChild(banner.firstChild);
-    }
 
     const wrapper = document.createElement('div');
-    wrapper.className = 'flex items-center gap-3 bg-[#1F1F1F] border border-[#2a2a2a] rounded-md px-4 py-3 text-white hover:border-[#FFA500] transition-colors duration-200 cursor-pointer';
+    wrapper.className = 'mx-2 md:mx-4 mt-4 flex items-center gap-3 bg-[#1F1F1F] border border-[#2a2a2a] rounded-md px-4 py-3 text-white hover:border-[#FFA500] transition-colors duration-200 cursor-pointer';
     wrapper.onclick = () => window.location.href = `/user/${username}`;
 
     const text = document.createElement('span');
@@ -225,10 +222,43 @@ function showProfileBanner(username) {
 
 const createWarningDiv = (message) => {
     const warningDiv = document.createElement('div');
-    warningDiv.className = 'fixed top-0 left-0 right-0 bg-red-500 text-white text-center p-4 z-10';
+    warningDiv.className = 'fixed top-0 left-0 right-0 bg-red-600 text-white text-center p-4 z-10';
     warningDiv.innerText = message;
 
     document.body.insertBefore(warningDiv, document.body.firstChild);
 
     document.body.style.paddingTop = `${warningDiv.offsetHeight}px`;
 };
+
+function createStatSection(data) {
+    const statsElement = document.getElementById('stats');
+    statsElement.className = 'bg-[#1F1F1F] rounded-md p-4 md:p-6 mt-2 mx-2 md:mt-4 md:mx-4 text-white cursor-pointer';
+    statsElement.textContent = '';
+
+    const grid = document.createElement('div');
+    grid.className = 'grid grid-cols-3 gap-2 md:gap-6';
+
+    function createStatCard(id, value, label) {
+        const card = document.createElement('div');
+        card.className = 'text-center bg-[#2A2A2A] p-2 md:p-4 rounded-md';
+
+        const count = document.createElement('h3');
+        count.id = id;
+        count.className = 'text-2xl md:text-3xl font-bold';
+        count.textContent = value;
+
+        const text = document.createElement('p');
+        text.className = 'text-md md:text-lg';
+        text.textContent = label;
+
+        card.appendChild(count);
+        card.appendChild(text);
+        return card;
+    }
+
+    grid.appendChild(createStatCard('series-count', data.seriesCount, 'Series'));
+    grid.appendChild(createStatCard('book-count', data.bookCount, 'Books'));
+    grid.appendChild(createStatCard('chapter-count', data.chapterCount, 'Chapters'));
+
+    statsElement.appendChild(grid);
+}

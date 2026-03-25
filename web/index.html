@@ -24,7 +24,7 @@
 
 <body class="bg-[#131313] font-figtree min-h-screen flex justify-center">
     <div id="app" class="flex-1 flex flex-col max-w-7xl m-4">
-        <nav class="flex justify-between items-center pb-4 px-4">
+        <nav class="flex justify-between items-center pb-4">
             <a href="/" class="text-3xl text-white font-bold">
                 mDB
             </a>
@@ -38,60 +38,17 @@
             </div>
         </nav>
         <main class="bg-[#191818] rounded-md grow">
-            <div id="profile-banner" class="hidden mx-2 md:mx-4 mb-4">
+            <div id="profile-banner">
             </div>
-            <section id="stats" class="bg-[#1F1F1F] rounded-md p-4 md:p-6 m-2 md:m-4 text-white cursor-pointer hidden">
-                <div class="grid grid-cols-3 gap-2 md:gap-6">
-                    <div class="text-center bg-[#2A2A2A] p-2 md:p-4 rounded-md">
-                        <h3 id="series-count" class="text-2xl md:text-3xl font-bold"></h3>
-                        <p class="text-md md:text-lg">Series</p>
-                    </div>
-                    <div class="text-center bg-[#2A2A2A] p-2 md:p-4 rounded-md">
-                        <h3 id="book-count" class="text-2xl md:text-3xl font-bold"></h3>
-                        <p class="text-md md:text-lg">Books</p>
-                    </div>
-                    <div class="text-center bg-[#2A2A2A] p-2 md:p-4 rounded-md">
-                        <h3 id="chapter-count" class="text-2xl md:text-3xl font-bold"></h3>
-                        <p class="text-md md:text-lg">Chapters</p>
-                    </div>
-                </div>
-            </section>
-            <div id="series-list" class="mx-2 md:mx-4">
+            <div id="stats">
             </div>
-            <div id="no-results" class="mx-2 md:mx-4 hidden">
-                <section class="bg-[#1F1F1F] rounded-md p-8 mb-4 text-white text-center">
-                    <h2 class="text-2xl mb-2 font-bold">No results found</h2>
-                    <p class="text-lg mb-4">Oops! We couldn't find any matches for your search.</p>
-                    <p class="text-lg">Try searching for something else or check your spelling.</p>
-                </section>
+            <div id="series-list">
+            </div>
+            <div id="no-results">
+            </div>
+            <div id="empty-library">
             </div>
         </main>
-        <div class="flex-1 flex items-center justify-center w-full">
-            <section id="empty-library"
-                class="hidden flex-col items-center justify-center w-full max-w-2xl p-8 bg-[#1F1F1F] rounded-xl shadow-lg">
-                <h1 class="text-3xl font-bold text-white mb-2 text-center">Your Library is Empty</h1>
-                <p class="text-gray-300 text-center mb-6">
-                    Start building your manga & light novel collection.<br>
-                    Add your first series to get started!
-                </p>
-                <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
-                    <button
-                        class="border-2 border-dashed border-[#FFA500] text-white font-semibold py-3 px-8 rounded-lg text-lg hover:bg-[#FFA500] transition duration-300"
-                        onclick="window.location.href='/dashboard'">
-                        <i class="fas fa-plus mr-2"></i>Add Series
-                    </button>
-                    <button
-                        class="border-2 border-dashed border-white text-white font-semibold py-3 px-8 rounded-lg text-lg hover:bg-white hover:text-black transition duration-300"
-                        onclick="window.location.href='/explore'">
-                        <i class="fas fa-compass mr-2"></i>Explore Public Libraries
-                    </button>
-                </div>
-                <div class="mt-8 text-center">
-                    <span class="text-gray-400 text-sm">Need help? <a href="/guide"
-                            class="text-[#FFA500] hover:underline">Read the Guide</a></span>
-                </div>
-            </section>
-        </div>
     </div>
 
     <script src="/assets/js/utils.js"></script>

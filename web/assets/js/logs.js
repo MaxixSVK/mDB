@@ -63,7 +63,7 @@ function displayLogs(logs) {
 function displayNoResults() {
     const logsContainer = document.getElementById('logs');
     logsContainer.innerHTML += `
-        <div class="p-4 bg-[#1F1F1F] mx-4 rounded-md text-white text-center">
+        <div class="p-4 bg-[#1F1F1F] mx-4 rounded-md text-white text-center mb-4">
             End of logs
         </div>
     `;

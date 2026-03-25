@@ -75,46 +75,103 @@ function fetchStats() {
         .then(response => response.json())
         .then(data => {
             if (data.seriesCount === 0) {
-                toggleVisibility(document.getElementsByTagName('main')[0], true);
-                toggleVisibility(document.getElementById('empty-library'));
+                createEmptyLibraryMessage();
                 return;
             }
-            document.getElementById('series-count').textContent = data.seriesCount;
-            document.getElementById('book-count').textContent = data.bookCount;
-            document.getElementById('chapter-count').textContent = data.chapterCount;
-            toggleVisibility(document.getElementById('stats'));
+            createStatSection(data);
             setupSearch();
             createFormatLists();
-        })
-        .catch(() => {
-            toggleVisibility(document.getElementById('empty-library'));
         });
-
-    updateEmptyLibraryMessage();
 }
 
-function updateEmptyLibraryMessage() {
+function createEmptyLibraryMessage() {
+    document.getElementById('profile-banner').remove();
+
+    document.getElementsByTagName('main')[0].classList.remove('bg-[#191818]');
+
     const emptyLibrary = document.getElementById('empty-library');
-    if (!emptyLibrary) return;
+    emptyLibrary.className = 'flex flex-col justify-center items-center h-full';
 
-    const title = emptyLibrary.querySelector('h1');
-    if (title) {
-        title.textContent = `${public ? `${publicUser.username}'s Library is Empty` : 'Your Library is Empty'}`;
+    emptyLibrary.innerHTML = '';
+
+    const container = document.createElement('div');
+    container.className = 'bg-[#1F1F1F] rounded-xl shadow-lg p-8 flex flex-col justify-center';
+
+    const title = document.createElement('h1');
+    title.className = 'text-3xl font-bold text-white mb-2 text-center';
+
+    if (public) {
+        const usernameSpan = document.createElement('span');
+        usernameSpan.style.color = '#FFA500';
+        usernameSpan.textContent = publicUser.username;
+        title.appendChild(usernameSpan);
+        title.appendChild(document.createTextNode("'s Library is Empty"));
+    } else {
+        title.textContent = 'Your Library is Empty';
     }
 
-    const desc = emptyLibrary.querySelector('p');
-    if (desc) {
-        if (public) {
-            desc.innerHTML = `This user hasn't added any manga or light novels yet.<br>Check back later or explore other libraries!`;
-        } else {
-            desc.innerHTML = `Start building your manga & light novel collection.<br>Add your first series to get started!`;
-        }
+    const desc = document.createElement('p');
+    desc.className = 'text-gray-300 text-center mb-6';
+
+    const br = document.createElement('br');
+    if (public) {
+        desc.appendChild(document.createTextNode("This user hasn't added any manga or light novels yet."));
+        desc.appendChild(br);
+        desc.appendChild(document.createTextNode("Check back later or explore other libraries!"));
+    } else {
+        desc.appendChild(document.createTextNode("Start building your manga & light novel collection."));
+        desc.appendChild(br);
+        desc.appendChild(document.createTextNode("Add your first series to get started!"));
     }
 
-    const addBtn = emptyLibrary.querySelector('button[onclick*="/dashboard"]');
-    if (addBtn) {
-        addBtn.style.display = public ? 'none' : '';
+    const btnGroup = document.createElement('div');
+    btnGroup.className = 'flex flex-col sm:flex-row gap-4 w-full justify-center';
+
+    if (!public) {
+        const addBtn = document.createElement('button');
+        addBtn.className = 'border-2 border-dashed border-[#FFA500] text-white font-semibold py-3 px-8 rounded-lg text-lg hover:bg-[#FFA500] transition duration-300';
+        addBtn.onclick = () => window.location.href = '/dashboard';
+
+        const addIcon = document.createElement('i');
+        addIcon.className = 'fas fa-plus mr-2';
+
+        addBtn.appendChild(addIcon);
+        addBtn.appendChild(document.createTextNode('Add Series'));
+        btnGroup.appendChild(addBtn);
     }
+
+    const exploreBtn = document.createElement('button');
+    exploreBtn.className = 'border-2 border-dashed border-white text-white font-semibold py-3 px-8 rounded-lg text-lg hover:bg-white hover:text-black transition duration-300';
+    exploreBtn.onclick = () => window.location.href = '/explore';
+
+    const exploreIcon = document.createElement('i');
+    exploreIcon.className = 'fas fa-compass mr-2';
+
+    exploreBtn.appendChild(exploreIcon);
+    exploreBtn.appendChild(document.createTextNode('Explore Public Libraries'));
+    btnGroup.appendChild(exploreBtn);
+
+    const helpContainer = document.createElement('div');
+    helpContainer.className = 'mt-8 text-center';
+
+    const helpTextSpan = document.createElement('span');
+    helpTextSpan.className = 'text-gray-400 text-sm';
+    helpTextSpan.textContent = 'Need help? ';
+
+    const helpLink = document.createElement('a');
+    helpLink.href = '/guide';
+    helpLink.className = 'text-[#FFA500] hover:underline';
+    helpLink.textContent = 'Read the Guide';
+
+    helpTextSpan.appendChild(helpLink);
+    helpContainer.appendChild(helpTextSpan);
+
+    container.appendChild(title);
+    container.appendChild(desc);
+    container.appendChild(btnGroup);
+    container.appendChild(helpContainer);
+
+    emptyLibrary.appendChild(container);
 }
 
 function createFormatLists() {
@@ -131,10 +188,10 @@ function createFormatLists() {
 
         const section = document.createElement('section');
         section.id = a.format;
-        section.className = 'hidden';
+        section.className = 'hidden mx-2 md:mx-4';
 
         const header = document.createElement('h2');
-        header.className = 'text-2xl mb-2 text-white font-bold';
+        header.className = 'text-2xl mt-4 text-white font-bold';
         header.textContent = a.pluralName;
 
         section.appendChild(header);
@@ -151,6 +208,8 @@ function showFormatList(formatId) {
 }
 
 function cleanAllFormatLists() {
+    hideNoResults();
+
     const sections = document.querySelectorAll('#series-list section');
     sections.forEach(section => section.classList.add('hidden'));
     sections.forEach(section => document.querySelectorAll('#' + section.id + ' > div').forEach(div => div.remove()));
@@ -192,7 +251,7 @@ function renderSeries(series) {
     showFormatList(series.format);
 
     const card = document.createElement('div');
-    card.className = 'bg-[#1F1F1F] rounded-md p-4 mb-4 cursor-pointer';
+    card.className = 'bg-[#1F1F1F] rounded-md p-4 my-4 cursor-pointer';
 
     const header = document.createElement('div');
     header.className = 'flex items-center';
@@ -417,7 +476,7 @@ async function fetchBookDetails(series, book) {
 
     series.author_name = author.name || 'Unknown';
     chapters.sort((a, b) => a.date.localeCompare(b.date));
-    
+
     renderBookDetails(series, book, chapters);
 }
 
@@ -606,10 +665,8 @@ function renderBookDetails(series, book, chapters) {
 }
 
 function setupSearch() {
-    const seriesListElement = document.getElementById('series-list');
     const searchInput = document.getElementById('search-input');
     const statsElement = document.getElementById('stats');
-    const noResultsElement = document.getElementById('no-results');
 
     searchInput.addEventListener('input', debounce(handleSearchInput, 250));
 
@@ -617,13 +674,10 @@ function setupSearch() {
         const searchTerm = searchInput.value.trim();
         if (searchTerm.length > 0) {
             toggleVisibility(statsElement, true);
-            toggleVisibility(noResultsElement, true);
-            toggleVisibility(seriesListElement);
             performSearch(searchTerm);
         } else {
+            hideNoResults();
             toggleVisibility(statsElement);
-            toggleVisibility(seriesListElement);
-            toggleVisibility(noResultsElement, true);
             createFormatLists();
         }
     }
@@ -644,8 +698,7 @@ function performSearch(searchTerm) {
             if (data.length !== 0) {
                 fetchSearchSeries(data);
             } else {
-                toggleVisibility(document.getElementById('series-list'), true);
-                toggleVisibility(document.getElementById('no-results'));
+                showNoResults()
             }
         });
 }
@@ -673,6 +726,64 @@ function fetchSearchSeries(searchResults) {
     });
 }
 
+function showNoResults() {
+    cleanAllFormatLists();
+
+    document.getElementsByTagName('main')[0].classList.remove('bg-[#191818]');
+
+    const noResultsElement = document.getElementById('no-results');
+    noResultsElement.className = 'flex flex-col justify-center items-center h-full';
+
+    while (noResultsElement.firstChild) {
+        noResultsElement.removeChild(noResultsElement.firstChild);
+    }
+
+    const container = document.createElement('div');
+    container.className = 'bg-[#1F1F1F] rounded-xl shadow-lg p-8 flex flex-col justify-center';
+
+    const title = document.createElement('h1');
+    title.className = 'text-3xl font-bold text-white mb-2 text-center';
+    title.textContent = 'No Results Found';
+
+    const description = document.createElement('p');
+    description.className = 'text-gray-300 text-center';
+    description.appendChild(document.createTextNode('We could not find anything matching your search.'));
+    description.appendChild(document.createElement('br'));
+    description.appendChild(document.createTextNode('Try a different keyword or check your spelling.'));
+
+    const helpContainer = document.createElement('div');
+    helpContainer.className = 'mt-4 text-center';
+
+    const helpText = document.createElement('span');
+    helpText.className = 'text-gray-400 text-sm';
+    helpText.appendChild(document.createTextNode('Need help searching? '));
+
+    const helpLink = document.createElement('a');
+    helpLink.href = '/guide';
+    helpLink.className = 'text-[#FFA500] hover:underline';
+    helpLink.textContent = 'Read the Guide';
+
+    helpText.appendChild(helpLink);
+    helpContainer.appendChild(helpText);
+
+    container.appendChild(title);
+    container.appendChild(description);
+    container.appendChild(helpContainer);
+
+    noResultsElement.appendChild(container);
+}
+
+function hideNoResults() {
+    document.getElementsByTagName('main')[0].classList.add('bg-[#191818]');
+
+    const noResultsElement = document.getElementById('no-results');
+
+    noResultsElement.className = '';
+    while (noResultsElement.firstChild) {
+        noResultsElement.removeChild(noResultsElement.firstChild);
+    }
+}
+
 function toggleVisibility(element, hide) {
     if (hide) {
         element.classList.add('hidden');
@@ -688,3 +799,4 @@ function debounce(func, delay) {
         timeoutId = setTimeout(() => func.apply(this, args), delay);
     };
 }
+

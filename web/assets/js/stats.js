@@ -77,9 +77,7 @@ function fetchStats() {
         : fetch(api + '/library/stats/' + publicUser.id))
         .then(response => response.json())
         .then(data => {
-            document.getElementById('series-count').textContent = data.seriesCount;
-            document.getElementById('book-count').textContent = data.bookCount;
-            document.getElementById('chapter-count').textContent = data.chapterCount;
+            createStatSection(data)
         });
 }
 
