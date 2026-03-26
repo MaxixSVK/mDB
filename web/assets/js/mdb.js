@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     fetchStats();
+    setupSearch();
 });
 
 function fetchStats() {
@@ -79,13 +80,16 @@ function fetchStats() {
                 return;
             }
             createStatSection(data);
-            setupSearch();
             createFormatLists();
         });
 }
 
 function createEmptyLibraryMessage() {
     document.getElementById('profile-banner').remove();
+
+    const searchInput = document.getElementById('search-input');
+    searchInput.disabled = true;
+    searchInput.placeholder = 'Nothing to search...';
 
     document.getElementsByTagName('main')[0].classList.remove('bg-[#191818]');
 
@@ -666,19 +670,17 @@ function renderBookDetails(series, book, chapters) {
 
 function setupSearch() {
     const searchInput = document.getElementById('search-input');
-    const statsElement = document.getElementById('stats');
-
     searchInput.addEventListener('input', debounce(handleSearchInput, 250));
 
     function handleSearchInput() {
         const searchTerm = searchInput.value.trim();
         if (searchTerm.length > 0) {
-            toggleVisibility(statsElement, true);
             performSearch(searchTerm);
         } else {
             hideNoResults();
-            toggleVisibility(statsElement);
-            createFormatLists();
+            hideStats();
+            cleanAllFormatLists();
+            fetchStats();
         }
     }
 }
@@ -695,6 +697,9 @@ function performSearch(searchTerm) {
         : fetch(api + '/library/user/search/' + user.id + '/' + searchTerm))
         .then(response => response.json())
         .then(data => {
+            hideStats()
+            cleanAllFormatLists();
+
             if (data.length !== 0) {
                 fetchSearchSeries(data);
             } else {
@@ -704,8 +709,6 @@ function performSearch(searchTerm) {
 }
 
 function fetchSearchSeries(searchResults) {
-    cleanAllFormatLists();
-
     searchResults.forEach(seriesArr => {
         const [series_id, booksArr] = seriesArr;
 
@@ -727,8 +730,6 @@ function fetchSearchSeries(searchResults) {
 }
 
 function showNoResults() {
-    cleanAllFormatLists();
-
     document.getElementsByTagName('main')[0].classList.remove('bg-[#191818]');
 
     const noResultsElement = document.getElementById('no-results');
@@ -784,11 +785,12 @@ function hideNoResults() {
     }
 }
 
-function toggleVisibility(element, hide) {
-    if (hide) {
-        element.classList.add('hidden');
-    } else {
-        element.classList.remove('hidden');
+function hideStats() {
+    const statsElement = document.getElementById('stats');
+
+    statsElement.className = '';
+    while (statsElement.firstChild) {
+        statsElement.removeChild(statsElement.firstChild);
     }
 }
 
