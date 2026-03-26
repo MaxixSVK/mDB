@@ -18,8 +18,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 });
 
 function setupEventListeners() {
-    document.getElementById('logout').addEventListener('click', logout);
-
     const cdnUploadForm = document.getElementById('cdn-upload-form');
     cdnUploadForm.addEventListener('submit', function (e) {
         e.preventDefault();
