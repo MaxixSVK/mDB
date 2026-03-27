@@ -72,17 +72,13 @@ async function checkLogin() {
             if (response.ok) {
                 const user = await response.json();
 
-                return { loggedIn: true, user: user };
+                return user ;
             } else {
                 logout();
-                return { loggedIn: false };
             }
         } catch (err) {
-            console.error('Login failed:', err);
-            return { loggedIn: false };
+            console.error('Error checking token:', err);
         }
-    } else {
-        return { loggedIn: false };
     }
 }
 

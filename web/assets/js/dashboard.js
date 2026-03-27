@@ -1,9 +1,9 @@
-let user;
+let user = {};
 
 document.addEventListener("DOMContentLoaded", async function () {
-    ({ loggedIn, user } = await checkLogin());
+    user = await checkLogin();
 
-    if (!loggedIn) {
+    if (!user) {
         window.location.href = '/about';
     }
 

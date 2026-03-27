@@ -1,7 +1,7 @@
 let user = {};
 
 document.addEventListener("DOMContentLoaded", async () => {
-    ({ user } = await checkLogin());
+    user = await checkLogin();
 
     const noUsersEl = document.getElementById("no-public-users");
     const usersGridEl = document.getElementById("users-grid");

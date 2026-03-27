@@ -3,16 +3,16 @@ let public = false;
 
 document.addEventListener('DOMContentLoaded', async function () {
     const profileMatch = window.location.pathname.match(/^\/user\/([^\/]+)$/);
-    ({ loggedIn, user } = await checkLogin());
+    user = await checkLogin();
 
     if (profileMatch) {
         public = true;
         publicUser.username = profileMatch[1];
-    } else if (!loggedIn) {
+    } else if (!user) {
         window.location.href = '/about';
     }
 
-    const mainPageData = loggedIn && !publicUser.public
+    const mainPageData = user && !publicUser.public
         ? await fetch(api + '/library/user/' + (publicUser.username || user.username), {
             method: 'GET',
             headers: {
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const pfp = document.getElementById('pfp');
     const nopfp = document.getElementById('nopfp');
 
-    if (loggedIn) {
+    if (user) {
         displayUser(false);
         if (pfp) pfp.addEventListener('click', () => window.location.href = '/dashboard');
         if (nopfp) nopfp.addEventListener('click', () => window.location.href = '/dashboard');
@@ -64,7 +64,7 @@ function fetchStats() {
         window.location.href = statstUrl;
     });
 
-    (loggedIn && !publicUser.public
+    (user && !publicUser.public
         ? fetch(api + '/library/stats/' + publicUser.id, {
             method: 'GET',
             headers: {
@@ -226,7 +226,7 @@ function getUniqueFormats(seriesData) {
 
 function fetchSeriesList() {
     const seriesPromises = publicUser.series.map(seriesId =>
-        loggedIn && !publicUser.public
+        user && !publicUser.public
             ? fetch(api + '/library/series/' + seriesId, {
                 method: 'GET',
                 headers: {
@@ -373,7 +373,7 @@ function getBookList(series) {
         const isTuple = Array.isArray(entry);
         const [bookId, chapters] = isTuple ? entry : [entry, undefined];
 
-        const bookData = await (loggedIn && !publicUser.public
+        const bookData = await (user && !publicUser.public
             ? fetch(api + '/library/book/' + bookId, {
                 method: 'GET',
                 headers: {
@@ -455,7 +455,7 @@ function renderBook(series, book) {
 
 async function fetchBookDetails(series, book) {
     let chapters = await Promise.all(
-        book.chapters.map(chapterId => (loggedIn && !publicUser.public
+        book.chapters.map(chapterId => (user && !publicUser.public
             ? fetch(api + '/library/chapter/' + chapterId, {
                 method: 'GET',
                 headers: {
@@ -467,7 +467,7 @@ async function fetchBookDetails(series, book) {
         ).then(response => response.json()))
     );
 
-    const author = await (loggedIn && !publicUser.public
+    const author = await (user && !publicUser.public
         ? fetch(api + '/library/author/' + series.author_id, {
             method: 'GET',
             headers: {
@@ -686,7 +686,7 @@ function setupSearch() {
 }
 
 function performSearch(searchTerm) {
-    (loggedIn && !publicUser.public
+    (user && !publicUser.public
         ? fetch(api + '/library/user/search/' + user.id + '/' + searchTerm, {
             method: 'GET',
             headers: {
@@ -712,7 +712,7 @@ function fetchSearchSeries(searchResults) {
     searchResults.forEach(seriesArr => {
         const [series_id, booksArr] = seriesArr;
 
-        (loggedIn && !publicUser.public
+        (user && !publicUser.public
             ? fetch(api + '/library/series/' + series_id, {
                 method: 'GET',
                 headers: {

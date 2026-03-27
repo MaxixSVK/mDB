@@ -1,14 +1,15 @@
+let user = {};
 let logsLimit, logsOffset;
 
 document.addEventListener('DOMContentLoaded', async function () {
-    logsLimit = 10;
-    logsOffset = 0;
-
-    ({ loggedIn } = await checkLogin());
-
-    if (!loggedIn) {
+    user = await checkLogin();
+    
+    if (!user) {
         window.location.href = '/about';
     }
+
+    logsLimit = 10;
+    logsOffset = 0;
 
     addEventListeners();
     displayUser();

@@ -1,4 +1,12 @@
+let user = {};
+
 document.addEventListener("DOMContentLoaded", async function () {
+    user = await checkLogin();
+
+    if (user) {
+        window.location.href = '/';
+    }
+
     document.getElementById('login-section').classList.add('hidden');
     document.getElementById('register-section').classList.add('hidden');
 
@@ -11,9 +19,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         document.getElementById('login-section').classList.remove('hidden');
     }
 
-    ({ loggedIn } = await checkLogin());
-    if (loggedIn) window.location.href = '/';
-    
     setupEventListeners();
 });
 
@@ -112,7 +117,7 @@ function switchSection(hideSectionId, showSectionId) {
 
     hideSection.classList.add('hidden');
     showSection.classList.remove('hidden');
-    
+
     if (window.history.replaceState) {
         const baseUrl = window.location.origin + window.location.pathname;
         window.history.replaceState({}, document.title, baseUrl);

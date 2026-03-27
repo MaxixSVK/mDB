@@ -3,16 +3,16 @@ let public = false;
 
 document.addEventListener('DOMContentLoaded', async function () {
     const profileMatch = window.location.pathname.match(/^\/stats\/([^\/]+)$/);
-    ({ loggedIn, user } = await checkLogin());
+    user = await checkLogin();
 
     if (profileMatch) {
         public = true;
         publicUser.username = profileMatch[1];
-    } else if (!loggedIn) {
+    } else if (!user) {
         window.location.href = '/about';
     }
 
-    const mainPageData = loggedIn && !publicUser.public
+    const mainPageData = user && !publicUser.public
         ? await fetch(api + '/library/user/' + (publicUser.username || user.username), {
             method: 'GET',
             headers: {
@@ -66,7 +66,7 @@ function addEventListeners() {
 }
 
 function fetchStats() {
-    (loggedIn && !publicUser.public
+    (user && !publicUser.public
         ? fetch(api + '/library/stats/' + publicUser.id, {
             method: 'GET',
             headers: {
@@ -82,7 +82,7 @@ function fetchStats() {
 }
 
 function fetchStatsByMonth(year) {
-    (loggedIn && !publicUser.public
+    (user && !publicUser.public
         ? fetch(api + '/library/stats/month/' + publicUser.id + '/' + year, {
             method: 'GET',
             headers: {
