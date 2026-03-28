@@ -26,13 +26,13 @@
     <div id="app" class="flex-1 flex flex-col max-w-7xl m-4">
         <main class="rounded-md grow">
             <div class="flex flex-col justify-center items-center h-full">
-                <div class="flex flex-col md:flex-row gap-8 w-full max-w-4xl items-stretch mt-8 md:mt-24">
+                <div class="flex flex-col md:flex-row gap-8 w-full max-w-4xl items-stretch mt-8 md:mt-26">
                     <section class="flex-1 bg-[#1F1F1F] rounded-xl shadow-lg p-8 flex flex-col justify-center">
-                        <h1 class="text-3xl font-bold text-white mb-2 text-center">Welcome to mDB</h1>
-                        <p class="text-gray-300 text-center mb-6">Your personal manga & light novel library.<br>Free and
-                            open-source.</p>
+                        <h1 class="text-3xl font-bold text-white text-center">Welcome to mDB</h1>
+                        <p class="text-gray-300 text-center mt-2">Ever wondered when you read that book?<br>You are not
+                            alone!</p>
                         <div id="auth-actions">
-                            <div class="flex flex-col gap-4">
+                            <div class="flex flex-col gap-4 mt-4">
                                 <a href="/auth?t=reg"
                                     class="border-2 border-dashed border-[#FFA500] text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#FFA500] hover:text-black transition duration-300">Create
                                     Account</a>
@@ -41,7 +41,7 @@
                             </div>
                         </div>
                         <div id="user-actions" class="hidden">
-                            <div class="flex flex-col gap-4">
+                            <div class="flex flex-col gap-4 mt-4">
                                 <a href="/"
                                     class="border-2 border-dashed border-[#FFA500] text-white font-semibold py-3 rounded-lg text-center text-lg hover:bg-[#FFA500] hover:text-black transition duration-300">Go
                                     to my library</a>
@@ -51,38 +51,40 @@
                             </div>
                         </div>
                     </section>
-                    <section id="about" class="flex-1 bg-[#1F1F1F] rounded-xl p-8 shadow text-white flex flex-col">
-                        <h2 class="text-3xl font-bold text-white mb-2 text-center">About mDB</h2>
-                        <p class="text-gray-300 text-center mb-6">
-                            mDB is a project created by
-                            <a href="https://github.com/MaxixSVK" class="text-[#FFA500] hover:underline">Maxix</a>
-                            for managing your personal library of manga and light novels. It’s open-source and
-                            <a href="https://github.com/MaxixSVK/mDB" class="text-[#FFA500] hover:underline">available
-                                on
-                                GitHub</a>.
+                    <section class="flex-1 bg-[#1F1F1F] rounded-xl shadow-lg p-8 flex flex-col justify-center">
+                        <h2 class="text-3xl font-bold text-white text-center">Open Source Platform</h2>
+                        <p class="text-gray-300 text-center mt-2">
+                            Your new way to track and manage your manga and light novel collection.
                         </p>
-                        <ul class="list-disc list-inside text-gray-300 mb-3">
-                            <li>Self-host or use online</li>
-                            <li>Secure, and customizable</li>
-                            <li>Easy to use and mobile-friendly</li>
-                        </ul>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
+                            <div class="rounded-md bg-[#2A2A2A] px-4 py-3 text-center">
+                                <p class="text-xl font-bold text-white">EASY</p>
+                                <p class="text-xs uppercase tracking-wide text-gray-400">To Use</p>
+                            </div>
+                            <div class="rounded-md bg-[#2A2A2A] px-4 py-3 text-center">
+                                <p class="text-xl font-bold text-white">FREE</p>
+                                <p class="text-xs uppercase tracking-wide text-gray-400">Forever</p>
+                            </div>
+                            <div class="rounded-md bg-[#2A2A2A] px-4 py-3 text-center">
+                                <p class="text-xl font-bold text-white">GPL-3.0</p>
+                                <p class="text-xs uppercase tracking-wide text-gray-400">License</p>
+                            </div>
+                        </div>
                         <div class="flex flex-wrap gap-4 mt-auto justify-center text-center">
+                            <a href="https://github.com/MaxixSVK/mDB"
+                                class="text-[#FFA500] hover:underline text-sm">Source Code</a>
                             <a href="https://github.com/MaxixSVK/mDB/blob/main/README.md"
                                 class="text-[#FFA500] hover:underline text-sm">Self-hosting Guide</a>
-                            <a href="https://github.com/MaxixSVK/mDB/blob/main/SECURITY.md"
-                                class="text-[#FFA500] hover:underline text-sm">Security Policy</a>
-                            <a href="https://github.com/MaxixSVK/mDB/blob/main/LICENSE"
-                                class="text-[#FFA500] hover:underline text-sm">License (GPLv3)</a>
                         </div>
                     </section>
                 </div>
-                <div class="flex flex-col items-center w-full max-w-2xl mt-8 mb-4">
+                <div class="flex flex-col items-center w-full max-w-2xl mt-8">
                     <div
                         class="w-full bg-[#1F1F1F] rounded-xl shadow-lg px-6 py-4 flex flex-col md:flex-row items-center md:justify-between gap-4">
                         <div class="flex-1 w-full md:text-left text-center">
-                            <h3 class="text-xl font-bold text-white mb-1">Explore Public Profiles</h3>
-                            <p class="text-gray-300 text-sm">Discover public profiles and see what others are reading or
-                                collecting.</p>
+                            <h3 class="text-xl font-bold text-white">Explore Public Profiles</h3>
+                            <p class="text-gray-300 text-sm mt-1">Discover public libraries and see what others are reading.
+                            </p>
                         </div>
                         <a href="/explore"
                             class="border-2 border-dashed border-[#FFA500] px-5 py-2 rounded-lg text-white font-semibold text-base shadow hover:bg-[#FFA500] hover:text-black transition whitespace-nowrap w-full md:w-auto text-center">Explore</a>
