@@ -3,7 +3,7 @@ const path = require('path');
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
 const UAParser = require('ua-parser-js');
-require("dotenv").config();
+require('dotenv').config({ quiet: true });
 
 module.exports = function (pool) {
     const config = require('../../config.json');

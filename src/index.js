@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mariadb = require('mariadb');
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 const { automaticBackup } = require('./backup/automaticBackup');
 const config = require('../config.json');

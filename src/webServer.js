@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const favicon = require('serve-favicon');
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 const config = require('../config.json');
 const logger = require('./utils/logger');
