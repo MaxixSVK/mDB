@@ -7,41 +7,34 @@ require('dotenv').config({ quiet: true });
 const config = require('../config.json');
 const logger = require('./utils/logger');
 const app = express();
-
-app.use((req, res, next) => {
-    if (path.extname(req.path) === '') {
-        const filePath = path.join(__dirname, '../web', req.path + '.html');
-        if (fs.existsSync(filePath)) {
-            return res.sendFile(filePath);
-        }
-    }
-    next();
-});
-
-app.use(express.static(path.join(__dirname, '../web')));
+const webDir = path.join(__dirname, '../web');
 
 const faviconPath = path.join(__dirname, '../cdn/web/favicon.png');
 if (fs.existsSync(faviconPath)) {
     app.use(favicon(faviconPath));
 }
 
-app.get('/api', (_req, res) => {
-    res.json({ url: process.env.API_HOST, env: process.env.ENV });
-});
+app.use(express.static(webDir, {
+    extensions: ['html']
+}));
 
-function customRoute(route, htmlFile) {
-    app.get(route, (_req, res) => {
-        const filePath = path.join(__dirname, '../web', htmlFile);
-        res.sendFile(filePath);
+const pageAliases = new Map([
+    ['/user/:username', 'index.html'],
+    ['/stats/:username', 'stats.html'],
+]);
+
+for (const [route, fileName] of pageAliases) {
+    app.get(route, (req, res) => {
+        res.sendFile(path.join(webDir, fileName));
     });
 }
 
-customRoute('/user/:username', 'index.html');
-customRoute('/stats/:username', 'stats.html');
-customRoute('/activity/:username', 'activity.html');
+app.get('/api', (req, res) => {
+    res.json({ url: process.env.API_HOST, env: process.env.ENV });
+});
 
-app.use((_req, res) => {
-    res.status(404).sendFile(path.join(__dirname, '../web/404.html'));
+app.use((req, res) => {
+    res.sendFile(path.join(webDir, '404.html'));
 });
 
 app.listen(config.web.port, () => {
