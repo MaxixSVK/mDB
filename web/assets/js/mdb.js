@@ -408,10 +408,24 @@ function renderBook(series, book) {
     const card = document.createElement('div');
     card.className = 'bg-[#2A2A2A] rounded-md mt-4 flex items-center transition transform duration-500 ease-in-out opacity-0 translate-y-4';
 
+    const imgContainer = document.createElement('div');
+    imgContainer.className = 'relative mr-4';
+
     const img = document.createElement('img');
     img.src = book.img ? cdn + '/library/b-' + book.book_id + '.png?q=l' : cdn + '/library/404.avif';
     img.alt = book.name || 'No image';
-    img.className = 'h-24 object-cover rounded-md mr-4';
+    img.className = 'h-24 object-cover rounded-md';
+
+    const chapterCountBadge = document.createElement('div');
+    chapterCountBadge.className = 'absolute -top-2 -right-2 bg-[#2A2A2A]  text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center';
+    chapterCountBadge.textContent = '...';
+
+    const count = book.chapters.length;
+    chapterCountBadge.textContent = count.toString();
+    if (count > 99) chapterCountBadge.textContent = '99+';
+
+    imgContainer.appendChild(img);
+    imgContainer.appendChild(chapterCountBadge);
 
     const content = document.createElement('div');
     content.className = 'flex-1';
@@ -439,7 +453,7 @@ function renderBook(series, book) {
     content.appendChild(startedReading);
     content.appendChild(endedReading);
 
-    card.appendChild(img);
+    card.appendChild(imgContainer);
     card.appendChild(content);
 
     booksList.appendChild(card);
