@@ -194,11 +194,30 @@ function createFormatLists() {
         section.id = a.format;
         section.className = 'hidden mx-2 md:mx-4';
 
+        const headerRow = document.createElement('div');
+        headerRow.className = 'format-header-row mt-4 flex items-center justify-between';
+
         const header = document.createElement('h2');
-        header.className = 'text-2xl mt-4 text-white font-bold';
+        header.className = 'text-2xl text-white font-bold';
         header.textContent = a.pluralName;
 
-        section.appendChild(header);
+        headerRow.appendChild(header);
+
+        if (user && !public) {
+            const addSeriesBtn = document.createElement('button');
+            addSeriesBtn.type = 'button';
+            addSeriesBtn.className = 'w-8 h-8 rounded-full text-white bg-[#1F1F1F] transition duration-200 flex items-center justify-center';
+            addSeriesBtn.innerHTML = '<i class="fas fa-plus text-sm"></i>';
+            addSeriesBtn.title = 'Create series in ' + a.name;
+
+            addSeriesBtn.addEventListener('click', function () {
+                showNotification('Feature available in old dashboard', 'info');
+            });
+
+            headerRow.appendChild(addSeriesBtn);
+        }
+
+        section.appendChild(headerRow);
         document.getElementById('series-list').appendChild(section);
     });
     fetchSeriesList();
@@ -216,7 +235,13 @@ function cleanAllFormatLists() {
 
     const sections = document.querySelectorAll('#series-list section');
     sections.forEach(section => section.classList.add('hidden'));
-    sections.forEach(section => document.querySelectorAll('#' + section.id + ' > div').forEach(div => div.remove()));
+    sections.forEach(section => {
+        Array.from(section.children).forEach(child => {
+            if (!child.classList.contains('format-header-row')) {
+                child.remove();
+            }
+        });
+    });
 }
 
 function getUniqueFormats(seriesData) {
@@ -815,4 +840,3 @@ function debounce(func, delay) {
         timeoutId = setTimeout(() => func.apply(this, args), delay);
     };
 }
-
