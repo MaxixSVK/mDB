@@ -1,4 +1,4 @@
-/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.2.2 | MIT License | https://tailwindcss.com */
 @layer properties;
 @layer theme, base, components, utilities;
 @layer theme {
@@ -352,9 +352,6 @@
   .mb-4 {
     margin-bottom: calc(var(--spacing) * 4);
   }
-  .mb-5 {
-    margin-bottom: calc(var(--spacing) * 5);
-  }
   .mb-6 {
     margin-bottom: calc(var(--spacing) * 6);
   }
@@ -415,8 +412,32 @@
   .h-2\/3 {
     height: calc(2 / 3 * 100%);
   }
+  .h-3 {
+    height: calc(var(--spacing) * 3);
+  }
+  .h-3\/4 {
+    height: calc(3 / 4 * 100%);
+  }
+  .h-4 {
+    height: calc(var(--spacing) * 4);
+  }
+  .h-4\/5 {
+    height: calc(4 / 5 * 100%);
+  }
   .h-6 {
     height: calc(var(--spacing) * 6);
+  }
+  .h-7 {
+    height: calc(var(--spacing) * 7);
+  }
+  .h-7\/10 {
+    height: calc(7 / 10 * 100%);
+  }
+  .h-9 {
+    height: calc(var(--spacing) * 9);
+  }
+  .h-9\/10 {
+    height: calc(9 / 10 * 100%);
   }
   .h-10 {
     height: calc(var(--spacing) * 10);
@@ -435,9 +456,6 @@
   }
   .min-h-screen {
     min-height: 100vh;
-  }
-  .w-2 {
-    width: calc(var(--spacing) * 2);
   }
   .w-6 {
     width: calc(var(--spacing) * 6);
@@ -507,12 +525,6 @@
   }
   .resize {
     resize: both;
-  }
-  .list-inside {
-    list-style-position: inside;
-  }
-  .list-disc {
-    list-style-type: disc;
   }
   .grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -654,12 +666,6 @@
   .border-\[\#FFA500\] {
     border-color: #FFA500;
   }
-  .border-\[\#FFA500\]\/40 {
-    border-color: color-mix(in oklab, #FFA500 40%, transparent);
-  }
-  .border-\[\#FFA500\]\/60 {
-    border-color: color-mix(in oklab, #FFA500 60%, transparent);
-  }
   .border-gray-400 {
     border-color: var(--color-gray-400);
   }
@@ -668,18 +674,6 @@
   }
   .border-white {
     border-color: var(--color-white);
-  }
-  .border-white\/10 {
-    border-color: color-mix(in srgb, #fff 10%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      border-color: color-mix(in oklab, var(--color-white) 10%, transparent);
-    }
-  }
-  .border-white\/20 {
-    border-color: color-mix(in srgb, #fff 20%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      border-color: color-mix(in oklab, var(--color-white) 20%, transparent);
-    }
   }
   .bg-\[\#1F1F1F\] {
     background-color: #1F1F1F;
@@ -690,20 +684,11 @@
   .bg-\[\#131313\] {
     background-color: #131313;
   }
-  .bg-\[\#171717\] {
-    background-color: #171717;
-  }
   .bg-\[\#191818\] {
     background-color: #191818;
   }
   .bg-\[\#232323\] {
     background-color: #232323;
-  }
-  .bg-\[\#FFA500\] {
-    background-color: #FFA500;
-  }
-  .bg-\[\#FFA500\]\/10 {
-    background-color: color-mix(in oklab, #FFA500 10%, transparent);
   }
   .bg-blue-600 {
     background-color: var(--color-blue-600);
@@ -774,12 +759,6 @@
   .py-4 {
     padding-block: calc(var(--spacing) * 4);
   }
-  .py-8 {
-    padding-block: calc(var(--spacing) * 8);
-  }
-  .py-12 {
-    padding-block: calc(var(--spacing) * 12);
-  }
   .pt-2 {
     padding-top: calc(var(--spacing) * 2);
   }
@@ -818,10 +797,6 @@
   .text-4xl {
     font-size: var(--text-4xl);
     line-height: var(--tw-leading, var(--text-4xl--line-height));
-  }
-  .text-5xl {
-    font-size: var(--text-5xl);
-    line-height: var(--tw-leading, var(--text-5xl--line-height));
   }
   .text-8xl {
     font-size: var(--text-8xl);
@@ -865,10 +840,6 @@
   .font-semibold {
     --tw-font-weight: var(--font-weight-semibold);
     font-weight: var(--font-weight-semibold);
-  }
-  .tracking-\[0\.14em\] {
-    --tw-tracking: 0.14em;
-    letter-spacing: 0.14em;
   }
   .tracking-wide {
     --tw-tracking: var(--tracking-wide);
@@ -1146,13 +1117,6 @@
       }
     }
   }
-  .hover\:bg-\[\#333333\] {
-    &:hover {
-      @media (hover: hover) {
-        background-color: #333333;
-      }
-    }
-  }
   .hover\:bg-\[\#FFA500\] {
     &:hover {
       @media (hover: hover) {
@@ -1268,19 +1232,9 @@
       margin-top: calc(var(--spacing) * 4);
     }
   }
-  .md\:mt-24 {
-    @media (width >= 48rem) {
-      margin-top: calc(var(--spacing) * 24);
-    }
-  }
   .md\:mt-26 {
     @media (width >= 48rem) {
       margin-top: calc(var(--spacing) * 26);
-    }
-  }
-  .md\:mt-28 {
-    @media (width >= 48rem) {
-      margin-top: calc(var(--spacing) * 28);
     }
   }
   .md\:mr-6 {
@@ -1306,6 +1260,11 @@
   .md\:h-2\/3 {
     @media (width >= 48rem) {
       height: calc(2 / 3 * 100%);
+    }
+  }
+  .md\:h-9\/10 {
+    @media (width >= 48rem) {
+      height: calc(9 / 10 * 100%);
     }
   }
   .md\:w-16 {

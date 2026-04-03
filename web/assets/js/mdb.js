@@ -502,7 +502,7 @@ function renderBookDetails(series, book, chapters) {
     document.body.classList.add('overflow-hidden');
 
     const container = document.createElement('div');
-    container.className = 'fixed bottom-0 left-0 w-full h-2/3 md:h-2/3 bg-[#191818] p-6 transform translate-y-full transition-transform duration-500 ease-in-out flex items-center justify-center border-t-4 border-[#2A2A2A] overflow-y-auto md:overflow-hidden';
+    container.className = 'fixed bottom-0 left-0 w-full h-4/5 md:h-2/3 bg-[#191818] p-6 transform translate-y-full transition-transform duration-500 ease-in-out flex items-center justify-center border-t-4 border-[#2A2A2A] overflow-y-auto md:overflow-hidden';
     container.id = 'book-details-container';
 
     const contentWrapper = document.createElement('div');
@@ -655,7 +655,7 @@ function renderBookDetails(series, book, chapters) {
 
     container.appendChild(contentWrapper);
 
-    document.body.appendChild(container);
+    document.getElementById('app').appendChild(container);
 
     document.addEventListener('click', handleOutsideClick, true);
 
