@@ -726,14 +726,14 @@ function setupSearch() {
 
 function performSearch(searchTerm) {
     (user && !publicUser.public
-        ? fetch(api + '/library/user/search/' + user.id + '/' + searchTerm, {
+        ? fetch(api + '/library/user/search/' + publicUser.id + '/' + searchTerm, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': getCookie('sessionToken')
             },
         })
-        : fetch(api + '/library/user/search/' + user.id + '/' + searchTerm))
+        : fetch(api + '/library/user/search/' + publicUser.id + '/' + searchTerm))
         .then(response => response.json())
         .then(data => {
             hideStats()
