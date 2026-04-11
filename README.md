@@ -2,30 +2,15 @@
 
 Ever wondered when you read _that_ book?
 
-## Requirements
+## Documentation
 
-- Git
-- [Node.js](https://nodejs.org/)
-- [MariaDB](https://mariadb.org/) server
+You can find the documentation on our wiki:  
+https://github.com/MaxixSVK/mDB/wiki
 
-## Installation
+## Quick Start
 
-1. **Clone the repository:**
-   ```sh
-   git clone https://github.com/MaxixSVK/mDBs
-   ```
-2. **Install dependencies:**
-   ```sh
-   npm install
-   ```
-3. **Set up the database:**
-   - Run the `setup.sql` script on your MariaDB server to create the required tables.
-4. **Set environment variables:**
-   - Copy `.env.example` to `.env` and update configuration values for your environment.
-5. **Start services:**
-   ```sh
-   npm run env
-   ```
+For quick setup follow the Installation guide in the wiki:  
+https://github.com/MaxixSVK/mDB/wiki/Installation
 
 ## Security
 
