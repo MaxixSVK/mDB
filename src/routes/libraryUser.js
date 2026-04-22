@@ -46,7 +46,10 @@ module.exports = function (pool) {
                 );
 
                 await newlibraryLog(req.userId, 'INSERT', tableName, result.insertId, null, JSON.stringify(newDbData), pool);
-                res.success('Added successfully');
+                res.success({
+                    msg: 'Added successfully',
+                    data: newDbData
+                });
             } else {
                 res.success('No valid fields provided to update');
             }
@@ -97,7 +100,10 @@ module.exports = function (pool) {
                 const [newDbData] = await conn.query(newDbDataQuery, [id, req.userId]);
 
                 await newlibraryLog(req.userId, 'UPDATE', tableName, id, JSON.stringify(oldDbData), JSON.stringify(newDbData), pool);
-                res.success('Updated successfully');
+                res.success({
+                    msg: 'Updated successfully',
+                    data: newDbData
+                });
 
                 if ((type === 'series' || type === 'book') && oldDbData.img === 1 && newDbData.img === 0) {
                     const filename = type === 'series' ? `s-${id}.png` : `b-${id}.png`;

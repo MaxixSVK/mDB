@@ -12,17 +12,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         window.location.href = '/about';
     }
 
-    const mainPageData = user && !publicUser.public
-        ? await fetch(api + '/library/user/' + (publicUser.username || user.username), {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': getCookie('sessionToken')
-            },
-        })
-        : await fetch(api + '/library/user/' + (publicUser.username || user.username));
-
-    publicUser = { ...publicUser, ...await mainPageData.json() };
+    await fetchPublicUserData();
 
     if (publicUser.error) {
         window.location.href = '/404';

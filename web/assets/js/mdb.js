@@ -12,17 +12,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         window.location.href = '/about';
     }
 
-    const mainPageData = user && !publicUser.public
-        ? await fetch(api + '/library/user/' + (publicUser.username || user.username), {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': getCookie('sessionToken')
-            },
-        })
-        : await fetch(api + '/library/user/' + (publicUser.username || user.username));
-
-    publicUser = { ...publicUser, ...await mainPageData.json() };
+    await fetchPublicUserData();
 
     if (publicUser.error) {
         window.location.href = '/404';
@@ -50,11 +40,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         nopfp.addEventListener('click', () => window.location.href = '/auth');
     }
 
-    fetchStats();
+    fetchMainData();
     setupSearch();
 });
 
-function fetchStats() {
+function fetchMainData() {
     let statstUrl = '/stats'
     if (public) {
         statstUrl += '/' + publicUser.username;
@@ -211,7 +201,7 @@ function createFormatLists() {
             addSeriesBtn.title = 'Create series in ' + a.name;
 
             addSeriesBtn.addEventListener('click', function () {
-                showNotification('Feature available in old dashboard', 'info');
+                renderSeries(null, a.format);
             });
 
             headerRow.appendChild(addSeriesBtn);
@@ -275,9 +265,309 @@ function fetchSeriesList() {
         });
 }
 
-function renderSeries(series) {
-    const formatSection = document.getElementById(series.format);
-    showFormatList(series.format);
+function insertSeriesCard(formatSection, card, prependToList = false) {
+    if (!prependToList) {
+        formatSection.appendChild(card);
+        return;
+    }
+
+    const firstListItem = Array.from(formatSection.children).find(child => !child.classList.contains('format-header-row'));
+    if (firstListItem) {
+        formatSection.insertBefore(card, firstListItem);
+    } else {
+        formatSection.appendChild(card);
+    }
+}
+
+function renderSeries(series, targetFormat, prependToList = false) {
+    if (!series) {
+        const formatSection = document.getElementById(targetFormat);
+        let selectedImageFile = null;
+        const authors = Array.isArray(publicUser.authors) ? publicUser.authors : [];
+        let selectedAuthorId = '';
+
+        const card = document.createElement('div');
+        card.className = 'bg-[#1F1F1F] rounded-md p-4 my-4';
+
+        const header = document.createElement('div');
+        header.className = 'flex items-center';
+
+        const imgContainer = document.createElement('div');
+        imgContainer.className = 'relative mr-4 h-24 w-16 shrink-0';
+
+        const imageInput = document.createElement('input');
+        imageInput.type = 'file';
+        imageInput.accept = 'image/*';
+        imageInput.className = 'hidden';
+
+        const imagePickerButton = document.createElement('button');
+        imagePickerButton.type = 'button';
+        imagePickerButton.className = 'h-full w-full rounded-md bg-[#191818] border border-[#2a2a2a] flex items-center justify-center text-white hover:border-white transition-colors duration-200 overflow-hidden';
+        imagePickerButton.title = 'Upload cover image';
+        imagePickerButton.innerHTML = '<i class="fas fa-plus text-xl"></i>';
+
+        imagePickerButton.addEventListener('click', function () {
+            imageInput.click();
+        });
+
+        imageInput.addEventListener('change', function (event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file || !file.type.startsWith('image/')) {
+                return;
+            }
+
+            selectedImageFile = file;
+
+            const previewImage = document.createElement('img');
+            previewImage.src = URL.createObjectURL(file);
+            previewImage.alt = 'Series cover preview';
+            previewImage.className = 'h-full w-full object-cover rounded-md';
+
+            imagePickerButton.innerHTML = '';
+            imagePickerButton.appendChild(previewImage);
+        });
+
+        imgContainer.appendChild(imagePickerButton);
+        imgContainer.appendChild(imageInput);
+
+        const content = document.createElement('div');
+        content.className = 'flex-1 space-y-2';
+
+        const authorInput = document.createElement('select');
+        authorInput.className = 'w-full px-3 py-2 text-white bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white transition-colors duration-200';
+        authorInput.disabled = true;
+
+        const loadingAuthorOption = document.createElement('option');
+        loadingAuthorOption.value = '';
+        loadingAuthorOption.textContent = 'Loading authors...';
+        loadingAuthorOption.selected = true;
+        loadingAuthorOption.disabled = true;
+        authorInput.appendChild(loadingAuthorOption);
+
+        const titleInput = document.createElement('input');
+        titleInput.type = 'text';
+        titleInput.placeholder = 'Series name';
+        titleInput.className = 'w-full px-3 py-2 text-white bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white transition-colors duration-200';
+
+        const statusInput = document.createElement('select');
+        statusInput.className = 'w-full px-3 py-2 text-white bg-[#191818] border border-[#2a2a2a] rounded-md';
+
+        const statusOptions = [
+            { value: 'reading', label: 'Reading' },
+            { value: 'finished', label: 'Finished' },
+            { value: 'stopped', label: 'Stopped' },
+            { value: 'paused', label: 'Paused' }
+        ];
+
+        statusOptions.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.value;
+            optionElement.textContent = option.label;
+            statusInput.appendChild(optionElement);
+        });
+
+        const formatInput = document.createElement('select');
+        formatInput.className = 'w-full px-3 py-2 text-white bg-[#191818] border border-[#2a2a2a] rounded-md';
+
+        const formatOptions = [
+            { value: 'manga', label: 'Manga' },
+            { value: 'lightNovel', label: 'Light Novel' }
+        ];
+
+        formatOptions.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.value;
+            optionElement.textContent = option.label;
+            formatInput.appendChild(optionElement);
+        });
+
+        formatInput.value = targetFormat;
+
+        content.appendChild(titleInput);
+        content.appendChild(authorInput);
+        content.appendChild(statusInput);
+        content.appendChild(formatInput);
+
+        const noAuthorsMessage = document.createElement('p');
+        noAuthorsMessage.className = 'text-sm text-red-400 hidden';
+        noAuthorsMessage.textContent = 'No authors found. Create an author before adding a series.';
+        content.appendChild(noAuthorsMessage);
+
+        (async () => {
+            if (authors.length === 0) {
+                authorInput.innerHTML = '';
+                const emptyOption = document.createElement('option');
+                emptyOption.value = '';
+                emptyOption.textContent = 'No authors available';
+                emptyOption.selected = true;
+                emptyOption.disabled = true;
+                authorInput.appendChild(emptyOption);
+                authorInput.disabled = true;
+                noAuthorsMessage.classList.remove('hidden');
+                submitButton.disabled = true;
+
+                while (submitButton.firstChild) {
+                    submitButton.removeChild(submitButton.firstChild);
+                }
+                const blockedIcon = document.createElement('i');
+                blockedIcon.className = 'fas fa-ban mr-2';
+                submitButton.appendChild(blockedIcon);
+                submitButton.appendChild(document.createTextNode('Add an author first'));
+                showNotification('No authors available. Create an author before adding a series.', 'warning');
+                return;
+            }
+
+            authorInput.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select an author';
+            defaultOption.selected = true;
+            defaultOption.disabled = true;
+            authorInput.appendChild(defaultOption);
+
+            const authorPromises = authors.map(async authorId => fetch(api + '/library/author/' + authorId).then(response => response.json()));
+            const authorDetails = await Promise.all(authorPromises);
+
+            authorDetails.forEach(author => {
+                const option = document.createElement('option');
+                option.value = author.author_id;
+                option.textContent = author.name;
+                authorInput.appendChild(option);
+            });
+
+            authorInput.disabled = false;
+            selectedAuthorId = authorInput.value;
+
+            authorInput.addEventListener('change', function () {
+                selectedAuthorId = this.value;
+            });
+        })();
+
+        header.appendChild(imgContainer);
+        header.appendChild(content);
+        card.appendChild(header);
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'flex gap-2 mt-4 pt-4 border-t border-[#2a2a2a]';
+
+        const submitButton = document.createElement('button');
+        submitButton.type = 'button';
+        submitButton.className = 'flex-1 border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300';
+
+        const submitIcon = document.createElement('i');
+        submitIcon.className = 'fas fa-check mr-2';
+        submitButton.appendChild(submitIcon);
+        submitButton.appendChild(document.createTextNode('Create Series'));
+
+        const cancelButton = document.createElement('button');
+        cancelButton.type = 'button';
+        cancelButton.className = 'flex-1 border-2 border-dashed border-white text-white font-semibold py-2 px-4 rounded-lg hover:bg-white hover:text-black transition duration-300';
+
+        const cancelIcon = document.createElement('i');
+        cancelIcon.className = 'fas fa-times mr-2';
+        cancelButton.appendChild(cancelIcon);
+        cancelButton.appendChild(document.createTextNode('Cancel'));
+
+        submitButton.addEventListener('click', async function () {
+            const title = titleInput.value.trim();
+            const status = statusInput.value;
+            const format = formatInput.value;
+            const authorId = selectedAuthorId || authorInput.value;
+
+            if (!title) {
+                showNotification('Please enter a series name', 'warning');
+                return;
+            }
+
+            if (!authorId) {
+                showNotification('Please select an author', 'warning');
+                return;
+            }
+
+            submitButton.disabled = true;
+
+            while (submitButton.firstChild) {
+                submitButton.removeChild(submitButton.firstChild);
+            }
+            const loadingIcon = document.createElement('i');
+            loadingIcon.className = 'fas fa-spinner fa-spin mr-2';
+            submitButton.appendChild(loadingIcon);
+            submitButton.appendChild(document.createTextNode('Creating...'));
+
+            try {
+                const data = {
+                    type: 'series',
+                    author_id: authorId,
+                    name: title,
+                    status: status,
+                    format: format
+                };
+
+                const response = await fetch(api + '/library/manage/new', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': getCookie('sessionToken')
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const responseData = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(responseData.error || responseData.message || 'Failed to create series');
+                }
+
+                const createdSeriesId = responseData.data.series_id;
+                if (selectedImageFile && createdSeriesId) {
+                    try {
+                        await uploadSeriesCoverImage(selectedImageFile, createdSeriesId);
+                    } catch (uploadError) {
+                        showNotification(uploadError.message, 'warning');
+                    }
+                }
+
+                showNotification(responseData.msg || 'Series created successfully', 'success');
+                card.remove();
+
+                await fetchPublicUserData();
+
+                fetchMainData();
+            } catch (error) {
+                console.error('Error creating series:', error);
+                showNotification(error.message, 'error');
+            } finally {
+                submitButton.disabled = false;
+
+                while (submitButton.firstChild) {
+                    submitButton.removeChild(submitButton.firstChild);
+                }
+                const resetIcon = document.createElement('i');
+                resetIcon.className = 'fas fa-check mr-2';
+                submitButton.appendChild(resetIcon);
+                submitButton.appendChild(document.createTextNode('Create Series'));
+            }
+        });
+
+        cancelButton.addEventListener('click', function () {
+            card.remove();
+        });
+
+        buttonContainer.appendChild(submitButton);
+        buttonContainer.appendChild(cancelButton);
+        card.appendChild(buttonContainer);
+
+        insertSeriesCard(formatSection, card, true);
+        return;
+    }
+
+    const formatId = series.format || 'manga';
+    const formatSection = document.getElementById(formatId);
+    if (!formatSection) {
+        return;
+    }
+
+    showFormatList(formatId);
 
     const card = document.createElement('div');
     card.className = 'bg-[#1F1F1F] rounded-md p-4 my-4 cursor-pointer';
@@ -286,12 +576,12 @@ function renderSeries(series) {
     header.className = 'flex items-center';
 
     const imgContainer = document.createElement('div');
-    imgContainer.className = 'relative mr-4';
+    imgContainer.className = 'relative mr-4 h-24 w-16 shrink-0';
 
     const img = document.createElement('img');
     img.src = series.img ? cdn + '/library/s-' + series.series_id + '.png?q=l' : cdn + '/library/404.avif';
     img.alt = series.name || 'No image';
-    img.className = 'h-24 object-cover rounded-md';
+    img.className = 'h-full w-full object-cover rounded-md';
 
     const bookCountBadge = document.createElement('div');
     bookCountBadge.className = 'absolute -top-2 -right-2 bg-[#2A2A2A]  text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center';
@@ -322,8 +612,8 @@ function renderSeries(series) {
         paused: 'Paused',
     };
 
-    const statusClass = statusClasses[series.status];
-    const statusText = statusTexts[series.status];
+    const statusClass = statusClasses[series.status] || 'text-gray-400';
+    const statusText = statusTexts[series.status] || 'Unknown';
 
     status.className = statusClass + ' text-sm mt-1';
     status.textContent = statusText;
@@ -331,7 +621,7 @@ function renderSeries(series) {
     content.appendChild(title);
     content.appendChild(status);
 
-    const count = series.books.length;
+    const count = Array.isArray(series.books) ? series.books.length : 0;
     bookCountBadge.textContent = count.toString();
     if (count > 99) bookCountBadge.textContent = '99+';
 
@@ -341,7 +631,8 @@ function renderSeries(series) {
     card.appendChild(header);
 
     const bookList = document.createElement('div');
-    bookList.id = 'books-list-' + series.series_id;
+    const seriesListId = 'books-list-' + series.series_id;
+    bookList.id = seriesListId;
 
     bookList.addEventListener('click', function (event) {
         event.stopPropagation();
@@ -350,7 +641,11 @@ function renderSeries(series) {
     card.appendChild(bookList);
 
     card.addEventListener('click', function () {
-        const booksList = document.getElementById('books-list-' + series.series_id);
+        const booksList = document.getElementById(seriesListId);
+        if (!booksList) {
+            return;
+        }
+
         if (booksList.hasChildNodes()) {
             Array.from(booksList.children).forEach(child => {
                 child.classList.add('opacity-0', 'translate-y-4');
@@ -358,12 +653,47 @@ function renderSeries(series) {
                     booksList.removeChild(child);
                 }, 250);
             });
-        } else {
+        } else if (Array.isArray(series.books) && series.books.length > 0) {
             getBookList(series);
+        } else {
+            renderNoBook(booksList);
         }
     });
 
-    formatSection.appendChild(card);
+    insertSeriesCard(formatSection, card, prependToList);
+}
+
+async function uploadSeriesCoverImage(file, seriesId) {
+    return new Promise((resolve, reject) => {
+        const form = new FormData();
+        form.append('image', file);
+        form.append('type', 'series');
+        form.append('id', seriesId);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', cdn + '/library/upload', true);
+        xhr.setRequestHeader('Authorization', getCookie('sessionToken'));
+
+        xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve();
+            } else {
+                let message = 'Series created, but image upload failed';
+                try {
+                    const errorData = JSON.parse(xhr.responseText);
+                    message = errorData.error || errorData.msg || message;
+                } catch (_) {
+                }
+                reject(new Error(message));
+            }
+        });
+
+        xhr.addEventListener('error', () => {
+            reject(new Error('Series created, but image upload failed'));
+        });
+
+        xhr.send(form);
+    });
 }
 
 function renderNoBook(booksList) {
@@ -719,7 +1049,7 @@ function setupSearch() {
             hideNoResults();
             hideStats();
             cleanAllFormatLists();
-            fetchStats();
+            fetchMainData();
         }
     }
 }

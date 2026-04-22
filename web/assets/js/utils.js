@@ -72,7 +72,7 @@ async function checkLogin() {
             if (response.ok) {
                 const user = await response.json();
 
-                return user ;
+                return user;
             } else {
                 logout();
             }
@@ -95,6 +95,23 @@ async function logout(deletedAccount) {
 
     document.cookie = 'sessionToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     window.location.href = deletedAccount ? '/' : '/auth';
+}
+
+async function fetchPublicUserData() {
+    const username = publicUser.username || user?.username;
+
+    const response = user && !publicUser.public
+        ? await fetch(api + '/library/user/' + username, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getCookie('sessionToken')
+            },
+        })
+        : await fetch(api + '/library/user/' + username);
+
+    const data = await response.json();
+    publicUser = { ...publicUser, ...data };
 }
 
 function showNotification(message, type = 'info', progress = null) {
