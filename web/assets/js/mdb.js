@@ -496,14 +496,13 @@ function renderSeries(series, targetFormat, prependToList = false) {
 
             try {
                 const data = {
-                    type: 'series',
                     author_id: authorId,
                     name: title,
                     status: status,
                     format: format
                 };
 
-                const response = await fetch(api + '/library/manage/new', {
+                const response = await fetch(api + '/library/manage/new/series', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

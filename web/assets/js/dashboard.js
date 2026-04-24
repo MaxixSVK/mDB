@@ -210,7 +210,7 @@ async function handleDataSubmit(e, form, action) {
         delete data.series_id;
     }
 
-    let url = api + '/library/manage/' + action;
+    let url = api + '/library/manage/' + action + '/' + data.type;
     let method = 'POST';
 
     if (action === 'update') {
@@ -219,11 +219,13 @@ async function handleDataSubmit(e, form, action) {
         method = 'PUT';
     } else if (action === 'delete') {
         const id = data.chapter_id || data.book_id || data.series_id;
-        url += '/' + data.type + '/' + id;
+        url += '/' + id;
         method = 'DELETE';
     }
 
     try {
+        delete data.type;
+        
         const response = await fetch(url, {
             method: method,
             headers: {

@@ -8,11 +8,12 @@ module.exports = function (pool) {
 
     const newlibraryLog = require('../utils/libraryLogs');
 
-    router.post('/new', async (req, res, next) => {
+    router.post('/new/:type', async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
-            const { type, ...data } = req.body;
+            const { type } = req.params;
+            const { ...data } = req.body;
 
             const tableNameMapping = {
                 series: 'series',
@@ -60,12 +61,12 @@ module.exports = function (pool) {
         }
     });
 
-    router.put('/update/:id', async (req, res, next) => {
+    router.put('/update/:type/:id', async (req, res, next) => {
         let conn;
         try {
             conn = await pool.getConnection();
-            const { id } = req.params;
-            const { type, ...data } = req.body;
+            const { type, id } = req.params;
+            const { ...data } = req.body;
 
             const tableNameMapping = {
                 series: 'series',
@@ -131,18 +132,12 @@ module.exports = function (pool) {
         let conn;
         try {
             conn = await pool.getConnection();
-            const { id, type } = req.params;
+            const { type, id } = req.params;
 
             const tableNameMapping = {
                 series: 'series',
                 book: 'books',
                 chapter: 'chapters'
-            };
-
-            const foreignKeyCheckMapping = {
-                series: { table: 'books', column: 'series_id' },
-                book: { table: 'chapters', column: 'book_id' },
-                chapter: null
             };
 
             const tableName = tableNameMapping[type];
@@ -152,16 +147,6 @@ module.exports = function (pool) {
             const [dbData] = await conn.query(dbDataQuery, [id, req.userId]);
             if (!dbData) {
                 return res.success('Data does not exist');
-            }
-
-            const fkCheck = foreignKeyCheckMapping[type];
-            if (fkCheck) {
-                const dependentRowsQuery = `SELECT 1 FROM ${fkCheck.table} WHERE ${fkCheck.column} = ? LIMIT 1`;
-                const [dependentRows] = await conn.query(dependentRowsQuery, [id]);
-
-                if (dependentRows) {
-                    return res.error('Cannot delete because it is used elsewhere', 409);
-                }
             }
 
             await conn.query(

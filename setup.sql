@@ -93,7 +93,7 @@ CREATE TABLE `books` (
     `total_pages` INT DEFAULT NULL,
     KEY `series_id` (`series_id`),
     KEY `user_id` (`user_id`),
-    CONSTRAINT `books_ibfk_1` FOREIGN KEY (`series_id`) REFERENCES `series` (`series_id`),
+    CONSTRAINT `books_ibfk_1` FOREIGN KEY (`series_id`) REFERENCES `series` (`series_id`) ON DELETE CASCADE,
     CONSTRAINT `books_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 );
 
@@ -105,6 +105,6 @@ CREATE TABLE `chapters` (
     `date` DATE DEFAULT NULL,
     KEY `book_id` (`book_id`),
     KEY `user_id` (`user_id`),
-    CONSTRAINT `chapters_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`),
+    CONSTRAINT `chapters_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`) ON DELETE CASCADE,
     CONSTRAINT `chapters_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 );
