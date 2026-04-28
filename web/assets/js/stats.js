@@ -12,10 +12,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         window.location.href = '/about';
     }
 
-    await fetchPublicUserData();
-
-    if (publicUser.error) {
-        window.location.href = '/404';
+    if (user || profileMatch) {
+        await fetchPublicUserData();
     }
 
     if (publicUser.public == 0 && publicUser.id !== user?.id) {
