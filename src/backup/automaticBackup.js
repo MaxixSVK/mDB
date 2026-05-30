@@ -169,16 +169,17 @@ async function scheduleBackup(backupFunction, backupDir, backupType, interval) {
 async function automaticBackup() {
     try {
         const backupDir = path.join(__dirname, `../../backups`);
+        const interval = 86400000;
         
         const backups = [
-            { type: 'DB', enabled: config.api.backup.db, interval: config.api.backup.dbInterval, action: () => backupDatabase(true) },
-            { type: 'CDN', enabled: config.api.backup.cdn, interval: config.api.backup.cdnInterval, action: backupCDN }
+            { type: 'DB', enabled: config.api.backup.db, action: () => backupDatabase(true) },
+            { type: 'CDN', enabled: config.api.backup.cdn, action: backupCDN }
         ];
 
         for (const backup of backups) {
             if (backup.enabled) {
                 logger.info(`Automatic ${backup.type} backup enabled`);
-                await scheduleBackup(backup.action, backupDir, backup.type, backup.interval);
+                await scheduleBackup(backup.action, backupDir, backup.type, interval);
             } else {
                 logger.info(`Automatic ${backup.type} backup disabled`);
             }
@@ -186,7 +187,7 @@ async function automaticBackup() {
 
         if (config.api.backup.cleanup) {
             logger.info('Automatic backup cleanup enabled');
-            await scheduleCleanup(backupDir, config.api.backup.cleanupInterval);
+            await scheduleCleanup(backupDir, interval);
         } else {
             logger.info('Automatic backup cleanup disabled');
         }

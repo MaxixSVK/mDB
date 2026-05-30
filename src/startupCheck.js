@@ -20,10 +20,7 @@ async function createDefaultConfig(configPath) {
             backup: {
                 db: false,
                 cdn: false,
-                dbInterval: 86400000,
-                cdnInterval: 86400000,
-                cleanup: false,
-                cleanupInterval: 86400000
+                cleanup: false
             },
             email: {
                 enabled: false
@@ -68,10 +65,7 @@ async function checkConfigFormat() {
         config.api.backup &&
         typeof config.api.backup.db === 'boolean' &&
         typeof config.api.backup.cdn === 'boolean' &&
-        typeof config.api.backup.dbInterval === 'number' &&
-        typeof config.api.backup.cdnInterval === 'number' &&
         typeof config.api.backup.cleanup === 'boolean' &&
-        typeof config.api.backup.cleanupInterval === 'number' &&
         config.api.email &&
         typeof config.api.email.enabled === 'boolean' &&
         typeof config.web === 'object' &&
