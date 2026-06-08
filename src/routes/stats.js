@@ -78,39 +78,5 @@ module.exports = function (pool) {
         }
     });
 
-    router.get('/format{/:user_id}', async (req, res, next) => {
-        let conn;
-        try {
-            conn = await pool.getConnection();
-            const user_id = req.params.user_id || req.userId;
-
-            const [user] = await conn.query('SELECT public FROM users WHERE id = ?', [user_id]);
-            if (!user) {
-                return res.error('User not found', 404);
-            }
-            if (!user.public && req.userId !== user_id) {
-                return res.error('You do not have access to view this data', 403);
-            }
-
-            const query = `
-            SELECT
-            (SELECT COUNT(series_id) FROM series WHERE user_id = ? AND format = 'manga') as manga,
-            (SELECT COUNT(series_id) FROM series WHERE user_id = ? AND format = 'lightNovel') as lightNovel;
-            `
-
-            const [data] = await conn.query(query, [user_id, user_id]);
-            const stats = {
-                manga: Number(data.manga),
-                lightNovel: Number(data.lightNovel)
-            };
-
-            res.success(stats);
-        } catch (err) {
-            next(err);
-        } finally {
-            if (conn) conn.release();
-        }
-    });
-
     return router;
 };
