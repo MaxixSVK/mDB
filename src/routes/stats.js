@@ -78,5 +78,52 @@ module.exports = function (pool) {
         }
     });
 
+    router.get('/series/:series_id', async (req, res, next) => {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const series_id = req.params.series_id;
+
+            const [seriesUser] = await conn.query('SELECT user_id FROM series WHERE series_id = ?', [series_id]);
+            if (!seriesUser) {
+                return res.error('Series not found', 404);
+            }
+
+            const [user] = await conn.query('SELECT public FROM users WHERE id = ?', [seriesUser.user_id]);
+            if (!user.public && req.userId !== seriesUser.user_id) {
+                return res.error('You do not have access to view this data', 403);
+            }
+
+            const seriesQuery = 'SELECT name, format, status, img, author_id FROM series WHERE series_id = ?';
+            const [series] = await conn.query(seriesQuery, [series_id]);
+
+            const statsQuery = `
+            SELECT 
+            (SELECT COUNT(book_id) FROM books WHERE series_id = ?) as books,
+            (SELECT COUNT(chapters.chapter_id)
+             FROM chapters
+             JOIN books ON chapters.book_id = books.book_id
+             WHERE books.series_id = ?) as chapters,
+            (SELECT COALESCE(SUM(total_pages), 0) FROM books WHERE series_id = ?) as pages,
+            (SELECT COALESCE(SUM(current_page), 0) FROM books WHERE series_id = ?) as pages_read;
+            `;
+
+            const [statsData] = await conn.query(statsQuery, [series_id, series_id, series_id, series_id]);
+            const stats = {
+                ...series,
+                books: Number(statsData.books),
+                chapters: Number(statsData.chapters),
+                pages: Number(statsData.pages),
+                pages_read: Number(statsData.pages_read),
+            };
+
+            res.success(stats);
+        } catch (err) {
+            next(err);
+        } finally {
+            if (conn) conn.release();
+        }
+    });
+
     return router;
 };
