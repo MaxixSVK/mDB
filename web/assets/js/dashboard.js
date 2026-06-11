@@ -225,7 +225,12 @@ async function handleDataSubmit(e, form, action) {
 
     try {
         delete data.type;
-        
+        if (action == 'update') {
+            if (data.series_id) delete data.series_id;
+            if (data.book_id) delete data.book_id;
+            if (data.chapter_id) delete data.chapter_id;
+        }
+
         const response = await fetch(url, {
             method: method,
             headers: {
