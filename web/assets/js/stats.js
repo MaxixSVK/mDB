@@ -49,7 +49,7 @@ async function initSeriesPanel() {
 
     const titleBlock = document.createElement('div');
     const title = document.createElement('h2');
-    title.className = 'text-xl md:text-2xl font-bold';
+    title.className = 'text-2xl font-bold';
     title.textContent = 'Series overview';
     const subtitle = document.createElement('p');
     subtitle.className = 'text-sm text-gray-400 mt-1';
@@ -184,7 +184,7 @@ function renderSeriesDetails(data, container) {
     const imageSrc = data.img && seriesId ? cdn + '/library/s-' + seriesId + '.png' : cdn + '/library/404.avif';
 
     const shell = document.createElement('div');
-    shell.className = 'overflow-hidden rounded-xl border border-[#2A2A2A] bg-[#191818]';
+    shell.className = 'overflow-hidden rounded-xl bg-[#191818]';
 
     const hero = document.createElement('div');
     hero.className = 'grid gap-0 md:grid-cols-[220px_1fr]';
@@ -197,11 +197,7 @@ function renderSeriesDetails(data, container) {
     imgEl.alt = data.name || 'Series image';
     imgEl.className = 'w-full h-full min-h-[260px] object-cover';
 
-    const imageOverlay = document.createElement('div');
-    imageOverlay.className = 'absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent';
-
     imagePane.appendChild(imgEl);
-    imagePane.appendChild(imageOverlay);
 
     const infoPane = document.createElement('div');
     infoPane.className = 'p-4 md:p-5 flex flex-col gap-4';
@@ -252,7 +248,7 @@ function renderSeriesDetails(data, container) {
 
     function statCard(label, value) {
         const card = document.createElement('div');
-        card.className = 'rounded-lg border border-[#2A2A2A] bg-[#1F1F1F] p-4 text-center';
+        card.className = 'rounded-lg bg-[#2A2A2A] p-4 text-center';
         const v = document.createElement('div');
         v.className = 'text-2xl md:text-3xl font-bold text-white';
         v.textContent = value;
@@ -270,7 +266,7 @@ function renderSeriesDetails(data, container) {
     statsGrid.appendChild(statCard('Pages Read', data.pages_read || 0));
 
     const progressWrap = document.createElement('div');
-    progressWrap.className = 'rounded-lg border border-[#2A2A2A] bg-[#1F1F1F] p-4';
+    progressWrap.className = 'rounded-lg bg-[#2A2A2A] p-4';
 
     const progressHeader = document.createElement('div');
     progressHeader.className = 'flex items-center justify-between gap-3 mb-3';
@@ -288,7 +284,7 @@ function renderSeriesDetails(data, container) {
     progressHeader.appendChild(progressValue);
 
     const track = document.createElement('div');
-    track.className = 'h-2 rounded-full bg-[#2A2A2A] overflow-hidden';
+    track.className = 'h-2 rounded-full bg-[#191818] overflow-hidden';
 
     const fill = document.createElement('div');
     fill.className = 'h-full rounded-full bg-[#FFA500]';
@@ -318,7 +314,7 @@ function addEventListeners() {
     document.getElementById('next-year').addEventListener('click', function () {
         const year = parseInt(document.getElementById('current-year').textContent, 10) + 1;
         if (year > new Date().getFullYear()) {
-            return showNotification('You cannot view stats for future years.', 'error');
+            return;
         }
         updateYear(year);
         fetchStatsByMonth(year);
