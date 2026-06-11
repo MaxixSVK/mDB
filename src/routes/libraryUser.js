@@ -7,6 +7,16 @@ module.exports = function (pool) {
     router.use(validateToken);
 
     const newlibraryLog = require('../utils/libraryLogs');
+    const tableNameMapping = {
+        series: 'series',
+        book: 'books',
+        chapter: 'chapters'
+    };
+    const fieldWhitelistMapping = {
+        series: ['author_id', 'name', 'img', 'format', 'status'],
+        book: ['series_id', 'name', 'isbn', 'started_reading', 'ended_reading', 'img', 'current_page', 'total_pages'],
+        chapter: ['book_id', 'name', 'date']
+    };
 
     router.post('/new/:type', async (req, res, next) => {
         let conn;
@@ -15,34 +25,40 @@ module.exports = function (pool) {
             const { type } = req.params;
             const { ...data } = req.body;
 
-            const tableNameMapping = {
-                series: 'series',
-                book: 'books',
-                chapter: 'chapters'
-            };
-
             const tableName = tableNameMapping[type];
+            const allowedFields = fieldWhitelistMapping[type];
+            if (!tableName) {
+                return res.error('Invalid type', 400);
+            }
+            if (!allowedFields) {
+                return res.error('Invalid type', 400);
+            }
 
             let columns = ['user_id'];
             let placeholders = ['?'];
             let params = [req.userId];
+            let hasValidField = false;
 
-            Object.entries(data).forEach(([key, value]) => {
+            for (const [key, value] of Object.entries(data)) {
+                if (!allowedFields.includes(key)) {
+                    return res.error(`Invalid field: ${key}`, 400);
+                }
                 if (value !== '') {
-                    columns.push(key);
+                    columns.push(conn.escapeId(key));
                     placeholders.push('?');
                     params.push(value);
+                    hasValidField = true;
                 }
-            });
+            }
 
-            const sql = `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`;
+            const sql = `INSERT INTO ${conn.escapeId(tableName)} (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`;
 
-            if (params.length > 1) {
+            if (hasValidField) {
                 const result = await conn.query(sql, params);
 
                 const primaryKey = `${type}_id`;
                 const [newDbData] = await conn.query(
-                    `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`,
+                    `SELECT * FROM ${conn.escapeId(tableName)} WHERE ${conn.escapeId(primaryKey)} = ? AND user_id = ?`,
                     [result.insertId, req.userId]
                 );
 
@@ -68,36 +84,42 @@ module.exports = function (pool) {
             const { type, id } = req.params;
             const { ...data } = req.body;
 
-            const tableNameMapping = {
-                series: 'series',
-                book: 'books',
-                chapter: 'chapters'
-            };
-
             const tableName = tableNameMapping[type];
+            const allowedFields = fieldWhitelistMapping[type];
+            if (!tableName) {
+                return res.error('Invalid type', 400);
+            }
+            if (!allowedFields) {
+                return res.error('Invalid type', 400);
+            }
             const primaryKey = `${type}_id`;
 
-            let sql = `UPDATE ${tableName} SET `;
+            let sql = `UPDATE ${conn.escapeId(tableName)} SET `;
             let params = [];
+            let hasValidField = false;
 
-            Object.entries(data).forEach(([key, value]) => {
-                sql += `${key} = ${value !== '' ? '?' : 'NULL'}, `;
+            for (const [key, value] of Object.entries(data)) {
+                if (!allowedFields.includes(key)) {
+                    return res.error(`Invalid field: ${key}`, 400);
+                }
+                sql += `${conn.escapeId(key)} = ${value !== '' ? '?' : 'NULL'}, `;
                 if (value !== '') {
                     params.push(value);
+                    hasValidField = true;
                 }
-            });
+            }
 
             sql = sql.slice(0, -2);
-            sql += ` WHERE ${primaryKey} = ? AND user_id = ?`;
+            sql += ` WHERE ${conn.escapeId(primaryKey)} = ? AND user_id = ?`;
             params.push(id, req.userId);
 
-            if (params.length > 2) {
-                const oldDbDataQuery = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
+            if (hasValidField) {
+                const oldDbDataQuery = `SELECT * FROM ${conn.escapeId(tableName)} WHERE ${conn.escapeId(primaryKey)} = ? AND user_id = ?`;
                 const [oldDbData] = await conn.query(oldDbDataQuery, [id, req.userId]);
 
                 await conn.query(sql, params);
 
-                const newDbDataQuery = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
+                const newDbDataQuery = `SELECT * FROM ${conn.escapeId(tableName)} WHERE ${conn.escapeId(primaryKey)} = ? AND user_id = ?`;
                 const [newDbData] = await conn.query(newDbDataQuery, [id, req.userId]);
 
                 await newlibraryLog(req.userId, 'UPDATE', tableName, id, JSON.stringify(oldDbData), JSON.stringify(newDbData), pool);
@@ -134,23 +156,20 @@ module.exports = function (pool) {
             conn = await pool.getConnection();
             const { type, id } = req.params;
 
-            const tableNameMapping = {
-                series: 'series',
-                book: 'books',
-                chapter: 'chapters'
-            };
-
             const tableName = tableNameMapping[type];
+            if (!tableName) {
+                return res.error('Invalid type', 400);
+            }
             const primaryKey = `${type}_id`;
 
-            const dbDataQuery = `SELECT * FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`;
+            const dbDataQuery = `SELECT * FROM ${conn.escapeId(tableName)} WHERE ${conn.escapeId(primaryKey)} = ? AND user_id = ?`;
             const [dbData] = await conn.query(dbDataQuery, [id, req.userId]);
             if (!dbData) {
                 return res.success('Data does not exist');
             }
 
             await conn.query(
-                `DELETE FROM ${tableName} WHERE ${primaryKey} = ? AND user_id = ?`,
+                `DELETE FROM ${conn.escapeId(tableName)} WHERE ${conn.escapeId(primaryKey)} = ? AND user_id = ?`,
                 [id, req.userId]
             );
 
