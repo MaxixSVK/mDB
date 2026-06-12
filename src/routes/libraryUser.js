@@ -12,10 +12,16 @@ module.exports = function (pool) {
         book: 'books',
         chapter: 'chapters'
     };
-    const fieldWhitelistMapping = {
+    const newFieldWhitelistMapping = {
         series: ['author_id', 'name', 'img', 'format', 'status'],
         book: ['series_id', 'name', 'isbn', 'started_reading', 'ended_reading', 'img', 'current_page', 'total_pages'],
         chapter: ['book_id', 'name', 'date']
+    };
+
+    const updateFieldWhitelistMapping = {
+        series: ['author_id', 'name', 'img', 'format', 'status'],
+        book: ['name', 'isbn', 'started_reading', 'ended_reading', 'img', 'current_page', 'total_pages'],
+        chapter: ['name', 'date']
     };
 
     router.post('/new/:type', async (req, res, next) => {
@@ -26,7 +32,7 @@ module.exports = function (pool) {
             const { ...data } = req.body;
 
             const tableName = tableNameMapping[type];
-            const allowedFields = fieldWhitelistMapping[type];
+            const allowedFields = newFieldWhitelistMapping[type];
             if (!tableName) {
                 return res.error('Invalid type', 400);
             }
@@ -48,6 +54,18 @@ module.exports = function (pool) {
                     placeholders.push('?');
                     params.push(value);
                     hasValidField = true;
+                }
+            }
+
+            if (type !== 'series') {
+                const parentKey = type === 'book' ? 'series_id' : 'book_id';
+                const parentId = data[parentKey];
+                const parentTable = type === 'book' ? 'series' : 'books';
+
+                const parentDataQuery = `SELECT * FROM ${conn.escapeId(parentTable)} WHERE ${conn.escapeId(parentKey)} = ? AND user_id = ?`;
+                const [parentData] = await conn.query(parentDataQuery, [parentId, req.userId]);
+                if (!parentData) {
+                    return res.error(`Cannot find ${parentTable} with id ${parentId} for user ${req.userId}`, 400);
                 }
             }
 
@@ -85,7 +103,7 @@ module.exports = function (pool) {
             const { ...data } = req.body;
 
             const tableName = tableNameMapping[type];
-            const allowedFields = fieldWhitelistMapping[type];
+            const allowedFields = updateFieldWhitelistMapping[type];
             if (!tableName) {
                 return res.error('Invalid type', 400);
             }
