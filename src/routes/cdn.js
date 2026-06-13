@@ -35,20 +35,17 @@ module.exports = function (pool) {
     router.post('/library/upload', validateToken, uploadLibraryImage.single('image'), async (req, res, next) => {
         let conn;
         try {
+            conn = await pool.getConnection();
             const { type, id } = req.body;
             const oldPath = req.file.path;
 
-            const table = type === 'series' ? 'series' : 'books';
-            const idColumn = type === 'series' ? 'series_id' : 'book_id';
+            const parentTable = type === 'series' ? 'series' : 'books';
+            const parentKey = type === 'series' ? 'series_id' : 'book_id';
 
-            conn = await pool.getConnection();
-            const validRef = await conn.query(
-                `SELECT EXISTS(SELECT 1 FROM ${table} WHERE ${idColumn} = ? AND user_id = ?) AS record_exists`,
-                [id, req.userId]
-            );
-
-            if (!validRef[0].record_exists) {
-                return res.error('Invalid reference or unauthorized.', 403);
+            const parentDataQuery = `SELECT * FROM ${conn.escapeId(parentTable)} WHERE ${conn.escapeId(parentKey)} = ? AND user_id = ?`;
+            const [parentData] = await conn.query(parentDataQuery, [id, req.userId]);
+            if (!parentData) {
+                return res.error(`Cannot find ${parentTable} with id ${id} for user ${req.userId}`, 400);
             }
 
             const newFileName = type === 'series' ? `s-${id}.png` : `b-${id}.png`;
@@ -56,7 +53,7 @@ module.exports = function (pool) {
             fs.renameSync(oldPath, newPath);
 
             await conn.query(
-                `UPDATE ${table} SET img = ? WHERE ${idColumn} = ?`,
+                `UPDATE ${parentTable} SET img = ? WHERE ${parentKey} = ?`,
                 [true, id]
             );
 
@@ -89,9 +86,9 @@ module.exports = function (pool) {
     router.post('/users/pfp/upload', validateToken, uploadUserPFP.single('image'), async (req, res, next) => {
         let conn;
         try {
+            conn = await pool.getConnection();
             const oldPath = req.file.path;
 
-            conn = await pool.getConnection();
             await conn.query(
                 `UPDATE users SET pfp = ? WHERE id = ?`,
                 [true, req.userId]
