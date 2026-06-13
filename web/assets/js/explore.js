@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function fetchPublicUsers() {
     try {
         const response = await fetch(api + '/library/explore/users');
-        const result = await response.json();
+        const { data: result } = await response.json();
 
         const publicUsers = Array.isArray(result)
             ? result.filter(publicUser => publicUser.username !== user?.username)
@@ -52,9 +52,9 @@ async function createUserCard(cardUser) {
 
     let stats = null;
     try {
-        const statsResponse = await fetch(api + '/library/stats/' + cardUser.id);
+        const statsResponse = await fetch(api + '/stats/' + cardUser.id);
         if (statsResponse.ok) {
-            const statsResult = await statsResponse.json();
+            const statsResult = await statsResponse.json().then(response => response.data);
             stats = statsResult
         }
     } catch (error) {
@@ -118,9 +118,9 @@ async function createUserCard(cardUser) {
 
     const primaryStatsGrid = document.createElement('div');
     primaryStatsGrid.className = 'grid grid-cols-3 gap-2 mb-4';
-    primaryStatsGrid.appendChild(createStatItem(stats.seriesCount, 'Series', 'text-lg font-bold text-white'));
-    primaryStatsGrid.appendChild(createStatItem(stats.bookCount, 'Books', 'text-lg font-bold text-white'));
-    primaryStatsGrid.appendChild(createStatItem(stats.chapterCount, 'Chapters', 'text-lg font-bold text-white'));
+    primaryStatsGrid.appendChild(createStatItem(stats.series, 'Series', 'text-lg font-bold text-white'));
+    primaryStatsGrid.appendChild(createStatItem(stats.books, 'Books', 'text-lg font-bold text-white'));
+    primaryStatsGrid.appendChild(createStatItem(stats.chapters, 'Chapters', 'text-lg font-bold text-white'));
 
     const secondaryStatsGrid = document.createElement('div');
     secondaryStatsGrid.className = 'flex gap-2 mb-4';
@@ -129,7 +129,7 @@ async function createUserCard(cardUser) {
     mangaStat.className = 'flex-1 text-center bg-[#1F1F1F] p-2 rounded';
     const mangaValue = document.createElement('div');
     mangaValue.className = 'text-sm font-bold text-[#FFA500]';
-    mangaValue.textContent = String(stats.mangaCount || 0);
+    mangaValue.textContent = String(stats.manga || 0);
     const mangaLabel = document.createElement('div');
     mangaLabel.className = 'text-xs text-gray-400';
     mangaLabel.textContent = 'Manga';
@@ -140,7 +140,7 @@ async function createUserCard(cardUser) {
     lightNovelStat.className = 'flex-1 text-center bg-[#1F1F1F] p-2 rounded';
     const lightNovelValue = document.createElement('div');
     lightNovelValue.className = 'text-sm font-bold text-[#FFA500]';
-    lightNovelValue.textContent = String(stats.lightNovelCount || 0);
+    lightNovelValue.textContent = String(stats.lightNovel || 0);
     const lightNovelLabel = document.createElement('div');
     lightNovelLabel.className = 'text-xs text-gray-400';
     lightNovelLabel.textContent = 'Light Novels';

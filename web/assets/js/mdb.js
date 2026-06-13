@@ -53,17 +53,18 @@ function fetchMainData() {
     });
 
     (user && !publicUser.public
-        ? fetch(api + '/library/stats/' + publicUser.id, {
+        ? fetch(api + '/stats/' + publicUser.id, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': getCookie('sessionToken')
             },
         })
-        : fetch(api + '/library/stats/' + publicUser.id))
+        : fetch(api + '/stats/' + publicUser.id))
         .then(response => response.json())
+        .then(response => response.data)
         .then(data => {
-            if (data.seriesCount === 0) {
+            if (data.series === 0) {
                 createEmptyLibraryMessage();
                 return;
             }
@@ -246,18 +247,18 @@ function fetchSeriesList() {
                     'Content-Type': 'application/json',
                     'Authorization': getCookie('sessionToken')
                 },
-            }).then(response => response.json())
-            : fetch(api + '/library/series/' + seriesId).then(response => response.json())
+            }).then(response => response.json()).then(response => response.data)
+            : fetch(api + '/library/series/' + seriesId).then(response => response.json()).then(response => response.data)
     );
 
     Promise.all(seriesPromises)
-        .then(seriesData => {
-            seriesData.sort((a, b) => a.name.localeCompare(b.name));
+        .then(series => {
+            series.sort((a, b) => a.name.localeCompare(b.name));
 
-            const uniqueFormats = getUniqueFormats(seriesData);
+            const uniqueFormats = getUniqueFormats(series);
             uniqueFormats.forEach(format => showFormatList(format));
 
-            seriesData.forEach(series => {
+            series.forEach(series => {
                 renderSeries(series);
             });
         });
@@ -423,7 +424,8 @@ function renderSeries(series, targetFormat, prependToList = false) {
             defaultOption.disabled = true;
             authorInput.appendChild(defaultOption);
 
-            const authorPromises = authors.map(async authorId => fetch(api + '/library/author/' + authorId).then(response => response.json()));
+            const authorPromises = authors.map(async authorId => fetch(api + '/library/author/' + authorId)
+                .then(response => response.json().then(response => response.data)));
             const authorDetails = await Promise.all(authorPromises);
 
             authorDetails.forEach(author => {
@@ -734,7 +736,7 @@ function getBookList(series) {
                 },
             })
             : fetch(api + '/library/book/' + bookId)
-        ).then(res => res.json());
+        ).then(res => res.json()).then(res => res.data);
 
         if (isTuple && chapters !== undefined) {
             bookData.chapters = chapters;
@@ -820,6 +822,7 @@ function renderBook(series, book) {
 }
 
 async function fetchBookDetails(series, book) {
+    console.log(series, book);
     let chapters = await Promise.all(
         book.chapters.map(chapterId => (user && !publicUser.public
             ? fetch(api + '/library/chapter/' + chapterId, {
@@ -830,7 +833,7 @@ async function fetchBookDetails(series, book) {
                 },
             })
             : fetch(api + '/library/chapter/' + chapterId)
-        ).then(response => response.json()))
+        ).then(response => response.json()).then(response => response.data))
     );
 
     const author = await (user && !publicUser.public
@@ -842,7 +845,7 @@ async function fetchBookDetails(series, book) {
             },
         })
         : fetch(api + '/library/author/' + series.author_id)
-    ).then(response => response.json());
+    ).then(response => response.json()).then(response => response.data);
 
     series.author_name = author.name || 'Unknown';
     chapters.sort((a, b) => a.date.localeCompare(b.date));
@@ -1062,12 +1065,12 @@ function performSearch(searchTerm) {
         })
         : fetch(api + '/library/user/search/' + publicUser.id + '/' + searchTerm))
         .then(response => response.json())
-        .then(data => {
+        .then(search => {
             hideStats()
             cleanAllFormatLists();
 
-            if (data.length !== 0) {
-                fetchSearchSeries(data);
+            if (search.data.length !== 0) {
+                fetchSearchSeries(search.data);
             } else {
                 showNoResults()
             }
@@ -1088,6 +1091,7 @@ function fetchSearchSeries(searchResults) {
             })
             : fetch(api + '/library/series/' + series_id))
             .then(response => response.json())
+            .then(response => response.data)
             .then(series => {
                 series.books = booksArr;
                 renderSeries(series);

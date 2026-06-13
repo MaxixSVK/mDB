@@ -71,11 +71,11 @@ module.exports = function (pool) {
             );
 
             if (result.affectedRows === 0) {
-                return res.error('Session not found', 404);
+                return res.empty();
             }
 
             newAccountLog(req.userId, 'logout', true, req.ipAddress, req.userAgent, pool);
-            res.success('Session destroyed');
+            res.success(null, 'Session destroyed successfully');
         } catch (err) {
             next(err);
         } finally {
@@ -94,7 +94,7 @@ module.exports = function (pool) {
             );
 
             newAccountLog(req.userId, 'change_password', true, req.ipAddress, req.userAgent, pool);
-            res.success('Password changed');
+            res.success(null, 'Password changed successfully');
         } catch (err) {
             next(err);
         } finally {
@@ -112,7 +112,7 @@ module.exports = function (pool) {
             );
 
             if (usernameInUse) {
-                return res.error('Username is already in use', 409);
+                return res.error(409, 'Username is already associated with another account');
             }
 
             await conn.query(
@@ -121,7 +121,7 @@ module.exports = function (pool) {
             );
 
             newAccountLog(req.userId, 'change_username', true, req.ipAddress, req.userAgent, pool);
-            res.success('Username changed');
+            res.success(null, 'Username changed successfully');
         } catch (err) {
             next(err);
         } finally {
@@ -139,7 +139,7 @@ module.exports = function (pool) {
             );
 
             if (emailInUse) {
-                return res.error('Email is already in use', 409);
+                return res.error(409, 'Email is already associated with another account');
             }
 
             await conn.query(
@@ -148,7 +148,7 @@ module.exports = function (pool) {
             );
 
             newAccountLog(req.userId, 'change_email', true, req.ipAddress, req.userAgent, pool);
-            res.success('Email changed');
+            res.success(null, 'Email changed successfully');
         } catch (err) {
             next(err);
         } finally {
@@ -172,7 +172,7 @@ module.exports = function (pool) {
                 fs.unlinkSync(filePath);
             }
 
-            res.success('Profile picture reset to default');
+            res.success(null, 'Profile picture reset successfull');
         } catch (err) {
             next(err);
         } finally {
@@ -183,13 +183,13 @@ module.exports = function (pool) {
     router.put('/public-status', async (req, res, next) => {
         let conn;
         try {
-            const publicValue = req.body.public ? 1 : 0;
+            const public = req.body.public ? 1 : 0;
             conn = await pool.getConnection();
             await conn.query(
                 'UPDATE users SET public = ? WHERE id = ?',
-                [publicValue, req.userId]
+                [public, req.userId]
             );
-            res.success({ msg: 'Profile public status updated', public: publicValue });
+            res.success({ public }, 'Profile public status updated');
         } catch (err) {
             next(err);
         } finally {
@@ -342,7 +342,7 @@ module.exports = function (pool) {
             });
 
             //TODO: Find a way to send file to the client
-            res.success('Export completed');
+            res.success({ link: 'unavailable feature, work in progress' }, 'Export created successfully');
         } catch (err) {
             next(err);
         } finally {
@@ -402,7 +402,7 @@ module.exports = function (pool) {
                 fs.unlinkSync(pfpPath);
             }
 
-            res.success('Account deleted successfully');
+            res.success(null, 'Account deleted successfully');
 
             async function sendDeletionEmail() {
                 const email = user.email;

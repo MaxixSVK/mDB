@@ -12,17 +12,19 @@ module.exports = function (pool) {
 
             const [user] = await conn.query('SELECT public FROM users WHERE id = ?', [user_id]);
             if (!user) {
-                return res.error('User not found', 404);
+                return res.empty();
             }
-            if (!user.public && req.userId !== user_id) {
-                return res.error('You do not have access to view this data', 403);
+            if (!user.public && req.userId != user_id) {
+                return res.restricted();
             }
 
             const query = `
             SELECT 
             (SELECT COUNT(series_id) FROM series WHERE user_id = ?) as series,
             (SELECT COUNT(book_id) FROM books WHERE user_id = ?) as book,
-            (SELECT COUNT(chapter_id) FROM chapters WHERE user_id = ?) as chapter;
+            (SELECT COUNT(chapter_id) FROM chapters WHERE user_id = ?) as chapter,
+            (SELECT COUNT(series_id) FROM series WHERE user_id = ? AND format = 'manga') as manga,
+            (SELECT COUNT(series_id) FROM series WHERE user_id = ? AND format = 'lightNovel') as lightNovel;
             `;
 
             const [data] = await conn.query(query, [user_id, user_id, user_id, user_id, user_id]);
@@ -30,6 +32,8 @@ module.exports = function (pool) {
                 series: Number(data.series),
                 book: Number(data.book),
                 chapter: Number(data.chapter),
+                manga: Number(data.manga),
+                lightNovel: Number(data.lightNovel)
             };
 
             res.success(stats);
@@ -48,10 +52,10 @@ module.exports = function (pool) {
 
             const [user] = await conn.query('SELECT public FROM users WHERE id = ?', [user_id]);
             if (!user) {
-                return res.error('User not found', 404);
+                return res.empty();
             }
-            if (!user.public && req.userId !== user_id) {
-                return res.error('You do not have access to view this data', 403);
+            if (!user.public && req.userId != user_id) {
+                return res.restricted();
             }
 
             const query = `
@@ -86,12 +90,12 @@ module.exports = function (pool) {
 
             const [seriesUser] = await conn.query('SELECT user_id FROM series WHERE series_id = ?', [series_id]);
             if (!seriesUser) {
-                return res.error('Series not found', 404);
+                return res.empty();
             }
 
             const [user] = await conn.query('SELECT public FROM users WHERE id = ?', [seriesUser.user_id]);
-            if (!user.public && req.userId !== seriesUser.user_id) {
-                return res.error('You do not have access to view this data', 403);
+            if (!user.public && req.userId != seriesUser.user_id) {
+                return res.restricted();
             }
 
             const seriesQuery = 'SELECT name, format, status, img, author_id FROM series WHERE series_id = ?';

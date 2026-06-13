@@ -38,7 +38,7 @@ async function fetchLogs() {
             },
         });
 
-        const logs = await response.json();
+        const { data: logs } = await response.json();
 
         if (logs.length === 0) {
             displayNoResults();

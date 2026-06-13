@@ -1,15 +1,18 @@
 const responseFormatter = (req, res, next) => {
-    res.success = (data) => {
-        if (typeof data === 'object') {
-            res.json(data);
-        } else {
-            res.json({ msg: data });
-        }
+    res.success = (data, message = null) => {
+        res.status(200).json({ msg: message, data });
     };
 
-    res.error = (message, code = 500) => {
-        const response = { error: message };
-        res.status(code).json(response);
+    res.error = (code = 500, message) => {
+        res.status(code).json({ error: message });
+    };
+
+    res.empty = (message = 'Requested resource does not exist') => {
+        res.status(200).json({ msg: message, data: null });
+    };
+
+    res.restricted = (message = 'You do not have access to view this data') => {
+        res.status(403).json({ msg: message, data: null });
     };
 
     next();

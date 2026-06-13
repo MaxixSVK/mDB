@@ -28,12 +28,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     fetchStats();
-
-    const currentYear = new Date().getFullYear();
-    updateYear(currentYear);
-    fetchStatsByMonth(currentYear);
-
-    addEventListeners();
     initSeriesPanel();
 });
 
@@ -80,7 +74,7 @@ async function initSeriesPanel() {
                 ? await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json', 'Authorization': getCookie('sessionToken') } })
                 : await fetch(url);
             if (!response.ok) return null;
-            const d = await response.json();
+            const { data: d } = await response.json();
             d.series_id = id;
             seriesCache.set(String(id), d);
             return d;
@@ -151,7 +145,7 @@ async function fetchAndRenderSeries(seriesId, wrapper) {
             return;
         }
 
-        const data = await response.json();
+        const { data } = await response.json();
         data.series_id = seriesId;
 
         if (data.author_id) {
@@ -162,7 +156,7 @@ async function fetchAndRenderSeries(seriesId, wrapper) {
                     : await fetch(authorUrl);
 
                 if (authorResponse.ok) {
-                    const authorData = await authorResponse.json();
+                    const { data: authorData } = await authorResponse.json();
                     data.author_name = authorData.name;
                 }
             } catch (authorErr) {
@@ -304,108 +298,19 @@ function renderSeriesDetails(data, container) {
     container.appendChild(shell);
 }
 
-function addEventListeners() {
-    document.getElementById('prev-year').addEventListener('click', function () {
-        const year = parseInt(document.getElementById('current-year').textContent, 10) - 1;
-        updateYear(year);
-        fetchStatsByMonth(year);
-    });
-
-    document.getElementById('next-year').addEventListener('click', function () {
-        const year = parseInt(document.getElementById('current-year').textContent, 10) + 1;
-        if (year > new Date().getFullYear()) {
-            return;
-        }
-        updateYear(year);
-        fetchStatsByMonth(year);
-    });
-}
-
 function fetchStats() {
     (user && !publicUser.public
-        ? fetch(api + '/library/stats/' + publicUser.id, {
+        ? fetch(api + '/stats/' + publicUser.id, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': getCookie('sessionToken')
             },
         })
-        : fetch(api + '/library/stats/' + publicUser.id))
+        : fetch(api + '/stats/' + publicUser.id))
         .then(response => response.json())
+        .then(response => response.data)
         .then(data => {
             createStatSection(data)
         });
-}
-
-function fetchStatsByMonth(year) {
-    (user && !publicUser.public
-        ? fetch(api + '/library/stats/month/' + publicUser.id + '/' + year, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': getCookie('sessionToken')
-            },
-        })
-        : fetch(api + '/library/stats/month/' + publicUser.id + '/' + year))
-        .then(response => response.json())
-        .then(data => {
-            const canvas = document.getElementById('chart-month');
-            const message = document.getElementById('no-data-message');
-
-            if (data.length === 0) {
-                canvas.style.display = 'none';
-                message.classList.remove('hidden');
-                return;
-            }
-
-            canvas.style.display = 'block';
-            message.classList.add('hidden');
-
-            const allMonths = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1));
-
-            const dataMap = data.reduce((acc, item) => {
-                const date = new Date(item.month);
-                acc[date.getMonth()] = item.chapters;
-                return acc;
-            }, {});
-
-            const labels = allMonths.map(date => date.toLocaleString('default', { month: 'short' }));
-            const chapterCounts = allMonths.map(date => parseInt(dataMap[date.getMonth()] || 0, 10));
-
-            const ctx = canvas.getContext('2d');
-            if (window.myChart) {
-                window.myChart.destroy();
-            }
-            window.myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Chapter Count',
-                        data: chapterCounts,
-                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 2,
-                        fill: false
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        })
-        .catch(error => console.error('Error fetching data:', error));
-}
-
-function updateYear(year) {
-    document.getElementById('current-year').textContent = year;
 }

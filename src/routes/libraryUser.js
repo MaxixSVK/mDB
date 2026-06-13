@@ -34,10 +34,10 @@ module.exports = function (pool) {
             const tableName = tableNameMapping[type];
             const allowedFields = newFieldWhitelistMapping[type];
             if (!tableName) {
-                return res.error('Invalid type', 400);
+                return res.error(400, 'Invalid type');
             }
             if (!allowedFields) {
-                return res.error('Invalid type', 400);
+                return res.error(400, 'Invalid type');
             }
 
             let columns = ['user_id'];
@@ -47,7 +47,7 @@ module.exports = function (pool) {
 
             for (const [key, value] of Object.entries(data)) {
                 if (!allowedFields.includes(key)) {
-                    return res.error(`Invalid field: ${key}`, 400);
+                    return res.error(400, `Invalid field: ${key}`);
                 }
                 if (value !== '') {
                     columns.push(conn.escapeId(key));
@@ -65,7 +65,7 @@ module.exports = function (pool) {
                 const parentDataQuery = `SELECT * FROM ${conn.escapeId(parentTable)} WHERE ${conn.escapeId(parentKey)} = ? AND user_id = ?`;
                 const [parentData] = await conn.query(parentDataQuery, [parentId, req.userId]);
                 if (!parentData) {
-                    return res.error(`Cannot find ${parentTable} with id ${parentId} for user ${req.userId}`, 400);
+                    return res.error(400, `Cannot find ${parentTable} with id ${parentId} for user ${req.userId}`);
                 }
             }
 
@@ -81,12 +81,9 @@ module.exports = function (pool) {
                 );
 
                 await newlibraryLog(req.userId, 'INSERT', tableName, result.insertId, null, JSON.stringify(newDbData), pool);
-                res.success({
-                    msg: 'Added successfully',
-                    data: newDbData
-                });
+                res.success(newDbData, 'Entry created successfully');
             } else {
-                res.success('No valid fields provided to update');
+                return res.error(400, 'No valid fields');
             }
         } catch (err) {
             next(err);
@@ -105,10 +102,10 @@ module.exports = function (pool) {
             const tableName = tableNameMapping[type];
             const allowedFields = updateFieldWhitelistMapping[type];
             if (!tableName) {
-                return res.error('Invalid type', 400);
+                return res.error(400, 'Invalid type');
             }
             if (!allowedFields) {
-                return res.error('Invalid type', 400);
+                return res.error(400, 'Invalid type');
             }
             const primaryKey = `${type}_id`;
 
@@ -118,7 +115,7 @@ module.exports = function (pool) {
 
             for (const [key, value] of Object.entries(data)) {
                 if (!allowedFields.includes(key)) {
-                    return res.error(`Invalid field: ${key}`, 400);
+                    return res.error(400, `Invalid field: ${key}`);
                 }
                 sql += `${conn.escapeId(key)} = ${value !== '' ? '?' : 'NULL'}, `;
                 if (value !== '') {
@@ -135,16 +132,17 @@ module.exports = function (pool) {
                 const oldDbDataQuery = `SELECT * FROM ${conn.escapeId(tableName)} WHERE ${conn.escapeId(primaryKey)} = ? AND user_id = ?`;
                 const [oldDbData] = await conn.query(oldDbDataQuery, [id, req.userId]);
 
+                if (!oldDbData) {
+                    return res.error(400, 'Entry does not exist');
+                }
+
                 await conn.query(sql, params);
 
                 const newDbDataQuery = `SELECT * FROM ${conn.escapeId(tableName)} WHERE ${conn.escapeId(primaryKey)} = ? AND user_id = ?`;
                 const [newDbData] = await conn.query(newDbDataQuery, [id, req.userId]);
 
                 await newlibraryLog(req.userId, 'UPDATE', tableName, id, JSON.stringify(oldDbData), JSON.stringify(newDbData), pool);
-                res.success({
-                    msg: 'Updated successfully',
-                    data: newDbData
-                });
+                res.success(newDbData, 'Entry updated successfully');
 
                 if ((type === 'series' || type === 'book') && oldDbData.img === 1 && newDbData.img === 0) {
                     const filename = type === 'series' ? `s-${id}.png` : `b-${id}.png`;
@@ -159,7 +157,7 @@ module.exports = function (pool) {
                     }
                 }
             } else {
-                res.success('No valid fields provided to update');
+                return res.error(400, 'No valid fields');
             }
         } catch (err) {
             next(err);
@@ -176,14 +174,14 @@ module.exports = function (pool) {
 
             const tableName = tableNameMapping[type];
             if (!tableName) {
-                return res.error('Invalid type', 400);
+                return res.error(400, 'Invalid type');
             }
             const primaryKey = `${type}_id`;
 
             const dbDataQuery = `SELECT * FROM ${conn.escapeId(tableName)} WHERE ${conn.escapeId(primaryKey)} = ? AND user_id = ?`;
             const [dbData] = await conn.query(dbDataQuery, [id, req.userId]);
             if (!dbData) {
-                return res.success('Data does not exist');
+                return res.error(400, 'Entry does not exist');
             }
 
             await conn.query(
@@ -192,7 +190,7 @@ module.exports = function (pool) {
             );
 
             await newlibraryLog(req.userId, 'DELETE', tableName, id, JSON.stringify(dbData), null, pool);
-            res.success('Deleted successfully');
+            res.success(dbData, 'Entry deleted successfully');
         } catch (err) {
             next(err);
         } finally {
@@ -216,7 +214,7 @@ module.exports = function (pool) {
             );
 
             await newlibraryLog(req.userId, 'INSERT', 'authors', result.insertId, null, JSON.stringify(newDbData), pool);
-            res.success('Author added successfully');
+            res.success(newDbData, 'Entry created successfully');
         } catch (err) {
             next(err);
         } finally {

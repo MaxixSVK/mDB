@@ -43,23 +43,20 @@ routes.forEach(({ path, route }) => {
 });
 
 app.get('/', (req, res) => {
-    res.success({
-        name: package.name,
-        version: package.version
-    });
+    res.success({ name: package.name, version: package.version }, 'API is running');
 });
 
 app.get('/docs', (req, res) => {
-    res.success({ endpoints });
+    res.success(endpoints);
 });
 
 app.use((req, res, next) => {
-    res.error('Not Found', 404);
+    res.empty();
 });
 
 app.use((err, req, res, next) => {
     logger.error(`500 Internal Server Error - ${err}`);
-    res.error('Internal Server Error', 500);
+    res.error(500, 'Internal Server Error');
 });
 
 const startServer = async () => {

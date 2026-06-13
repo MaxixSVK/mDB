@@ -23,7 +23,7 @@ module.exports = function (pool) {
 
             // Temporarily disable registration
             if (forcebetaregistration !== process.env.FORCE_REGISTRATION) {
-                return res.error('Registration is disabled', 403);
+                return res.error(403, 'Registration is disabled');
             }
 
             conn = await pool.getConnection();
@@ -35,7 +35,7 @@ module.exports = function (pool) {
             );
 
             if (existingUsername) {
-                return res.error('Username is already in use', 409);
+                return res.error(409, 'Username is already associated with another account');
             }
 
             const [existingEmail] = await conn.query(
@@ -44,7 +44,7 @@ module.exports = function (pool) {
             );
 
             if (existingEmail) {
-                return res.error('Email is already in use', 409);
+                return res.error(409, 'Email is already associated with another account');
             }
 
             const result = await conn.query(
@@ -57,7 +57,7 @@ module.exports = function (pool) {
             const userId = result.insertId.toString();
             const sessionToken = await createSessionToken(userId, userAgent, ipAddress, pool);
 
-            res.success({ sessionToken });
+            res.success({ sessionToken }, 'Registration successful');
 
             async function sendRegistrationEmail() {
                 const emailSubject = `Welcome to mDB, ${username}!`;
@@ -105,14 +105,14 @@ module.exports = function (pool) {
                 const validPassword = await bcrypt.compare(password, user.password_hash);
                 if (!validPassword) {
                     newAccountLog(user.id, 'login', false, ipAddress, userAgent, pool);
-                    return res.error('Invalid username or password', 401);
+                    return res.error(401, 'Invalid username or password');
                 }
             } else {
-                return res.error('Invalid username or password', 401);
+                return res.error(401, 'Invalid username or password');
             }
 
             const sessionToken = await createSessionToken(user.id, userAgent, ipAddress, pool);
-            res.success({ sessionToken });
+            res.success({ sessionToken }, 'Login successful');
 
             newAccountLog(user.id, 'login', true, ipAddress, userAgent, pool);
 

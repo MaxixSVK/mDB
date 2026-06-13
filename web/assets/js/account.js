@@ -17,13 +17,14 @@ document.addEventListener('DOMContentLoaded', async function () {
 });
 
 async function getSessionInfo() {
-    const response = await fetch(api + '/account/session', {
+    const request = await fetch(api + '/account/session', {
         headers: {
             'Authorization': getCookie('sessionToken')
         }
     });
 
-    return await response.json();
+    const response = await request.json();
+    return response.data;
 }
 
 function addEventListeners() {
@@ -323,12 +324,12 @@ async function deleteAccount() {
 async function fetchSessions() {
     const sessionToken = getCookie('sessionToken');
 
-    const response = await fetch(api + '/account/sessions', {
+    const request = await fetch(api + '/account/sessions', {
         headers: { 'Authorization': sessionToken }
     });
 
-    const sessions = await response.json();
-    renderSessions(sessions);
+    const responseData = await request.json();
+    renderSessions(responseData.data);
 }
 
 async function renderSessions(sessions) {
@@ -427,7 +428,7 @@ async function displayPublicStatus() {
                 return;
             }
 
-            user.public = responseData.public;
+            user.public = responseData.data.public;
             setToggleState(Boolean(user.public));
             showNotification(responseData.msg, 'success');
         } catch (error) {

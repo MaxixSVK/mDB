@@ -69,7 +69,7 @@ async function handleLogin(loginData) {
 
         if (response.ok) {
             const responseData = await response.json();
-            setCookie('sessionToken', responseData.sessionToken, 365);
+            setCookie('sessionToken', responseData.data.sessionToken, 365);
             window.location.href = '/';
         } else {
             const responseData = await response.json();
@@ -93,7 +93,7 @@ async function handleRegister(registerData) {
 
         if (response.ok) {
             const responseData = await response.json();
-            setCookie('sessionToken', responseData.sessionToken, 365);
+            setCookie('sessionToken', responseData.data.sessionToken, 365);
             window.location.href = '/';
         } else {
             const responseData = await response.json();

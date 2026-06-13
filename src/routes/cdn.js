@@ -25,7 +25,7 @@ module.exports = function (pool) {
             if (normalizedPath.startsWith(dir) && fs.existsSync(normalizedPath)) {
                 res.sendImage(filePath, quality);
             } else {
-                res.success({ msg: 'Requested file does not exist.' });
+                res.empty();
             }
         } catch (err) {
             next(err);
@@ -45,7 +45,7 @@ module.exports = function (pool) {
             const parentDataQuery = `SELECT * FROM ${conn.escapeId(parentTable)} WHERE ${conn.escapeId(parentKey)} = ? AND user_id = ?`;
             const [parentData] = await conn.query(parentDataQuery, [id, req.userId]);
             if (!parentData) {
-                return res.error(`Cannot find ${parentTable} with id ${id} for user ${req.userId}`, 400);
+                return res.error(400, `Cannot find ${parentTable} with id ${id} for user ${req.userId}`);
             }
 
             const newFileName = type === 'series' ? `s-${id}.png` : `b-${id}.png`;
@@ -57,7 +57,7 @@ module.exports = function (pool) {
                 [true, id]
             );
 
-            res.success({ msg: 'File uploaded.', filename: newFileName });
+            res.success({ fileName: newFileName }, 'File uploaded.');
         } catch (err) {
             next(err);
         } finally {
@@ -76,7 +76,7 @@ module.exports = function (pool) {
             if (normalizedPath.startsWith(dir) && fs.existsSync(normalizedPath)) {
                 res.sendImage(filePath, quality);
             } else {
-                res.success({ msg: 'Requested file does not exist.' });
+                res.empty();
             }
         } catch (err) {
             next(err);
@@ -98,7 +98,7 @@ module.exports = function (pool) {
             const newPath = path.join(path.dirname(oldPath), newFileName);
             fs.renameSync(oldPath, newPath);
 
-            res.success('Profile picture uploaded.');
+            res.success({ fileName: newFileName }, 'File uploaded.');
         } catch (err) {
             next(err);
         } finally {

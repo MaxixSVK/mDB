@@ -54,7 +54,7 @@ async function addCDNLibrarySelect(container, books) {
         container.appendChild(seriesSelect);
 
         const userData = await fetchData('/library/user/' + user.username);
-        const seriesPromises = userData.series.map(id => fetchData(`/library/series/${id}`));
+        const seriesPromises = userData.data.series.map(id => fetchData(`/library/series/${id}`).then(response => response.data));
         const series = await Promise.all(seriesPromises);
 
         await populateSelect(seriesSelect, series, 'name', 'series_id');
@@ -260,7 +260,7 @@ async function addLibrarySelect(container, books, chapters) {
         container.appendChild(seriesSelect);
 
         const userData = await fetchData('/library/user/' + user.username);
-        const seriesPromises = userData.series.map(id => fetchData(`/library/series/${id}`));
+        const seriesPromises = userData.data.series.map(id => fetchData(`/library/series/${id}`).then(response => response.data));
         const series = await Promise.all(seriesPromises);
 
         await populateSelect(seriesSelect, series, 'name', 'series_id');
@@ -297,8 +297,8 @@ async function handleSelectionChange(container, seriesSelect, bookSelect, chapte
         const seriesId = seriesSelect.value;
         if (!seriesId) return true;
 
-        const seriesData = await fetchData(`/library/series/${seriesId}`);
-        const bookPromises = seriesData.books.map(id => fetchData(`/library/book/${id}`));
+        const seriesData = await fetchData(`/library/series/${seriesId}`).then(response => response.data);
+        const bookPromises = seriesData.books.map(id => fetchData(`/library/book/${id}`).then(response => response.data));
         const bookDetails = await Promise.all(bookPromises);
 
         if (!bookDetails.length) {
@@ -325,8 +325,8 @@ async function handleBookChange(container, bookSelect, chapterSelect) {
         const bookId = bookSelect.value;
         if (!bookId) return true;
 
-        const bookData = await fetchData(`/library/book/${bookId}`);
-        const chapterPromises = bookData.chapters.map(id => fetchData(`/library/chapter/${id}`));
+        const bookData = await fetchData(`/library/book/${bookId}`).then(response => response.data);
+        const chapterPromises = bookData.chapters.map(id => fetchData(`/library/chapter/${id}`).then(response => response.data));
         const chapterDetails = await Promise.all(chapterPromises);
 
         if (!chapterDetails.length) {
@@ -348,7 +348,7 @@ async function addAuthorSelect(container) {
     const authorSelect = createSelectElement('author_id');
     container.appendChild(authorSelect);
     const userData = await fetchData(`/library/user/${user.username}`);
-    const authors = userData.authors;
+    const authors = userData.data.authors;
 
     if (userData.error) {
         document.getElementById('add-data-form').parentElement.classList.add('hidden');
@@ -357,7 +357,7 @@ async function addAuthorSelect(container) {
         return;
     }
 
-    const authorPromises = authors.map(id => fetchData(`/library/author/${id}`));
+    const authorPromises = authors.map(id => fetchData(`/library/author/${id}`).then(response => response.data));
     const authorDetails = await Promise.all(authorPromises);
 
     await populateSelect(authorSelect, authorDetails, 'name', 'author_id', true, "author");
@@ -516,7 +516,7 @@ async function loadOldData(type, id) {
 
         if (typeMapping[type]) {
             const { endpoint, fields } = typeMapping[type];
-            const data = await fetchData(endpoint);
+            const data = await fetchData(endpoint).then(response => response.data);
 
             for (const field of fields) {
                 const input = editDataFields.querySelector(`input[name="${field}"], select[name="${field}"]`);

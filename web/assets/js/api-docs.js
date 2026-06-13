@@ -5,12 +5,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function fetchApiEndpoints() {
-    const data = await fetch(api + '/docs').then(res => res.json());
-
+    const data = await fetch(api + '/docs').then(res => res.json().then(res => res.data));
     const endpointsSection = document.getElementById('api-endpoints');
 
     const groupedByRouter = {};
-    (data.endpoints || []).forEach(ep => {
+    (data || []).forEach(ep => {
         const key = ep.router || 'general';
         groupedByRouter[key] ||= [];
         groupedByRouter[key].push(ep);

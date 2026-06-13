@@ -5,7 +5,7 @@ const requireAdditionalSecurity = (pool) => {
         const { password } = req.body;
 
         if (!password) {
-            return res.error('Current password is required for this operation', 400);
+            return res.error(400, 'Current password is required for this operation');
         }
 
         let conn;
@@ -18,7 +18,7 @@ const requireAdditionalSecurity = (pool) => {
 
             const isPasswordValid = await bcrypt.compare(password, user.password_hash);
             if (!isPasswordValid) {
-                return res.error('Invalid password', 401);
+                return res.error(401, 'Invalid password');
             }
 
             next();

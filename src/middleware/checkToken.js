@@ -8,13 +8,13 @@ const validateToken = (pool, type) => {
         const sessionToken = req.headers['authorization'];
         if (!sessionToken) {
             return type === 'auth'
-                ? res.error('Session token is required', 401)
+                ? res.error(401, 'Session token is required')
                 : next();
         }
 
         jwt.verify(sessionToken, secretKey, async function (err, decoded) {
             if (err) {
-                return res.error('Invalid session token', 401);
+                return res.error(401, 'Invalid session token');
             }
 
             try {
@@ -27,7 +27,7 @@ const validateToken = (pool, type) => {
                 connection.release();
 
                 if (!session || !(await bcrypt.compare(sessionToken, session.session_token))) {
-                    return res.error('Expired session', 401);
+                    return res.error(401, 'Expired session');
                 }
 
                 req.userId = userId;

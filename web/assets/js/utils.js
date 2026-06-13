@@ -72,7 +72,7 @@ async function checkLogin() {
             if (response.ok) {
                 const user = await response.json();
 
-                return user;
+                return user.data;
             } else {
                 logout();
             }
@@ -110,8 +110,8 @@ async function fetchPublicUserData() {
         })
         : await fetch(api + '/library/user/' + username);
 
-    const data = await response.json();
-    publicUser = { ...publicUser, ...data };
+    const userResponse = await response.json();
+    publicUser = { ...publicUser, ...userResponse.data };
 }
 
 function showNotification(message, type = 'info', progress = null) {
@@ -185,7 +185,7 @@ async function displayUser(userInfo = true, bypassCache = false) {
                 'authorization': getCookie('sessionToken')
             },
         });
-        const userData = await user.json();
+        const { data: userData } = await user.json();
 
         if (userInfo) {
             document.getElementById('username').textContent = userData.username;
@@ -269,9 +269,9 @@ function createStatSection(data) {
         return card;
     }
 
-    grid.appendChild(createStatCard('series-count', data.seriesCount, 'Series'));
-    grid.appendChild(createStatCard('book-count', data.bookCount, 'Books'));
-    grid.appendChild(createStatCard('chapter-count', data.chapterCount, 'Chapters'));
+    grid.appendChild(createStatCard('series-count', data.series, 'Series'));
+    grid.appendChild(createStatCard('book-count', data.book, 'Books'));
+    grid.appendChild(createStatCard('chapter-count', data.chapter, 'Chapters'));
 
     statsElement.appendChild(grid);
 }
