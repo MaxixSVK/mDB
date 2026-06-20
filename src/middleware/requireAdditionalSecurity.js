@@ -22,8 +22,8 @@ const requireAdditionalSecurity = (pool) => {
             }
 
             next();
-        } catch (error) {
-            next(error);
+        } catch (err) {
+            next(err);
         } finally {
             if (conn) conn.release();
         }

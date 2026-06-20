@@ -1,6 +1,5 @@
 Hello {{username}},
 
-We're sorry to see you go. Your account has been successfully deleted.
-If you have any questions or need further assistance, feel free to contact our support team.
+We're sorry to see you go. Your account and all associated data has been successfully deleted. If you change your mind, you can always create a new account.
 
 {{year}} mDB

@@ -6,6 +6,14 @@ const { backupDatabase } = require('./db');
 const { backupCDN } = require('./cdn');
 const logger = require('../utils/logger');
 
+let scheduledWork = Promise.resolve();
+
+function enqueueWork(work) {
+    const nextWork = scheduledWork.then(() => work(), () => work());
+    scheduledWork = nextWork.then(() => undefined, () => undefined);
+    return nextWork;
+}
+
 async function tieredBackupCleanup(backupDir, backupType) {
     try {
         if (!fs.existsSync(backupDir)) {
@@ -137,9 +145,9 @@ async function performCleanup(backupDir) {
 }
 
 async function scheduleCleanup(backupDir, interval) {
-    await performCleanup(backupDir);
+    await enqueueWork(() => performCleanup(backupDir));
     setInterval(async () => {
-        await performCleanup(backupDir);
+        await enqueueWork(() => performCleanup(backupDir));
     }, interval);
 }
 
@@ -160,9 +168,9 @@ async function performBackup(backupFunction, backupDir, backupType) {
 }
 
 async function scheduleBackup(backupFunction, backupDir, backupType, interval) {
-    await performBackup(backupFunction, backupDir, backupType);
+    await enqueueWork(() => performBackup(backupFunction, backupDir, backupType));
     setInterval(async () => {
-        await performBackup(backupFunction, backupDir, backupType);
+        await enqueueWork(() => performBackup(backupFunction, backupDir, backupType));
     }, interval);
 }
 

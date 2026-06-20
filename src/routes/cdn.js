@@ -6,11 +6,8 @@ const multer = require('multer');
 
 module.exports = function (pool) {
     const validateToken = require('../middleware/checkToken')(pool, 'auth');
+
     const { createLibraryStorage, createPfpStorage } = require('../utils/cdnStorage');
-
-    const sendImage = require('../middleware/sendImage');
-    router.use(sendImage);
-
     const uploadLibraryImage = multer({ storage: createLibraryStorage() });
     const uploadUserPFP = multer({ storage: createPfpStorage() });
 

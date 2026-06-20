@@ -1,7 +1,6 @@
 Welcome to mDB, {{username}}!
 
-hank you for your registration on mDB, your personal db for manga and light novels.
-Happy reading!
+Thank you for your registration on mDB, your new way to track and manage your manga and light novel collection.
 
 Start exploring mDB: {{webUrl}}
 

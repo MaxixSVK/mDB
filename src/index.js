@@ -60,8 +60,9 @@ app.use((err, req, res, next) => {
 });
 
 const startServer = async () => {
+    let conn;
     try {
-        await pool.getConnection().then(conn => conn.release());
+        conn = await pool.getConnection();
         logger.info('Database connection established');
         app.listen(config.api.port, () => {
             logger.info(`API started on port ${config.api.port}`);
@@ -71,6 +72,8 @@ const startServer = async () => {
     } catch (err) {
         logger.error(`Error starting server: ${err}`);
         process.exit(1);
+    } finally {
+        if (conn) conn.release();
     }
 };
 

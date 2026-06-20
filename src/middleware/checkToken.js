@@ -1,8 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-const secretKey = process.env.JWT_SECRET_KEY;
-
 const validateToken = (pool, type) => {
     return async (req, res, next) => {
         const sessionToken = req.headers['authorization'];
@@ -12,19 +10,19 @@ const validateToken = (pool, type) => {
                 : next();
         }
 
-        jwt.verify(sessionToken, secretKey, async function (err, decoded) {
+        jwt.verify(sessionToken, process.env.JWT_SECRET_KEY, async function (err, decoded) {
             if (err) {
                 return res.error(401, 'Invalid session token');
             }
 
+            let conn;
             try {
+                conn = await pool.getConnection();
                 const { userId, sessionId } = decoded;
-                const connection = await pool.getConnection();
-                const [session] = await connection.query(
+                const [session] = await conn.query(
                     'SELECT session_token FROM sessions WHERE user_id = ? AND id = ? AND expires_at > NOW()',
                     [userId, sessionId]
                 );
-                connection.release();
 
                 if (!session || !(await bcrypt.compare(sessionToken, session.session_token))) {
                     return res.error(401, 'Expired session');
@@ -39,6 +37,8 @@ const validateToken = (pool, type) => {
                 next();
             } catch (err) {
                 return next(err);
+            } finally {
+                if (conn) conn.release();
             }
         });
     };

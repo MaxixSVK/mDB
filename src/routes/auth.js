@@ -117,7 +117,7 @@ module.exports = function (pool) {
             newAccountLog(user.id, 'login', true, ipAddress, userAgent, pool);
 
             async function sendLoginEmail() {
-                const emailSubject = `New Login Notification`;
+                const emailSubject = `New Login to mDB`;
                 const year = new Date().getFullYear();
                 const loginTime = new Date().toISOString().replace('T', ' ').replace('Z', '') + ' UTC';
 

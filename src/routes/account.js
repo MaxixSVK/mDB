@@ -6,12 +6,12 @@ const bcrypt = require('bcrypt');
 const archiver = require('archiver');
 
 module.exports = function (pool) {
-    const config = require('../../config.json');
-
     const validateToken = require('../middleware/checkToken')(pool, 'auth');
+    const requireAdditionalSecurity = require('../middleware/requireAdditionalSecurity')(pool);
     router.use(validateToken);
 
-    const requireAdditionalSecurity = require('../middleware/requireAdditionalSecurity')(pool);
+    const config = require('../../config.json');
+
     const sendEmail = require('../utils/sendEmail');
     const newAccountLog = require('../utils/accountLogs');
     const getUserFiles = require('../utils/getUserFiles');
@@ -406,7 +406,7 @@ module.exports = function (pool) {
 
             async function sendDeletionEmail() {
                 const email = user.email;
-                const emailSubject = 'Your Account Has Been Deleted';
+                const emailSubject = 'Your mDB Account Has Been Deleted';
                 const year = new Date().getFullYear();
 
                 const textTemplatePath = path.join(__dirname, '../emailTemplates/delete.txt');
