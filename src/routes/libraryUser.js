@@ -7,11 +7,14 @@ module.exports = function (pool) {
     router.use(validateToken);
 
     const newlibraryLog = require('../utils/libraryLogs');
+    const removeLibraryImage = require('../utils/removeLibraryImage');
+    
     const tableNameMapping = {
         series: 'series',
         book: 'books',
         chapter: 'chapters'
     };
+
     const newFieldWhitelistMapping = {
         series: ['author_id', 'name', 'img', 'format', 'status'],
         book: ['series_id', 'name', 'isbn', 'started_reading', 'ended_reading', 'img', 'current_page', 'total_pages'],
@@ -141,21 +144,12 @@ module.exports = function (pool) {
                 const newDbDataQuery = `SELECT * FROM ${conn.escapeId(tableName)} WHERE ${conn.escapeId(primaryKey)} = ? AND user_id = ?`;
                 const [newDbData] = await conn.query(newDbDataQuery, [id, req.userId]);
 
+                if ((type === 'series' || type === 'book') && oldDbData.img === 1 && newDbData.img === 0) {
+                    removeLibraryImage(type, id);
+                }
+
                 await newlibraryLog(req.userId, 'UPDATE', tableName, id, JSON.stringify(oldDbData), JSON.stringify(newDbData), pool);
                 res.success(newDbData, 'Entry updated successfully');
-
-                if ((type === 'series' || type === 'book') && oldDbData.img === 1 && newDbData.img === 0) {
-                    const filename = type === 'series' ? `s-${id}.png` : `b-${id}.png`;
-                    const filePath = path.join(__dirname, '../../cdn/library', filename);
-
-                    if (fs.existsSync(filePath)) {
-                        fs.unlink(filePath, (err) => {
-                            if (err) {
-                                next(err);
-                            }
-                        });
-                    }
-                }
             } else {
                 return res.error(400, 'No valid fields');
             }
@@ -182,6 +176,21 @@ module.exports = function (pool) {
             const [dbData] = await conn.query(dbDataQuery, [id, req.userId]);
             if (!dbData) {
                 return res.error(400, 'Entry does not exist');
+            }
+
+            if (type === 'series') {
+                const bookWithImages = await conn.query(
+                    `SELECT book_id FROM books WHERE img = 1 AND series_id = ?`,
+                    [id]
+                );
+
+                for (const book of bookWithImages) {
+                    removeLibraryImage('book', book.book_id);
+                }
+            }
+
+            if ((type === 'series' || type === 'book') && dbData.img === 1) {
+                removeLibraryImage(type, id);
             }
 
             await conn.query(

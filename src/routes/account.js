@@ -354,7 +354,6 @@ module.exports = function (pool) {
         let conn;
         try {
             conn = await pool.getConnection();
-            await conn.beginTransaction();
 
             const [user] = await conn.query(
                 'SELECT username, email FROM users WHERE id = ?',
@@ -362,22 +361,9 @@ module.exports = function (pool) {
             );
 
             const userFiles = await getUserFiles(req.userId, pool);
-            const deleteQueries = [
-                'DELETE FROM account_logs WHERE user_id = ?',
-                'DELETE FROM library_logs WHERE user_id = ?',
-                'DELETE FROM chapters WHERE user_id = ?',
-                'DELETE FROM books WHERE user_id = ?',
-                'DELETE FROM series WHERE user_id = ?',
-                'DELETE FROM authors WHERE user_id = ?',
-                'DELETE FROM sessions WHERE user_id = ?',
-                'DELETE FROM users WHERE id = ?'
-            ];
 
-            for (const query of deleteQueries) {
-                await conn.query(query, [req.userId]);
-            }
-
-            await conn.commit();
+            const deleteUserQuery = 'DELETE FROM users WHERE id = ?';
+            await conn.query(deleteUserQuery, [req.userId]);
 
             if (userFiles.series && Array.isArray(userFiles.series)) {
                 for (const seriesId of userFiles.series) {
@@ -424,7 +410,6 @@ module.exports = function (pool) {
 
             if (config.api.email.enabled) await sendDeletionEmail();
         } catch (err) {
-            if (conn) await conn.rollback();
             next(err);
         } finally {
             if (conn) conn.release();

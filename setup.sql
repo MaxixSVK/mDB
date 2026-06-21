@@ -29,7 +29,7 @@ CREATE TABLE `sessions` (
     `user_agent` VARCHAR(255) NOT NULL,
     `ip_address` VARCHAR(45) NOT NULL,
     KEY `user_id` (`user_id`),
-    CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `account_logs` (
@@ -41,7 +41,7 @@ CREATE TABLE `account_logs` (
     `user_agent` VARCHAR(255) DEFAULT NULL,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     KEY `user_id` (`user_id`),
-    CONSTRAINT `account_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    CONSTRAINT `account_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `library_logs` (
@@ -54,7 +54,7 @@ CREATE TABLE `library_logs` (
     `new_data` JSON DEFAULT NULL,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     KEY `user_id` (`user_id`),
-    CONSTRAINT `library_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    CONSTRAINT `library_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `authors` (
@@ -63,7 +63,7 @@ CREATE TABLE `authors` (
     `name` VARCHAR(255) NOT NULL,
     `bio` TEXT DEFAULT NULL,
     KEY `user_id` (`user_id`),
-    CONSTRAINT `authors_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    CONSTRAINT `authors_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `series` (
@@ -76,8 +76,8 @@ CREATE TABLE `series` (
     `status` ENUM('reading', 'finished', 'stopped', 'paused') NOT NULL DEFAULT 'reading',
     KEY `user_id` (`user_id`),
     KEY `author_id` (`author_id`),
-    CONSTRAINT `series_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-    CONSTRAINT `series_ibfk_2` FOREIGN KEY (`author_id`) REFERENCES `authors` (`author_id`)
+    CONSTRAINT `series_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `series_ibfk_2` FOREIGN KEY (`author_id`) REFERENCES `authors` (`author_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `books` (
@@ -94,7 +94,7 @@ CREATE TABLE `books` (
     KEY `series_id` (`series_id`),
     KEY `user_id` (`user_id`),
     CONSTRAINT `books_ibfk_1` FOREIGN KEY (`series_id`) REFERENCES `series` (`series_id`) ON DELETE CASCADE,
-    CONSTRAINT `books_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    CONSTRAINT `books_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `chapters` (
@@ -106,5 +106,5 @@ CREATE TABLE `chapters` (
     KEY `book_id` (`book_id`),
     KEY `user_id` (`user_id`),
     CONSTRAINT `chapters_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`) ON DELETE CASCADE,
-    CONSTRAINT `chapters_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    CONSTRAINT `chapters_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 );
