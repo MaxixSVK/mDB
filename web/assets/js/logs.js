@@ -71,12 +71,6 @@ function displayNoResults() {
     document.getElementById('load-more').classList.add('hidden');
 }
 
-const changeTypeMapping = {
-    'INSERT': 'New',
-    'UPDATE': 'Updated',
-    'DELETE': 'Deleted'
-}
-
 function createLogElement(log) {
     const logElement = document.createElement('div');
     logElement.className = 'bg-[#1F1F1F] p-6 rounded-lg shadow-md mb-4 mx-4';
@@ -85,13 +79,13 @@ function createLogElement(log) {
 
     logElement.innerHTML = `
         <div class="flex items-center">
-            <a class="text-lg font-bold ${changeTypeColor}">${changeTypeMapping[log.change_type]} <span class="text-sm text-gray-400">entry in ${log.table_name.toUpperCase()}</span></a>
+            <a class="text-lg font-bold ${changeTypeColor}">${log.change_type.toUpperCase()} <span class="text-sm text-gray-400">entry in ${log.resource_type.toUpperCase()}</span></a>
         </div>
         <div class="text-gray-400 mb-2">
-            <strong>Record ID:</strong> ${log.record_id}
+            <strong>Record ID:</strong> ${log.resource_id}
         </div>
-        ${log.change_type !== 'INSERT' ? createDataElement(log.old_data) : ''}
-        ${log.change_type !== 'DELETE' ? createDataElement(log.new_data) : ''}
+        ${log.change_type !== 'new' ? createDataElement(log.old_data) : ''}
+        ${log.change_type !== 'delete' ? createDataElement(log.new_data) : ''}
         <div class="text-gray-400">
             ${new Date(log.created_at).toLocaleString()}
         </div>
@@ -101,14 +95,12 @@ function createLogElement(log) {
 
 function getChangeTypeColor(changeType) {
     switch (changeType) {
-        case 'INSERT':
+        case 'new':
             return 'text-green-500';
-        case 'UPDATE':
+        case 'update':
             return 'text-yellow-500';
-        case 'DELETE':
+        case 'delete':
             return 'text-red-500';
-        default:
-            return '';
     }
 }
 

@@ -8,7 +8,7 @@ module.exports = function (pool) {
 
     const newlibraryLog = require('../utils/libraryLogs');
     const removeLibraryImage = require('../utils/removeLibraryImage');
-    
+
     const tableNameMapping = {
         series: 'series',
         book: 'books',
@@ -83,7 +83,7 @@ module.exports = function (pool) {
                     [result.insertId, req.userId]
                 );
 
-                await newlibraryLog(req.userId, 'INSERT', tableName, result.insertId, null, JSON.stringify(newDbData), pool);
+                await newlibraryLog(req.userId, 'new', tableName, result.insertId, null, JSON.stringify(newDbData), pool);
                 res.success(newDbData, 'Entry created successfully');
             } else {
                 return res.error(400, 'No valid fields');
@@ -145,10 +145,10 @@ module.exports = function (pool) {
                 const [newDbData] = await conn.query(newDbDataQuery, [id, req.userId]);
 
                 if ((type === 'series' || type === 'book') && oldDbData.img === 1 && newDbData.img === 0) {
-                    removeLibraryImage(type, id);
+                    removeLibraryImage(req.userId, type, id, pool);
                 }
 
-                await newlibraryLog(req.userId, 'UPDATE', tableName, id, JSON.stringify(oldDbData), JSON.stringify(newDbData), pool);
+                await newlibraryLog(req.userId, 'update', tableName, id, JSON.stringify(oldDbData), JSON.stringify(newDbData), pool);
                 res.success(newDbData, 'Entry updated successfully');
             } else {
                 return res.error(400, 'No valid fields');
@@ -178,19 +178,29 @@ module.exports = function (pool) {
                 return res.error(400, 'Entry does not exist');
             }
 
-            if (type === 'series') {
-                const bookWithImages = await conn.query(
-                    `SELECT book_id FROM books WHERE img = 1 AND series_id = ?`,
-                    [id]
+            if ((type === 'series' || type === 'book')) {
+                if (dbData.img === 1) removeLibraryImage(req.userId, type, id, pool);
+
+                const chapters = await conn.query(
+                    `SELECT chapters.* FROM chapters JOIN books ON chapters.book_id = books.book_id WHERE books.series_id = ? AND books.user_id = ? AND chapters.user_id = ?;`,
+                    [id, req.userId, req.userId]
                 );
 
-                for (const book of bookWithImages) {
-                    removeLibraryImage('book', book.book_id);
+                for (const chapter of chapters) {
+                    await newlibraryLog(req.userId, 'delete', 'chapters', chapter.chapter_id, JSON.stringify(chapter), null, pool);
                 }
-            }
 
-            if ((type === 'series' || type === 'book') && dbData.img === 1) {
-                removeLibraryImage(type, id);
+                if (type === 'series') {
+                    const books = await conn.query(
+                        `SELECT * FROM books WHERE series_id = ? AND user_id = ?`,
+                        [id, req.userId]
+                    );
+
+                    for (const book of books) {
+                        if (book.img === 1) removeLibraryImage(req.userId, 'book', book.book_id, pool);
+                        await newlibraryLog(req.userId, 'delete', 'books', book.book_id, JSON.stringify(book), null, pool);
+                    }
+                }
             }
 
             await conn.query(
@@ -198,7 +208,7 @@ module.exports = function (pool) {
                 [id, req.userId]
             );
 
-            await newlibraryLog(req.userId, 'DELETE', tableName, id, JSON.stringify(dbData), null, pool);
+            await newlibraryLog(req.userId, 'delete', tableName, id, JSON.stringify(dbData), null, pool);
             res.success(dbData, 'Entry deleted successfully');
         } catch (err) {
             next(err);
@@ -222,7 +232,7 @@ module.exports = function (pool) {
                 [result.insertId, req.userId]
             );
 
-            await newlibraryLog(req.userId, 'INSERT', 'authors', result.insertId, null, JSON.stringify(newDbData), pool);
+            await newlibraryLog(req.userId, 'new', 'authors', result.insertId, null, JSON.stringify(newDbData), pool);
             res.success(newDbData, 'Entry created successfully');
         } catch (err) {
             next(err);

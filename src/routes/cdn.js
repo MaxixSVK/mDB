@@ -7,6 +7,7 @@ const multer = require('multer');
 module.exports = function (pool) {
     const validateToken = require('../middleware/checkToken')(pool, 'auth');
 
+    const newlibraryLog = require('../utils/libraryLogs');
     const { createLibraryStorage, createPfpStorage } = require('../utils/cdnStorage');
     const uploadLibraryImage = multer({ storage: createLibraryStorage() });
     const uploadUserPFP = multer({ storage: createPfpStorage() });
@@ -54,7 +55,8 @@ module.exports = function (pool) {
                 [true, id]
             );
 
-            res.success({ fileName: newFileName }, 'File uploaded.');
+            await newlibraryLog(req.userId, 'new', 'images', id, null, { file: newFileName }, pool);
+            res.success({ file: newFileName }, 'File uploaded.');
         } catch (err) {
             next(err);
         } finally {
@@ -95,7 +97,7 @@ module.exports = function (pool) {
             const newPath = path.join(path.dirname(oldPath), newFileName);
             fs.renameSync(oldPath, newPath);
 
-            res.success({ fileName: newFileName }, 'File uploaded.');
+            res.success({ file: newFileName }, 'File uploaded.');
         } catch (err) {
             next(err);
         } finally {

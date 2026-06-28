@@ -3,7 +3,7 @@ async function newlibraryLog(userId, changeType, type, recordId, oldData, newDat
     try {
         conn = await pool.getConnection();
         await conn.query(
-            'INSERT INTO library_logs (user_id, change_type, table_name, record_id, old_data, new_data) VALUES (?, ?, ?, ?, ?, ?)',
+            'INSERT INTO library_logs (user_id, change_type, resource_type, resource_id, old_data, new_data) VALUES (?, ?, ?, ?, ?, ?)',
             [userId, changeType, type, recordId, oldData, newData]
         );
     } catch (err) {
