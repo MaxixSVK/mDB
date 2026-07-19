@@ -25,9 +25,9 @@ async function waitForApi() {
 
     if (dev) {
         fetch(api)
-            .then(response => response.json())
-            .then(data => {
-                createWarningDiv(`You are using development API. Version: ${data.version}`);
+            .then(res => res.json())
+            .then(res => {
+                createWarningDiv(`You are using development API. Version: ${res.data.version}`);
             })
     }
 
