@@ -40,6 +40,11 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     fetchMainData();
     setupSearch();
+
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        const searchInputEl = document.getElementById('search-input');
+        if (searchInputEl) searchInputEl.focus();
+    }
 });
 
 function fetchMainData() {
