@@ -634,10 +634,16 @@ function renderSeries(series, targetFormat, prependToList = false) {
 
     card.appendChild(header);
 
+    const touchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    let setTouchActionsVisible = () => {};
+
     if (user && !public) {
         let isEditing = false;
         const actionContainer = document.createElement('div');
-        actionContainer.className = 'hidden absolute top-4 right-4 gap-2 group-hover:flex group-focus-within:flex';
+        const compactActionClasses = 'hidden absolute top-4 right-4 gap-2 group-hover:flex group-focus-within:flex';
+        const touchActionClasses = 'absolute top-4 right-4 gap-2 opacity-0 translate-y-4 pointer-events-none transition transform duration-500 ease-in-out';
+        const touchExpandedActionClasses = 'flex absolute top-4 right-4 gap-2 opacity-100 translate-y-0 pointer-events-auto transition transform duration-500 ease-in-out';
+        actionContainer.className = touchOnly ? touchActionClasses : compactActionClasses;
 
         header.addEventListener('click', function (event) {
             if (isEditing) {
@@ -762,7 +768,9 @@ function renderSeries(series, targetFormat, prependToList = false) {
                 imagePickerButton.replaceWith(img);
                 imageInput.remove();
                 content.classList.add('pr-16');
-                actionContainer.className = 'hidden absolute top-4 right-4 gap-2 group-hover:flex group-focus-within:flex';
+                actionContainer.className = touchOnly
+                    ? (document.getElementById(seriesListId).hasChildNodes() ? touchExpandedActionClasses : touchActionClasses)
+                    : compactActionClasses;
                 actionContainer.replaceChildren(editButton, addBookButton);
                 isEditing = false;
             });
@@ -879,6 +887,12 @@ function renderSeries(series, targetFormat, prependToList = false) {
         actionContainer.appendChild(addBookButton);
         actionContainer.addEventListener('click', event => event.stopPropagation());
         card.appendChild(actionContainer);
+
+        setTouchActionsVisible = visible => {
+            if (touchOnly) {
+                actionContainer.className = visible ? touchExpandedActionClasses : touchActionClasses;
+            }
+        };
     }
 
     const bookList = document.createElement('div');
@@ -898,6 +912,7 @@ function renderSeries(series, targetFormat, prependToList = false) {
         }
 
         if (booksList.hasChildNodes()) {
+            setTouchActionsVisible(false);
             Array.from(booksList.children).forEach(child => {
                 child.classList.add('opacity-0', 'translate-y-4');
                 setTimeout(() => {
@@ -905,8 +920,10 @@ function renderSeries(series, targetFormat, prependToList = false) {
                 }, 250);
             });
         } else if (Array.isArray(series.books) && series.books.length > 0) {
+            setTouchActionsVisible(true);
             getBookList(series);
         } else {
+            setTouchActionsVisible(true);
             renderNoBook(booksList);
         }
     });
