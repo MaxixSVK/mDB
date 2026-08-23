@@ -574,7 +574,7 @@ function renderSeries(series, targetFormat, prependToList = false) {
     showFormatList(formatId);
 
     const card = document.createElement('div');
-    card.className = 'bg-[#1F1F1F] rounded-md p-4 my-4 cursor-pointer';
+    card.className = 'group relative bg-[#1F1F1F] rounded-md p-4 my-4 cursor-pointer';
 
     const header = document.createElement('div');
     header.className = 'flex items-center';
@@ -595,7 +595,7 @@ function renderSeries(series, targetFormat, prependToList = false) {
     imgContainer.appendChild(bookCountBadge);
 
     const content = document.createElement('div');
-    content.className = 'flex-1';
+    content.className = 'flex-1 pr-16';
 
     const title = document.createElement('h2');
     title.className = 'text-white text-xl font-bold';
@@ -633,6 +633,253 @@ function renderSeries(series, targetFormat, prependToList = false) {
     header.appendChild(content);
 
     card.appendChild(header);
+
+    if (user && !public) {
+        let isEditing = false;
+        const actionContainer = document.createElement('div');
+        actionContainer.className = 'hidden absolute top-4 right-4 gap-2 group-hover:flex group-focus-within:flex';
+
+        header.addEventListener('click', function (event) {
+            if (isEditing) {
+                event.stopPropagation();
+            }
+        });
+
+        const editButton = document.createElement('button');
+        editButton.type = 'button';
+        editButton.className = 'w-8 h-8 border border-white text-white rounded-md hover:bg-white hover:text-black transition duration-300';
+        editButton.title = 'Edit series';
+        editButton.setAttribute('aria-label', 'Edit series');
+        editButton.innerHTML = '<i class="fas fa-pen-to-square"></i>';
+        editButton.addEventListener('click', function (event) {
+            event.stopPropagation();
+
+            if (isEditing) {
+                return;
+            }
+            isEditing = true;
+
+            actionContainer.className = 'flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-[#2a2a2a]';
+            content.classList.remove('pr-16');
+
+            const originalImageSrc = img.src;
+            let imagePreviewUrl = null;
+            let selectedImageFile = null;
+            const imageInput = document.createElement('input');
+            imageInput.type = 'file';
+            imageInput.accept = 'image/*';
+            imageInput.className = 'hidden';
+
+            const imagePickerButton = document.createElement('button');
+            imagePickerButton.type = 'button';
+            imagePickerButton.className = 'relative h-full w-full rounded-md bg-[#191818] border border-[#2a2a2a] flex items-center justify-center text-white hover:border-white transition-colors duration-200 overflow-hidden';
+            imagePickerButton.title = 'Change cover image';
+            imagePickerButton.setAttribute('aria-label', 'Change cover image');
+
+            const imagePickerIcon = document.createElement('span');
+            imagePickerIcon.className = 'absolute bottom-1 right-1 w-6 h-6 rounded-full bg-[#1F1F1F] flex items-center justify-center';
+            imagePickerIcon.innerHTML = '<i class="fas fa-pencil text-xs"></i>';
+
+            imagePickerButton.addEventListener('click', function (imageEvent) {
+                imageEvent.stopPropagation();
+                imageInput.click();
+            });
+
+            imageInput.addEventListener('change', function (imageEvent) {
+                imageEvent.stopPropagation();
+                const file = imageInput.files && imageInput.files[0];
+                if (!file || !file.type.startsWith('image/')) {
+                    return;
+                }
+
+                if (imagePreviewUrl) {
+                    URL.revokeObjectURL(imagePreviewUrl);
+                }
+                selectedImageFile = file;
+                imagePreviewUrl = URL.createObjectURL(file);
+                img.src = imagePreviewUrl;
+            });
+
+            imagePickerButton.appendChild(img);
+            imagePickerButton.appendChild(imagePickerIcon);
+            imgContainer.insertBefore(imagePickerButton, bookCountBadge);
+            imgContainer.appendChild(imageInput);
+
+            const titleInput = document.createElement('input');
+            titleInput.type = 'text';
+            titleInput.value = title.textContent;
+            titleInput.className = 'w-full px-2 py-1 text-white text-xl font-bold bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white transition-colors duration-200';
+            titleInput.setAttribute('aria-label', 'Series name');
+            titleInput.addEventListener('click', event => event.stopPropagation());
+
+            const statusInput = document.createElement('select');
+            statusInput.className = 'w-full mt-1 px-2 py-1 text-sm text-white bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white transition-colors duration-200';
+            statusInput.setAttribute('aria-label', 'Series status');
+            statusInput.addEventListener('click', event => event.stopPropagation());
+
+            Object.entries(statusTexts).forEach(([value, label]) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = label;
+                option.selected = value === series.status;
+                statusInput.appendChild(option);
+            });
+
+            title.replaceWith(titleInput);
+            status.replaceWith(statusInput);
+            editButton.remove();
+
+            const saveButton = document.createElement('button');
+            saveButton.type = 'button';
+            saveButton.className = 'flex-1 border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300';
+            saveButton.title = 'Save series';
+            saveButton.setAttribute('aria-label', 'Save series');
+            saveButton.innerHTML = '<i class="fas fa-check mr-1"></i>Save';
+            actionContainer.prepend(saveButton);
+
+            const deleteButton = document.createElement('button');
+            deleteButton.type = 'button';
+            deleteButton.className = 'flex-1 border-2 border-dashed border-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-500 hover:text-white transition duration-300';
+            deleteButton.title = 'Delete series';
+            deleteButton.setAttribute('aria-label', 'Delete series');
+            deleteButton.innerHTML = '<i class="fas fa-trash mr-1"></i>Delete';
+            actionContainer.appendChild(deleteButton);
+
+            const cancelButton = document.createElement('button');
+            cancelButton.type = 'button';
+            cancelButton.className = 'flex-1 border-2 border-dashed border-white text-white font-semibold py-2 px-4 rounded-lg hover:bg-white hover:text-black transition duration-300';
+            cancelButton.title = 'Cancel editing';
+            cancelButton.setAttribute('aria-label', 'Cancel editing');
+            cancelButton.innerHTML = '<i class="fas fa-times mr-1"></i>Cancel';
+            cancelButton.addEventListener('click', function (cancelEvent) {
+                cancelEvent.stopPropagation();
+                titleInput.replaceWith(title);
+                statusInput.replaceWith(status);
+                if (imagePreviewUrl) {
+                    URL.revokeObjectURL(imagePreviewUrl);
+                }
+                img.src = originalImageSrc;
+                imagePickerButton.replaceWith(img);
+                imageInput.remove();
+                content.classList.add('pr-16');
+                actionContainer.className = 'hidden absolute top-4 right-4 gap-2 group-hover:flex group-focus-within:flex';
+                actionContainer.replaceChildren(editButton, addBookButton);
+                isEditing = false;
+            });
+            actionContainer.appendChild(cancelButton);
+
+            saveButton.addEventListener('click', async function (saveEvent) {
+                saveEvent.stopPropagation();
+
+                const name = titleInput.value.trim();
+                if (!name) {
+                    showNotification('Please enter a series name', 'warning');
+                    return;
+                }
+
+                const data = {};
+                if (name !== series.name) {
+                    data.name = name;
+                }
+                if (statusInput.value !== series.status) {
+                    data.status = statusInput.value;
+                }
+
+                if (Object.keys(data).length === 0 && !selectedImageFile) {
+                    showNotification('No changes to save', 'info');
+                    return;
+                }
+
+                saveButton.disabled = true;
+                deleteButton.disabled = true;
+                cancelButton.disabled = true;
+
+                try {
+                    if (Object.keys(data).length > 0) {
+                        const response = await fetch(api + '/library/manage/update/series/' + series.series_id, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': getCookie('sessionToken')
+                            },
+                            body: JSON.stringify(data)
+                        });
+                        const responseData = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(responseData.error || responseData.message || 'Failed to update series');
+                        }
+                    }
+
+                    if (selectedImageFile) {
+                        await uploadSeriesCoverImage(selectedImageFile, series.series_id);
+                    }
+
+                    showNotification('Series updated successfully', 'success');
+                    card.remove();
+                    await fetchPublicUserData();
+                    fetchMainData();
+                } catch (error) {
+                    console.error('Error updating series:', error);
+                    showNotification(error.message, 'error');
+                    saveButton.disabled = false;
+                    deleteButton.disabled = false;
+                    cancelButton.disabled = false;
+                }
+            });
+
+            deleteButton.addEventListener('click', async function (deleteEvent) {
+                deleteEvent.stopPropagation();
+
+                saveButton.disabled = true;
+                deleteButton.disabled = true;
+                cancelButton.disabled = true;
+
+                try {
+                    const response = await fetch(api + '/library/manage/delete/series/' + series.series_id, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': getCookie('sessionToken')
+                        }
+                    });
+                    const responseData = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(responseData.error || responseData.message || 'Failed to delete series');
+                    }
+
+                    showNotification(responseData.msg || 'Series deleted successfully', 'success');
+                    card.remove();
+                    await fetchPublicUserData();
+                    fetchMainData();
+                } catch (error) {
+                    console.error('Error deleting series:', error);
+                    showNotification(error.message, 'error');
+                    saveButton.disabled = false;
+                    deleteButton.disabled = false;
+                    cancelButton.disabled = false;
+                }
+            });
+
+            addBookButton.remove();
+        });
+
+        const addBookButton = document.createElement('button');
+        addBookButton.type = 'button';
+        addBookButton.className = 'w-8 h-8 border border-[#FFA500] text-white rounded-md hover:bg-[#FFA500] hover:text-black transition duration-300';
+        addBookButton.title = 'Add book to series';
+        addBookButton.setAttribute('aria-label', 'Add book to series');
+        addBookButton.innerHTML = '<i class="fas fa-book-medical"></i>';
+        addBookButton.addEventListener('click', function (event) {
+            event.stopPropagation();
+            showNotification('Adding books is coming soon.', 'info');
+        });
+
+        actionContainer.appendChild(editButton);
+        actionContainer.appendChild(addBookButton);
+        actionContainer.addEventListener('click', event => event.stopPropagation());
+        card.appendChild(actionContainer);
+    }
 
     const bookList = document.createElement('div');
     const seriesListId = 'books-list-' + series.series_id;
