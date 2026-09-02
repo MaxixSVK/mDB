@@ -634,16 +634,15 @@ function renderSeries(series, targetFormat, prependToList = false) {
 
     card.appendChild(header);
 
-    const touchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-    let setTouchActionsVisible = () => {};
+    let setActionsVisible = () => {};
+    let cancelActiveEdit = () => {};
 
     if (user && !public) {
         let isEditing = false;
         const actionContainer = document.createElement('div');
-        const compactActionClasses = 'hidden absolute top-4 right-4 gap-2 group-hover:flex group-focus-within:flex';
-        const touchActionClasses = 'absolute top-4 right-4 gap-2 opacity-0 translate-y-4 pointer-events-none transition transform duration-500 ease-in-out';
-        const touchExpandedActionClasses = 'flex absolute top-4 right-4 gap-2 opacity-100 translate-y-0 pointer-events-auto transition transform duration-500 ease-in-out';
-        actionContainer.className = touchOnly ? touchActionClasses : compactActionClasses;
+        const actionHiddenClasses = 'flex absolute top-4 right-4 gap-2 opacity-0 translate-y-4 pointer-events-none transition transform duration-500 ease-in-out';
+        const actionVisibleClasses = 'flex absolute top-4 right-4 gap-2 opacity-100 translate-y-0 pointer-events-auto transition transform duration-500 ease-in-out';
+        actionContainer.className = actionHiddenClasses;
 
         header.addEventListener('click', function (event) {
             if (isEditing) {
@@ -757,8 +756,7 @@ function renderSeries(series, targetFormat, prependToList = false) {
             cancelButton.title = 'Cancel editing';
             cancelButton.setAttribute('aria-label', 'Cancel editing');
             cancelButton.innerHTML = '<i class="fas fa-times mr-1"></i>Cancel';
-            cancelButton.addEventListener('click', function (cancelEvent) {
-                cancelEvent.stopPropagation();
+            cancelActiveEdit = () => {
                 titleInput.replaceWith(title);
                 statusInput.replaceWith(status);
                 if (imagePreviewUrl) {
@@ -768,11 +766,16 @@ function renderSeries(series, targetFormat, prependToList = false) {
                 imagePickerButton.replaceWith(img);
                 imageInput.remove();
                 content.classList.add('pr-16');
-                actionContainer.className = touchOnly
-                    ? (document.getElementById(seriesListId).hasChildNodes() ? touchExpandedActionClasses : touchActionClasses)
-                    : compactActionClasses;
+                actionContainer.className = document.getElementById(seriesListId).hasChildNodes()
+                    ? actionVisibleClasses
+                    : actionHiddenClasses;
                 actionContainer.replaceChildren(editButton, addBookButton);
                 isEditing = false;
+                cancelActiveEdit = () => {};
+            };
+            cancelButton.addEventListener('click', function (cancelEvent) {
+                cancelEvent.stopPropagation();
+                cancelActiveEdit();
             });
             actionContainer.appendChild(cancelButton);
 
@@ -888,10 +891,8 @@ function renderSeries(series, targetFormat, prependToList = false) {
         actionContainer.addEventListener('click', event => event.stopPropagation());
         card.appendChild(actionContainer);
 
-        setTouchActionsVisible = visible => {
-            if (touchOnly) {
-                actionContainer.className = visible ? touchExpandedActionClasses : touchActionClasses;
-            }
+        setActionsVisible = visible => {
+            actionContainer.className = visible ? actionVisibleClasses : actionHiddenClasses;
         };
     }
 
@@ -906,13 +907,15 @@ function renderSeries(series, targetFormat, prependToList = false) {
     card.appendChild(bookList);
 
     card.addEventListener('click', function () {
+        cancelActiveEdit();
+
         const booksList = document.getElementById(seriesListId);
         if (!booksList) {
             return;
         }
 
         if (booksList.hasChildNodes()) {
-            setTouchActionsVisible(false);
+            setActionsVisible(false);
             Array.from(booksList.children).forEach(child => {
                 child.classList.add('opacity-0', 'translate-y-4');
                 setTimeout(() => {
@@ -920,10 +923,10 @@ function renderSeries(series, targetFormat, prependToList = false) {
                 }, 250);
             });
         } else if (Array.isArray(series.books) && series.books.length > 0) {
-            setTouchActionsVisible(true);
+            setActionsVisible(true);
             getBookList(series);
         } else {
-            setTouchActionsVisible(true);
+            setActionsVisible(true);
             renderNoBook(booksList);
         }
     });
