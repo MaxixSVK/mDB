@@ -286,12 +286,17 @@ function insertSeriesCard(formatSection, card, prependToList = false) {
 function renderSeries(series, targetFormat, prependToList = false) {
     if (!series) {
         const formatSection = document.getElementById(targetFormat);
+        if (!formatSection || formatSection.querySelector('[data-new-series-form]')) {
+            return;
+        }
+
         let selectedImageFile = null;
         const authors = Array.isArray(publicUser.authors) ? publicUser.authors : [];
         let selectedAuthorId = '';
 
         const card = document.createElement('div');
         card.className = 'bg-[#1F1F1F] rounded-md p-4 my-4';
+        card.dataset.newSeriesForm = 'true';
 
         const header = document.createElement('div');
         header.className = 'flex items-center';
