@@ -3,7 +3,7 @@ let logsLimit, logsOffset;
 
 document.addEventListener('DOMContentLoaded', async function () {
     user = await checkLogin();
-    
+
     if (!user) {
         window.location.href = '/about';
     }
@@ -78,11 +78,8 @@ function createLogElement(log) {
     const changeTypeColor = getChangeTypeColor(log.change_type);
 
     logElement.innerHTML = `
-        <div class="flex items-center">
-            <a class="text-lg font-bold ${changeTypeColor}">${log.change_type.toUpperCase()} <span class="text-sm text-gray-400">entry in ${log.resource_type.toUpperCase()}</span></a>
-        </div>
-        <div class="text-gray-400 mb-2">
-            <strong>Record ID:</strong> ${log.resource_id}
+        <div class="flex items-center mb-2">
+            <span class="font-bold ${changeTypeColor}">${log.change_type.toUpperCase()} <span class="text-gray-400">entry in ${log.resource_type.toUpperCase()}</span></span>
         </div>
         ${log.change_type !== 'new' ? createDataElement(log.old_data) : ''}
         ${log.change_type !== 'delete' ? createDataElement(log.new_data) : ''}
