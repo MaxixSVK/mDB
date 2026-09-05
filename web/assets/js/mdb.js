@@ -888,7 +888,7 @@ function renderSeries(series, targetFormat, prependToList = false) {
         addBookButton.innerHTML = '<i class="fas fa-book-medical"></i>';
         addBookButton.addEventListener('click', function (event) {
             event.stopPropagation();
-            showNotification('Adding books is coming soon.', 'info');
+            renderNewBook(series);
         });
 
         actionContainer.appendChild(editButton);
@@ -966,6 +966,40 @@ async function uploadSeriesCoverImage(file, seriesId) {
 
         xhr.addEventListener('error', () => {
             reject(new Error('Series created, but image upload failed'));
+        });
+
+        xhr.send(form);
+    });
+}
+
+async function uploadBookCoverImage(file, bookId) {
+    return new Promise((resolve, reject) => {
+        const form = new FormData();
+        form.append('image', file);
+        form.append('type', 'book');
+        form.append('id', bookId);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', cdn + '/library/upload', true);
+        xhr.setRequestHeader('Authorization', getCookie('sessionToken'));
+
+        xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve();
+                return;
+            }
+
+            let message = 'Book created, but image upload failed';
+            try {
+                const errorData = JSON.parse(xhr.responseText);
+                message = errorData.error || errorData.msg || message;
+            } catch (_) {
+            }
+            reject(new Error(message));
+        });
+
+        xhr.addEventListener('error', () => {
+            reject(new Error('Book created, but image upload failed'));
         });
 
         xhr.send(form);
@@ -1312,6 +1346,242 @@ function renderBookDetails(series, book, chapters) {
             closeBookDetails();
         }
     }
+}
+
+function renderNewBook(series) {
+    const oldContainer = document.getElementById('book-details-container');
+    if (oldContainer) oldContainer.remove();
+    document.body.classList.add('overflow-hidden');
+
+    const container = document.createElement('div');
+    container.id = 'book-details-container';
+    container.className = 'fixed bottom-0 left-0 w-full h-4/5 md:h-2/3 bg-[#191818] p-6 transform translate-y-full transition-transform duration-500 ease-in-out flex items-center justify-center border-t-4 border-[#2A2A2A] overflow-y-auto';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex flex-col md:flex-row h-full w-full max-w-5xl';
+
+    const field = (type, placeholder, classes = '') => {
+        const input = document.createElement('input');
+        input.type = type;
+        input.placeholder = placeholder;
+        input.className = `w-full px-2 py-1 text-white bg-[#191818] border border-[#2a2a2a] rounded-md focus:outline-none focus:border-white ${classes}`;
+        return input;
+    };
+
+    let previewUrl = null;
+    const imageInput = document.createElement('input');
+    imageInput.type = 'file';
+    imageInput.accept = 'image/*';
+    imageInput.className = 'hidden';
+    const imagePicker = document.createElement('button');
+    imagePicker.type = 'button';
+    imagePicker.className = 'h-56 md:h-96 md:max-h-full aspect-[2/3] w-full md:w-64 shrink-0 rounded-md bg-[#2A2A2A] border border-[#3a3a3a] flex items-center justify-center text-white hover:border-white transition-colors duration-200 overflow-hidden mb-4 md:mb-0 md:mr-6';
+    imagePicker.title = 'Upload cover image';
+    imagePicker.setAttribute('aria-label', 'Upload cover image');
+    imagePicker.innerHTML = '<i class="fas fa-plus text-3xl"></i>';
+    imagePicker.onclick = event => {
+        event.stopPropagation();
+        imageInput.click();
+    };
+    imageInput.onchange = event => {
+        event.stopPropagation();
+        const file = imageInput.files && imageInput.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = URL.createObjectURL(file);
+        imagePicker.innerHTML = `<img src="${previewUrl}" alt="Book cover preview" class="h-full w-full object-cover">`;
+    };
+
+    const textWrapper = document.createElement('div');
+    textWrapper.className = 'flex-1 flex flex-col min-w-0';
+    const titleInput = field('text', 'Book title', 'text-3xl font-bold mb-2');
+
+    const isbnInput = field('text', 'ISBN', 'mb-2');
+
+    const dates = document.createElement('div');
+    dates.className = 'flex flex-col sm:flex-row gap-2 mb-2';
+    const startedInput = field('date', 'Started reading');
+    startedInput.value = new Date().toISOString().slice(0, 10);
+    startedInput.setAttribute('aria-label', 'Started reading date');
+    const endedInput = field('date', 'Ended reading');
+    endedInput.setAttribute('aria-label', 'Ended reading date');
+    dates.append(startedInput, endedInput);
+
+    const progress = document.createElement('div');
+    progress.className = 'flex flex-col sm:flex-row gap-2 mb-2';
+    const currentPageInput = field('number', 'Current page');
+    const totalPagesInput = field('number', 'Total pages');
+    currentPageInput.classList.add('flex-1');
+    totalPagesInput.classList.add('flex-1');
+    const progressFields = document.createElement('div');
+    progressFields.className = 'contents';
+    progressFields.append(currentPageInput, totalPagesInput);
+    progress.append(progressFields);
+
+    const chaptersHeader = document.createElement('div');
+    chaptersHeader.className = 'flex items-center justify-between mb-2';
+    const chaptersTitle = document.createElement('h3');
+    chaptersTitle.className = 'text-white font-semibold';
+    chaptersTitle.textContent = 'Chapters';
+    const addChapterButton = document.createElement('button');
+    addChapterButton.type = 'button';
+    addChapterButton.className = 'border border-[#FFA500] text-white rounded-md px-3 py-1 hover:bg-[#FFA500] hover:text-black transition duration-300';
+    addChapterButton.innerHTML = '<i class="fas fa-plus mr-1"></i>Add chapter';
+    chaptersHeader.append(chaptersTitle, addChapterButton);
+    const chaptersList = document.createElement('div');
+    chaptersList.className = 'space-y-2 overflow-y-auto flex-1 mb-4 pr-1';
+
+    const addChapter = () => {
+        const chapter = document.createElement('div');
+        chapter.className = 'p-2 bg-[#2A2A2A] rounded-md flex flex-col sm:flex-row gap-2 items-stretch sm:items-center';
+        const name = field('text', 'Chapter name', 'flex-[2] min-w-0');
+        const date = field('date', 'Chapter date', 'sm:w-40 sm:flex-none');
+        date.value = new Date().toISOString().slice(0, 10);
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'w-8 h-8 border border-red-500 text-red-400 rounded-md hover:bg-red-500 hover:text-white transition duration-300';
+        remove.title = 'Remove chapter';
+        remove.setAttribute('aria-label', 'Remove chapter');
+        remove.innerHTML = '<i class="fas fa-trash"></i>';
+        remove.onclick = event => {
+            event.stopPropagation();
+            chapter.remove();
+        };
+        chapter.append(name, date, remove);
+        chaptersList.appendChild(chapter);
+        name.focus();
+    };
+    addChapterButton.onclick = event => {
+        event.stopPropagation();
+        addChapter();
+    };
+
+    const actions = document.createElement('div');
+    actions.className = 'flex flex-col sm:flex-row gap-2 border-t border-[#2a2a2a] pt-4';
+    const saveButton = document.createElement('button');
+    saveButton.type = 'button';
+    saveButton.className = 'flex-1 border-2 border-dashed border-[#FFA500] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#FFA500] hover:text-black transition duration-300';
+    saveButton.innerHTML = '<i class="fas fa-check mr-1"></i>Save book';
+    const cancelButton = document.createElement('button');
+    cancelButton.type = 'button';
+    cancelButton.className = 'flex-1 border-2 border-dashed border-white text-white font-semibold py-2 px-4 rounded-lg hover:bg-white hover:text-black transition duration-300';
+    cancelButton.innerHTML = '<i class="fas fa-times mr-1"></i>Cancel';
+    actions.append(saveButton, cancelButton);
+    textWrapper.append(titleInput, isbnInput, dates, progress, chaptersHeader, chaptersList, actions);
+    wrapper.append(imagePicker, imageInput, textWrapper);
+    container.appendChild(wrapper);
+    document.getElementById('app').appendChild(container);
+
+    function close() {
+        container.classList.add('translate-y-full');
+        setTimeout(() => {
+            container.remove();
+            document.body.classList.remove('overflow-hidden');
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        }, 500);
+        document.removeEventListener('click', outsideClick);
+    }
+    function outsideClick(event) {
+        if (!container.contains(event.target)) close();
+    }
+    saveButton.onclick = async event => {
+        event.stopPropagation();
+        const title = titleInput.value.trim();
+        const chapters = Array.from(chaptersList.children).map(chapter => {
+            const inputs = chapter.querySelectorAll('input');
+            return {
+                name: inputs[0].value.trim(),
+                date: inputs[1].value
+            };
+        });
+
+        if (!title) {
+            showNotification('Please enter a book title', 'warning');
+            titleInput.focus();
+            return;
+        }
+        const emptyChapter = chapters.find(chapter => !chapter.name);
+        if (emptyChapter) {
+            showNotification('Please enter a name for every chapter', 'warning');
+            return;
+        }
+
+        saveButton.disabled = true;
+        cancelButton.disabled = true;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Saving...';
+
+        const bookData = {
+            series_id: series.series_id,
+            name: title,
+            isbn: isbnInput.value.trim(),
+            started_reading: startedInput.value,
+            ended_reading: endedInput.value,
+            current_page: currentPageInput.value,
+            total_pages: totalPagesInput.value
+        };
+        let createdBookId;
+
+        try {
+            const bookResponse = await fetch(api + '/library/manage/new/book', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': getCookie('sessionToken')
+                },
+                body: JSON.stringify(bookData)
+            });
+            const bookResponseData = await bookResponse.json();
+
+            if (!bookResponse.ok) {
+                throw new Error(bookResponseData.error || bookResponseData.message || 'Failed to create book');
+            }
+
+            const book = bookResponseData.data;
+            createdBookId = book.book_id;
+            if (chapters.length > 0) {
+                await Promise.all(chapters.map(chapter => fetch(api + '/library/manage/new/chapter', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': getCookie('sessionToken')
+                    },
+                    body: JSON.stringify({
+                        book_id: createdBookId,
+                        name: chapter.name,
+                        date: chapter.date
+                    })
+                }).then(async response => {
+                    const responseData = await response.json();
+                    if (!response.ok) {
+                        throw new Error(responseData.error || responseData.message || 'Failed to create chapter');
+                    }
+                })));
+            }
+
+            if (imageInput.files && imageInput.files[0]) {
+                try {
+                    await uploadBookCoverImage(imageInput.files[0], createdBookId);
+                } catch (uploadError) {
+                    showNotification(uploadError.message, 'warning');
+                }
+            }
+
+            showNotification(bookResponseData.msg || 'Book created successfully', 'success');
+            close();
+            await fetchPublicUserData();
+            fetchMainData();
+        } catch (error) {
+            showNotification(error.message, 'error');
+            saveButton.disabled = false;
+            cancelButton.disabled = false;
+            saveButton.innerHTML = '<i class="fas fa-check mr-1"></i>Save book';
+        }
+    };
+    cancelButton.onclick = event => {
+        event.stopPropagation();
+        close();
+    };
+    document.addEventListener('click', outsideClick);
+    requestAnimationFrame(() => container.classList.remove('translate-y-full'));
 }
 
 function setupSearch() {
